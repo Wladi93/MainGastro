@@ -109,7 +109,6 @@
             ripple
             square
             color="secondary"
-            push
             label="Absenden"
             @click="sendKontaktToApi"
           >
