@@ -1,0 +1,12 @@
+// app global css in SCSS form
+// In src/css/app.scss
+* {
+  touch-action: manipulation;
+}
+
+// Oder spezifischer für Quasar-Komponenten
+.q-field,
+.q-btn,
+.q-card {
+  touch-action: manipulation;
+}

@@ -1,0 +1,1070 @@
+<template>
+  <div class="sticky-tabs">
+    <q-banner class="banner full-width text-accent">
+      <h6 class="bannerText">
+        <q-icon class="bannerIcon" name="edit" />
+        Speisekarte bearbeiten
+      </h6>
+    </q-banner>
+
+    <div class="above bg-white">
+      <q-separator color="accent" />
+      <q-card class="full-width text-center">
+        <q-card-section class="row justify-evenly q-gutter-sm">
+          <q-btn
+            label="tab erstellen"
+            outline
+            dense
+            size="md"
+            class="banner col"
+            color="secondary"
+            icon="dashboard_customize"
+            @click="showCategoryDialog = true"
+          />
+
+          <q-btn
+            label="tab löschen"
+            outline
+            dense
+            size="md"
+            class="banner col"
+            color="negative"
+            icon="delete"
+            @click="showCategoryDeleteDialog = true"
+          />
+        </q-card-section>
+      </q-card>
+    </div>
+
+    <q-img class="background-img" />
+    <q-card class="tabsBorder sticky-tabs">
+      <q-tabs
+        v-model="tab"
+        dense
+        class="text-grey-9"
+        active-color="secondary"
+        indicator-color="secondary"
+        align="justify"
+        narrow-indicator
+        inline-label
+        swipeable
+        infinite
+      >
+        <q-tab
+          v-for="category in categories"
+          :key="category.apiEndpoint"
+          @click="onTabChange"
+          :name="category.name"
+          :label="category.name"
+          :icon="category.icon"
+        />
+      </q-tabs>
+    </q-card>
+  </div>
+
+  <div class="tab-panels-container">
+    <q-card class="background-img"></q-card>
+
+    <div
+      v-for="category in categories"
+      :key="category.apiEndpoint"
+      v-show="true"
+      :ref="(el) => setSectionRef(category.name, el)"
+    >
+      <q-card class="q-gutter-y-xl">
+        <div class="tab-section-name">
+          <q-card-section class="card-section3 bannerHeight">
+            <q-img
+              :src="getFullImageUrl2(category.bannerImage)"
+              spinner-color="white"
+              :alt="`${category.name} Banner`"
+              style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+              "
+            >
+              <div
+                class="text-white absolute-bottom text-center"
+                style="font-size: 18px"
+              >
+                <q-icon
+                  :name="category.icon"
+                  color="secondary"
+                  size="xs"
+                  class="q-mr-xs"
+                />
+                {{ category.name }}
+              </div>
+            </q-img>
+          </q-card-section>
+        </div>
+      </q-card>
+
+      <div
+        v-for="item in getCategoryItems(category.name)"
+        :key="item.id"
+        class="my-card"
+      >
+        <q-card>
+          <q-card-section class="card-section">
+            <q-img
+              class="imgGericht"
+              v-if="item.img"
+              :src="getFullImageUrl(item.img)"
+              :alt="item.name"
+            />
+            <div class="text-container">
+              <h6 class="text-h6">
+                {{ item.name }}
+              </h6>
+              <p class="description nowrap">{{ item.description }}</p>
+            </div>
+            <q-separator vertical class="separatorH q-mr-md" />
+            <div class="input-container">
+              <q-btn
+                @click="() => openEditDialog(item, category.name)"
+                class="bg-primary text-white"
+                :size="$q.screen.lt.sm ? 'xs' : 'sm'"
+                icon="edit"
+                label="bearbeiten"
+                color="secondary"
+                square
+              />
+              <h6 class="preisText text-subtitle2 q-mt-md">
+                Preis: {{ item.price ? item.price.toFixed(2) : "0.00" }}€
+              </h6>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
+
+      <q-card>
+        <q-card-section>
+          <q-btn
+            icon="post_add"
+            :label="`${category.name.toLowerCase()} erstellen`"
+            class="full-width"
+            color="secondary"
+            @click="openCreateDialogAll(category.name)"
+          />
+          <q-btn
+            icon="delete"
+            :label="`${category.name.toLowerCase()} löschen`"
+            class="full-width q-mt-sm"
+            color="negative"
+            @click="openDeleteDialog(category.name)"
+          />
+        </q-card-section>
+      </q-card>
+    </div>
+  </div>
+
+  <!-- Kategorie erstellen -->
+  <q-dialog v-model="showCategoryDialog" persistent>
+    <q-card style="min-width: 400px; max-width: 600px">
+      <q-card-section class="row items-center q-pb-none">
+        <div class="text-h6">Neue Kategorie erstellen</div>
+        <q-space />
+        <q-btn icon="close" flat round dense v-close-popup />
+      </q-card-section>
+
+      <q-card-section>
+        <q-form @submit="onSubmitCategory" class="q-gutter-md">
+          <q-input
+            v-model="newCategory.name"
+            label="Kategorie Name *"
+            hint="z.B. Salate, Hauptgerichte, etc."
+            :rules="[(val) => !!val || 'Name ist erforderlich']"
+            outlined
+          />
+
+          <q-select
+            v-model="newCategory.icon"
+            :options="iconOptions"
+            label="Icon auswählen"
+            outlined
+            emit-value
+            map-options
+          >
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section avatar>
+                  <q-icon :name="scope.opt.value" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+            <template v-slot:selected>
+              <div class="row items-center">
+                <q-icon :name="newCategory.icon" class="q-mr-sm" />
+                {{
+                  iconOptions.find((opt) => opt.value === newCategory.icon)
+                    ?.label
+                }}
+              </div>
+            </template>
+          </q-select>
+
+          <div class="q-gutter-sm">
+            <q-file
+              label="Banner Bild hochladen"
+              outlined
+              accept="image/*"
+              :model-value="null"
+              @update:model-value="onBannerFileChange"
+            >
+              <template v-slot:prepend>
+                <q-icon name="attach_file" />
+              </template>
+            </q-file>
+
+            <div v-if="bannerPreview" class="q-mt-md">
+              <q-img
+                :src="bannerPreview"
+                style="height: 100px; max-width: 200px"
+                class="rounded-borders"
+              />
+            </div>
+          </div>
+
+          <div class="row justify-end q-gutter-sm q-mt-lg">
+            <q-btn label="Abbrechen" color="grey" flat v-close-popup />
+            <q-btn
+              label="Kategorie erstellen"
+              color="secondary"
+              type="submit"
+              :loading="categoryLoading"
+              :disable="!isCategoryFormValid"
+            />
+          </div>
+        </q-form>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
+
+  <!-- Kategorie löschen -->
+  <q-dialog v-model="showCategoryDeleteDialog" persistent>
+    <q-card style="min-width: 350px; width: 800px">
+      <q-card-section class="text-center">
+        <div class="text-h6 text-negative">
+          <q-icon name="delete" class="q-mr-sm" />
+          Kategorien löschen
+        </div>
+        <div class="text-caption q-mb-md">
+          Wählen Sie die Kategorien , die Sie löschen möchten:
+        </div>
+
+        <div v-if="categories.length === 0" class="text-center text-grey-6">
+          Keine Kategorien verfügbar
+        </div>
+
+        <div
+          v-else
+          class="q-gutter-sm"
+          style="max-height: 300px; overflow-y: auto"
+        >
+          <div class="q-mb-md">
+            <q-btn
+              size="sm"
+              color="secondary"
+              @click="selectAllItems"
+              :label="
+                selectedCategoriesForDeletion.length === categories.length
+                  ? 'Alle abwählen'
+                  : 'Alle auswählen'
+              "
+            />
+          </div>
+        </div>
+      </q-card-section>
+
+      <q-card-section class="q-pt-none">
+        <q-card
+          v-for="category in categories"
+          :key="category.id"
+          class="item-delete-item q-mt-sm"
+          :class="{
+            'selected-for-deletion': selectedCategoriesForDeletion.includes(
+              category.id
+            ),
+          }"
+        >
+          <q-card-section class="row items-center no-wrap" style="gap: 5px">
+            <q-card style="height: 80px; width: 600px">
+              <q-img
+                v-if="category.bannerImage"
+                :src="getFullImageUrl2(category.bannerImage)"
+                :alt="category.name"
+                style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  right: 0;
+                  bottom: 0;
+                  width: 100%;
+                  height: 100%;
+                  object-fit: cover;
+                "
+                class="rounded-borders q-mr-md"
+              >
+                <div
+                  class="text-white absolute-bottom text-center"
+                  style="font-size: 18px"
+                >
+                  <q-icon
+                    :name="category.icon"
+                    color="secondary"
+                    size="xs"
+                    class="q-mr-xs"
+                  />
+                  {{ category.name }}
+                </div>
+              </q-img>
+            </q-card>
+
+            <q-checkbox
+              v-model="selectedCategoriesForDeletion"
+              :val="category.id"
+              color="negative"
+              class="q-mr-md"
+            />
+          </q-card-section>
+        </q-card>
+
+        <div
+          v-if="selectedCategoriesForDeletion.length > 0"
+          class="q-mt-md text-negative"
+        >
+          <q-icon name="warning" class="q-mr-xs" />
+          {{ selectedCategoriesForDeletion.length }} Kategorien werden gelöscht.
+          Diese Aktion kann nicht rückgängig gemacht werden!
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="right" class="text-primary">
+        <q-btn label="Abbrechen" color="grey" flat v-close-popup />
+        <q-btn
+          flat
+          label="Löschen"
+          color="negative"
+          :disable="selectedCategoriesForDeletion.length === 0"
+          :loading="isDeleting"
+          @click="deleteCategory"
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <createDialogAll
+    v-model="createDialog.show"
+    :dialog-title="createDialog.title"
+    :create-button-text="createDialog.buttonText"
+    :category-id="createDialog.categoryId"
+    upload-endpoint="http://localhost:5008/api/uploads/images"
+    :image-url-hint="createDialog.imageHint"
+    @item-created="createDialog.onCreated"
+  />
+
+  <editDialogAll
+    v-model="editDialog.show"
+    :item="editDialog.item"
+    :has-sizes="editDialog.item?.hasSizes"
+    :sizes="editDialog.item?.sizes"
+    :category-id="editDialog.item?.categoryId"
+    :dialog-title="editDialog.title"
+    :api-endpoint="editDialog.apiEndpoint"
+    upload-endpoint="http://localhost:5008/api/uploads/images"
+    :image-url-hint="editDialog.imageHint"
+    @item-edited="editDialog.onEdited"
+  />
+
+  <deleteDialogAll
+    v-model="deleteDialog.show"
+    :dialog-title="deleteDialog.title"
+    :api-endpoint="deleteDialog.apiEndpoint"
+    @items-deleted="deleteDialog.onDeleted"
+    :category-id="deleteDialog.categoryId"
+  />
+</template>
+
+<script setup lang="ts">
+import type { ComponentPublicInstance } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { useQuasar } from "quasar";
+import createDialogAll from "./createDialogAll.vue";
+import editDialogAll from "./editDialogAll.vue";
+import deleteDialogAll from "./deleteDialogAll.vue";
+
+const $q = useQuasar();
+const selectedCategoriesForDeletion = ref<number[]>([]);
+const selectAllItems = () => {
+  if (selectedCategoriesForDeletion.value.length === categories.value.length) {
+    selectedCategoriesForDeletion.value = [];
+  } else {
+    selectedCategoriesForDeletion.value = categories.value.map(
+      (item) => item.id
+    );
+  }
+};
+
+const BASE_URL = "http://localhost:5008/";
+
+interface ItemSizes {
+  sizeName: string;
+  price: number;
+  categoryItemId: number;
+}
+
+interface Category {
+  id: number;
+  name: string;
+  icon: string;
+  apiEndpoint: string;
+  bannerImage: string;
+  categoryItem?: CategoryItem[];
+}
+
+interface CategoryItem {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  img: string;
+  categoryId: number;
+  hasSizes: boolean;
+  sizes?: ItemSizes[];
+}
+
+const categories = ref<Category[]>([]);
+
+const showCategoryDialog = ref(false);
+const showCategoryDeleteDialog = ref(false);
+const categoryLoading = ref(false);
+const bannerFile = ref<File | null>(null);
+const bannerPreview = ref<string>("");
+
+const uploadBannerImage = async (file: File): Promise<string> => {
+  const formData = new FormData();
+  formData.append("image", file, file.name);
+
+  const response = await fetch(`${BASE_URL}api/uploads/images`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Upload fehlgeschlagen: ${response.statusText}`);
+  }
+
+  const result = await response.json();
+
+  if (result.filename) {
+    return `/uploads/images/${result.filename}`;
+  }
+  if (result.url && result.url.includes("/uploads/images/")) {
+    return result.url;
+  }
+  throw new Error("Ungültige Antwort vom Upload-Server");
+};
+
+interface NewCategory {
+  name: string;
+  icon: string;
+  apiEndpoint: string;
+  bannerImage: string;
+}
+
+const newCategory = ref<NewCategory>({
+  name: "",
+  icon: "",
+  apiEndpoint: "",
+  bannerImage: "",
+});
+
+const iconOptions = [
+  { label: "Pizza", value: "local_pizza" },
+  { label: "Fastfood", value: "fastfood" },
+  { label: "Getränke", value: "wine_bar" },
+  { label: "Saucen", value: "water_drop" },
+  { label: "Desserts", value: "cake" },
+  { label: "Salat", value: "eco" },
+  { label: "Fleisch", value: "restaurant" },
+  { label: "Fisch", value: "set_meal" },
+  { label: "Pasta", value: "ramen_dining" },
+  { label: "Suppe", value: "soup_kitchen" },
+  { label: "Brot", value: "bakery_dining" },
+  { label: "Kaffee", value: "local_cafe" },
+  { label: "Eis", value: "icecream" },
+  { label: "Burger", value: "lunch_dining" },
+  { label: "Asiatisch", value: "rice_bowl" },
+  { label: "Teller", value: "local_dining" },
+  { label: "Tasse", value: "coffee_maker" },
+  { label: "Essen", value: "food_bank" },
+  { label: "Flasche", value: "local_drink" },
+];
+
+const isCategoryFormValid = computed(() => {
+  return newCategory.value.name.trim() !== "" && newCategory.value.icon !== "";
+});
+
+const onBannerFileChange = async (file: File | null) => {
+  if (!file) {
+    bannerPreview.value = "";
+    newCategory.value.bannerImage = "";
+    bannerFile.value = null;
+    return;
+  }
+
+  bannerFile.value = null;
+
+  const reader = new FileReader();
+  reader.onload = (e) => (bannerPreview.value = e.target?.result as string);
+  reader.readAsDataURL(file);
+
+  try {
+    newCategory.value.bannerImage = await uploadBannerImage(file);
+
+    $q.notify({
+      type: "positive",
+      message: "Bannerbild erfolgreich hochgeladen",
+    });
+  } catch (error) {
+    console.error("Fehler beim Upload:", error);
+    $q.notify({
+      type: "negative",
+      message: "Fehler beim Hochladen des Bannerbildes",
+    });
+    newCategory.value.bannerImage = "";
+    bannerPreview.value = "";
+  }
+};
+
+const categoryItems = ref<Record<string, CategoryItem[]>>({});
+
+const fetchCategories = async () => {
+  try {
+    const response = await fetch("http://localhost:5008/api/category");
+    if (!response.ok) new Error("Fehler beim Laden der Kategorien");
+
+    categories.value = await response.json();
+  } catch (error) {
+    console.error(error);
+    $q.notify({
+      type: "negative",
+      message: "Fehler beim Laden der Kategorien",
+    });
+  }
+};
+const isDeleting = ref(false);
+const deleteCategory = async () => {
+  if (selectedCategoriesForDeletion.value.length === 0) {
+    return;
+  }
+
+  isDeleting.value = true;
+
+  try {
+    const itemsToDelete = categories.value.filter((category) =>
+      selectedCategoriesForDeletion.value.includes(category.id)
+    );
+
+    const deletePromises = itemsToDelete.map(async (category) => {
+      try {
+        const itemResponse = await fetch(
+          `http://localhost:5008/api/category/${category.id}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (itemResponse.ok && category.bannerImage) {
+          const imageEndpoint = `http://localhost:5008/api/uploads/images/${category.bannerImage.split("/").pop()}`;
+
+          try {
+            await fetch(imageEndpoint, {
+              method: "DELETE",
+            });
+          } catch (imageError) {
+            console.warn(
+              `Fehler beim Löschen des Bildes für Category ${category.id}:`,
+              imageError
+            );
+          }
+        }
+
+        return { ok: itemResponse.ok, categoryId: category.id };
+      } catch (error) {
+        console.error(
+          `Fehler beim Löschen von Category ${category.id}:`,
+          error
+        );
+        return { ok: false, categoryId: category.id };
+      }
+    });
+
+    const results = await Promise.all(deletePromises);
+
+    const successCount = results.filter((result) => result.ok).length;
+    const failCount = results.length - successCount;
+
+    if (successCount > 0) {
+      $q.notify({
+        type: "positive",
+        message: `${successCount} Kategorie(n) erfolgreich gelöscht`,
+      });
+    }
+
+    if (failCount > 0) {
+      $q.notify({
+        type: "negative",
+        message: `Fehler beim Löschen von ${failCount} Kategorie(n)`,
+      });
+    }
+
+    selectedCategoriesForDeletion.value = [];
+  } catch (error) {
+    console.error("Fehler beim Löschvorgang:", error);
+    $q.notify({
+      type: "negative",
+      message: "Fehler beim Löschvorgang",
+    });
+  } finally {
+    isDeleting.value = false;
+    showCategoryDeleteDialog.value = false;
+    await fetchCategories();
+  }
+};
+
+const onSubmitCategory = async () => {
+  if (!isCategoryFormValid.value) return;
+
+  categoryLoading.value = true;
+  try {
+    const response = await fetch(`${BASE_URL}api/category`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newCategory.value),
+    });
+
+    if (!response.ok) {
+      new Error(`Server error: ${response.status}`);
+    }
+
+    const createdCategory = await response.json();
+
+    categories.value.push(createdCategory);
+    if (createdCategory.name) {
+      categoryItems.value[createdCategory.name] = [];
+    }
+
+    newCategory.value = {
+      name: "",
+      icon: "",
+      apiEndpoint: "",
+      bannerImage: "",
+    };
+    bannerPreview.value = "";
+
+    $q.notify({
+      type: "positive",
+      message: "Kategorie erfolgreich erstellt!",
+    });
+
+    showCategoryDialog.value = false;
+  } catch (error) {
+    console.error("Error creating category:", error);
+    $q.notify({
+      type: "negative",
+      message: "Fehler beim Erstellen der Kategorie",
+    });
+  } finally {
+    categoryLoading.value = false;
+  }
+};
+
+const getFullImageUrl = (imgUrl: string): string => {
+  if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
+    return imgUrl;
+  }
+  return BASE_URL + imgUrl;
+};
+const getFullImageUrl2 = (imgPath: string): string => {
+  if (!imgPath) return "";
+  if (imgPath.startsWith("http")) return imgPath;
+  return `${BASE_URL}${imgPath.replace(/^\/+/, "")}`;
+};
+
+const getCategoryItems = (categoryName: string): CategoryItem[] => {
+  return categoryItems.value[categoryName] || [];
+};
+
+const createDialog = ref({
+  show: false,
+  title: "",
+  buttonText: "",
+  categoryId: 0,
+  imageHint: "",
+  onCreated: () => Promise.resolve(),
+});
+
+const editDialog = ref({
+  show: false,
+  item: null as CategoryItem | null,
+  title: "",
+  apiEndpoint: "",
+  imageHint: "",
+  onEdited: () => Promise.resolve(),
+});
+
+const deleteDialog = ref({
+  show: false,
+  title: "",
+  apiEndpoint: "",
+  categoryId: 0,
+  onDeleted: () => Promise.resolve(),
+});
+
+const openCreateDialogAll = (categoryName: string) => {
+  const category = categories.value.find((c) => c.name === categoryName);
+  if (!category) {
+    console.warn(`Category "${categoryName}" not found`);
+    return;
+  }
+  createDialog.value = {
+    show: true,
+    title: `Neues ${categoryName} erstellen`,
+    buttonText: `${categoryName} erstellen`,
+    categoryId: category.id,
+    imageHint: `z.B. uploads/images/example.jpg`,
+    onCreated: async () => {
+      await fetchCategoryItems(categoryName);
+    },
+  };
+};
+
+const openEditDialog = (item: CategoryItem, categoryName: string) => {
+  const category = categories.value.find((c) => c.name === categoryName);
+  if (!category) {
+    console.warn(`Category "${categoryName}" not found`);
+    return;
+  }
+  editDialog.value = {
+    show: true,
+    item: item,
+    title: categoryName,
+    apiEndpoint: category.apiEndpoint,
+    imageHint: `z.B. ${category.apiEndpoint.replace("api", "images")}/example.jpg`,
+    onEdited: async () => {
+      await fetchCategoryItems(categoryName);
+      editDialog.value.item = null;
+    },
+  };
+};
+
+const openDeleteDialog = (categoryName: string) => {
+  const category = categories.value.find((c) => c.name === categoryName);
+  if (!category) {
+    console.warn(`Category "${categoryName}" not found`);
+    return;
+  }
+  deleteDialog.value = {
+    show: true,
+    title: categoryName,
+    apiEndpoint: category.apiEndpoint,
+    categoryId: category.id,
+    onDeleted: async () => {
+      await fetchCategoryItems(categoryName);
+    },
+  };
+};
+
+const fetchCategoryItems = async (categoryName: string) => {
+  const category = categories.value.find((c) => c.name === categoryName);
+  if (!category) {
+    console.warn(`Category "${categoryName}" not found`);
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `http://localhost:5008/api/categoryItems/by-category/${category.id}`
+    );
+
+    if (!response.ok) {
+      new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    categoryItems.value[categoryName] = await response.json();
+  } catch (error) {
+    console.error(`Error fetching ${categoryName}:`, error);
+    $q.notify({
+      type: "negative",
+      message: `Fehler beim Laden der ${categoryName}`,
+    });
+  }
+};
+
+const tab = ref("");
+const isUserScrolling = ref(false);
+const sectionRefs = ref<Record<string, HTMLElement>>({});
+
+const setSectionRef = (
+  categoryName: string,
+  el: Element | ComponentPublicInstance | null
+) => {
+  if (el && el instanceof HTMLElement) {
+    sectionRefs.value[categoryName] = el;
+  }
+};
+
+const onTabChange = () => {
+  console.log(tab.value);
+  isUserScrolling.value = true;
+
+  const headerOffset = 160;
+  const element = sectionRefs.value[tab.value];
+
+  if (element) {
+    const elementTop = element.offsetTop;
+    const scrollTop = elementTop - headerOffset;
+
+    window.scrollTo({
+      top: Math.max(0, scrollTop),
+      behavior: "smooth",
+    });
+  }
+
+  setTimeout(() => {
+    isUserScrolling.value = false;
+  }, 1000);
+};
+
+let observer: IntersectionObserver | null = null;
+
+const handleIntersection = (entries: IntersectionObserverEntry[]) => {
+  if (isUserScrolling.value) return;
+
+  entries.forEach((entry) => {
+    if (entry.isIntersecting) {
+      const categoryName = Object.keys(sectionRefs.value).find(
+        (key) => sectionRefs.value[key] === entry.target
+      );
+      if (categoryName) {
+        tab.value = categoryName;
+      }
+    }
+  });
+};
+
+onMounted(async () => {
+  await fetchCategories();
+  for (const category of categories.value) {
+    await fetchCategoryItems(category.name);
+  }
+
+  observer = new IntersectionObserver(handleIntersection, {
+    root: null,
+    rootMargin: "0px",
+    threshold: 0.5,
+  });
+
+  Object.values(sectionRefs.value).forEach((section) => {
+    if (section) observer?.observe(section);
+  });
+});
+
+onBeforeUnmount(() => {
+  if (observer) {
+    Object.values(sectionRefs.value).forEach((section) => {
+      if (section) observer?.unobserve(section);
+    });
+  }
+});
+</script>
+
+<style scoped>
+.bannerHeight {
+  height: 180px;
+}
+
+.tabsBorder {
+  position: sticky;
+  top: 0;
+  border: 1px ridge #ebebeb;
+}
+
+.sticky-tabs {
+  position: sticky;
+  top: 52px;
+  z-index: 5;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+.my-card {
+  background-color: rgb(230, 230, 230);
+  max-width: 100%;
+  padding: 0.5%;
+  text-align: center;
+  box-shadow: 1px 4px 0.2rem rgb(105, 105, 105);
+  border: 1px solid rgb(88, 88, 88);
+  overflow: hidden;
+  height: auto;
+}
+
+.card-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-section3 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  box-shadow: 2px 2px 0.4rem rgb(78, 78, 85);
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgb(119, 119, 119);
+}
+.imgGericht {
+  border-radius: 6px;
+  aspect-ratio: 1;
+  max-width: 80px;
+  width: 80px;
+  min-width: 80px;
+  height: auto;
+  box-shadow: 2px 3px 0.2rem rgb(56, 56, 56);
+  border: 1px solid rgb(204, 204, 204);
+}
+
+.text-container {
+  flex-grow: 1;
+  padding-left: 20px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  width: 100%;
+  flex-shrink: 1;
+  min-height: 50px;
+}
+
+.description {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 10px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  float: right;
+  justify-content: space-between;
+}
+
+.background-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(8px);
+  opacity: 0.5;
+  z-index: -1;
+}
+.tab-section-name {
+  border: 1px solid;
+  box-shadow: 2px 2px 0.4rem rgb(0, 0, 0);
+}
+
+.selected-for-deletion {
+  border-color: #f44336 !important;
+  background-color: #ffebee !important;
+}
+.above {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+}
+
+@media (max-width: 600px) {
+  .bannerHeight {
+    height: 120px;
+  }
+  .text-container h6 {
+    font-size: 14px;
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    padding: 0;
+  }
+  .description {
+    font-size: 12px;
+    width: 98%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+  .nowrap {
+    white-space: nowrap;
+  }
+  .my-card {
+    height: auto;
+  }
+  .imgGericht {
+    min-width: 60px;
+    margin-left: -10px;
+  }
+  .card-section {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    height: auto;
+    top: 0;
+  }
+  .card-section3 {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .preisText {
+    font-size: 12px;
+  }
+
+  .above {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: ROW;
+    height: 45px;
+  }
+
+  .banner {
+    max-height: 10px;
+  }
+  .bannerText {
+    font-size: 12px;
+  }
+  .bannerIcon {
+    font-size: 20px;
+  }
+}
+</style>
