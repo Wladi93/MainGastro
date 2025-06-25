@@ -8,7 +8,7 @@ export interface RegisterData {
   email: string;
   firstname: string;
   lastname: string;
-  telephone: string;
+  telephone?: string;
 }
 
 export interface UserInfo {
@@ -70,7 +70,7 @@ export const useRegister = (onSuccess?: () => void) => {
       !Email.value ||
       !Vorname.value ||
       !Nachname.value ||
-      !Telefon.value
+      Telefon.value
     ) {
       $q.notify({
         type: "negative",

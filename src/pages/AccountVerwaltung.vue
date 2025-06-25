@@ -40,7 +40,7 @@
           class="text-subtitle text-secondary text-center q-mb-lg row items-center justify-center"
         >
           <q-icon name="people" color="secondary" size="xs" class="q-mr-sm" />
-          <span>{{ users.length }} Benutzer gefunden</span>
+          <span>{{ filteredUsers.length }} Benutzer gefunden</span>
         </div>
 
         <q-input
@@ -72,13 +72,14 @@
                 <div class="text-subtitle1 text-bold">
                   {{ props.row.username }}
                 </div>
-                <div class="text-caption">E-Mail: {{ props.row.email }}</div>
+                <div class="text-caption">Id: {{ props.row.id }}</div>
                 <div
                   class="text-caption"
                   v-if="props.row.firstName || props.row.lastName"
                 >
                   Name: {{ props.row.firstName }} {{ props.row.lastName }}
                 </div>
+                <div class="text-caption">E-Mail: {{ props.row.email }}</div>
                 <div class="text-caption">
                   Telefon: {{ props.row.telephone }}
                 </div>
@@ -135,8 +136,8 @@
             <q-td :props="props">
               <q-btn
                 icon="edit"
-                color="primary"
-                size="sm"
+                color="secondary"
+                size="md"
                 flat
                 round
                 @click="editUser(props.row)"
@@ -145,9 +146,9 @@
                 <q-tooltip>Bearbeiten</q-tooltip>
               </q-btn>
               <q-btn
-                icon="lock_reset"
-                color="orange"
-                size="sm"
+                icon="password"
+                color="secondary"
+                size="md"
                 flat
                 round
                 @click="changeUserPassword(props.row)"
@@ -158,7 +159,7 @@
               <q-btn
                 icon="delete"
                 color="negative"
-                size="sm"
+                size="md"
                 flat
                 round
                 @click="deleteUser(props.row)"
