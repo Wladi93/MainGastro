@@ -16,7 +16,7 @@
     </div>
   </div>
 
-  <q-card class="background-img"></q-card>
+  <q-card class="background-img q-mb-md"></q-card>
   <q-card class="my-card2 q-mt-md">
     <q-card-section>
       <div v-if="loading" class="text-center">
@@ -56,6 +56,7 @@
         </q-input>
 
         <q-table
+          rows-per-page-label="Benutzer pro Seite"
           :rows="filteredUsers"
           :columns="columns"
           row-key="id"
@@ -63,11 +64,68 @@
           class="users-table"
           flat
           bordered
+          :grid="$q.screen.lt.md"
         >
+          <template v-slot:item="props">
+            <q-card class="q-ma-sm q-pa-sm full-width">
+              <q-card-section>
+                <div class="text-subtitle1 text-bold">
+                  {{ props.row.username }}
+                </div>
+                <div class="text-caption">E-Mail: {{ props.row.email }}</div>
+                <div
+                  class="text-caption"
+                  v-if="props.row.firstName || props.row.lastName"
+                >
+                  Name: {{ props.row.firstName }} {{ props.row.lastName }}
+                </div>
+                <div class="text-caption">
+                  Telefon: {{ props.row.telephone }}
+                </div>
+                <div class="text-caption">
+                  Rolle:
+                  <q-badge
+                    :color="props.row.role === 1 ? 'negative' : 'primary'"
+                    :label="props.row.role"
+                  />
+                </div>
+              </q-card-section>
+
+              <q-separator spaced />
+
+              <q-card-actions vertical align="center" class="q-gutter-sm">
+                <q-btn
+                  class="full-width"
+                  icon="edit"
+                  label="Bearbeiten"
+                  color="secondary"
+                  @click="editUser(props.row)"
+                />
+
+                <q-btn
+                  class="full-width"
+                  icon="password"
+                  label="Passwort ändern"
+                  color="secondary"
+                  @click="changeUserPassword(props.row)"
+                />
+
+                <q-btn
+                  class="full-width"
+                  icon="delete"
+                  label="Löschen"
+                  color="negative"
+                  @click="deleteUser(props.row)"
+                  v-if="props.row.role === 0"
+                />
+              </q-card-actions>
+            </q-card>
+          </template>
+
           <template v-slot:body-cell-role="props">
             <q-td :props="props">
               <q-badge
-                :color="props.row.role === 'Admin' ? 'red' : 'blue'"
+                :color="props.row.role === 1 ? 'negative' : 'primary'"
                 :label="props.row.role"
               />
             </q-td>
@@ -124,7 +182,7 @@
         label="Benutzer hinzufügen"
         icon="person_add"
         class="q-mb-md q-mt-md"
-        color="secondary"
+        color="positive"
         @click="addUserDialog()"
       />
     </div>
@@ -260,7 +318,7 @@
 
   <!-- Benutzer bearbeiten Dialog -->
   <q-dialog v-model="showEditDialog" persistent>
-    <q-card style="min-width: 500px">
+    <q-card style="min-width: 400px">
       <q-card-section>
         <div
           class="text-subtitle text-secondary text-center q-mb-sm row items-center justify-center"
@@ -514,19 +572,18 @@ const closeUserAdd = () => {
   showUserAdd.value = false;
 };
 
-// Reactive data
 const users = ref<UserInfo[]>([]);
 const loading = ref(false);
 const error = ref("");
 const searchQuery = ref("");
 
-// Edit user dialog
+// Benutzer bearbeiten Dialog
 const showEditDialog = ref(false);
 const editingUser = ref<UserInfo | null>(null);
 const editLoading = ref(false);
 const editFormRef = ref<QForm | null>(null);
 
-// Password change dialog
+// Passwort ändern Dialog
 const showPasswordDialog = ref(false);
 const passwordUser = ref<UserInfo | null>(null);
 const passwordForm = ref({
@@ -536,12 +593,11 @@ const passwordForm = ref({
 const passwordLoading = ref(false);
 const passwordFormRef = ref<QForm | null>(null);
 
-// Delete user dialog
+// Benutzer löschen Dialog
 const showDeleteDialog = ref(false);
-const userToDelete = ref<UserInfo | null>(null); // Renamed from deleteUser to userToDelete
+const userToDelete = ref<UserInfo | null>(null);
 const deleteLoading = ref(false);
 
-// Table configuration
 const columns = [
   {
     name: "id",
@@ -606,7 +662,6 @@ const pagination = ref({
   descending: false,
 });
 
-// Computed properties
 const filteredUsers = computed(() => {
   if (!searchQuery.value) {
     return users.value;
@@ -622,7 +677,6 @@ const filteredUsers = computed(() => {
   );
 });
 
-// Helper function to get auth token
 const getAuthToken = () => {
   return (
     localStorage.getItem("token") ||
@@ -633,7 +687,6 @@ const getAuthToken = () => {
   );
 };
 
-// Fetch all users
 const fetchAllUsers = async () => {
   loading.value = true;
   error.value = "";
@@ -690,7 +743,7 @@ const fetchAllUsers = async () => {
   }
 };
 
-// Edit user functions
+// Benutzer bearbeiten
 const editUser = (user: UserInfo) => {
   editingUser.value = { ...user };
   showEditDialog.value = true;
@@ -735,7 +788,6 @@ const saveUserChanges = async () => {
       );
     }
 
-    // Update local data
     const userIndex = users.value.findIndex(
       (u) => u.id === editingUser.value!.id
     );
@@ -763,7 +815,7 @@ const saveUserChanges = async () => {
   }
 };
 
-// Password change functions
+// Passwort ändern
 const changeUserPassword = (user: UserInfo) => {
   passwordUser.value = user;
   passwordForm.value = {
@@ -831,7 +883,7 @@ const submitPasswordChange = async () => {
   }
 };
 
-// Delete user functions
+// Benutzer löschen
 const deleteUser = (user: UserInfo) => {
   if (user.role === "Admin") {
     $q.notify({
@@ -842,7 +894,7 @@ const deleteUser = (user: UserInfo) => {
     return;
   }
 
-  userToDelete.value = user; // Using the renamed variable
+  userToDelete.value = user;
   showDeleteDialog.value = true;
 };
 
@@ -874,7 +926,6 @@ const confirmDeleteUser = async () => {
       throw new Error(`Fehler beim Löschen: ${response.status} - ${errorText}`);
     }
 
-    // Remove user from local array
     users.value = users.value.filter((u) => u.id !== userToDelete.value!.id);
 
     $q.notify({
