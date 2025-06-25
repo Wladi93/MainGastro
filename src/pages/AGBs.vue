@@ -111,7 +111,7 @@
     </q-img>
   </q-card>
   <h5 class="text-caption text-center color-secondary">
-    Bestellen? zur
+    Unsere Auswahl entdecken? zur
     <RouterLink class="text-secondary" to="/speisekarte"
       >Speisekarte</RouterLink
     >

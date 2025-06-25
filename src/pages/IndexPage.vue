@@ -116,7 +116,7 @@
             </div>
 
             <q-separator inset class="q-mt-lg q-mb-sm bg-white" size="2px" />
-            <h6 class="text-overline">Lieferungen täglich ab 17:00 Uhr</h6>
+            <h6 class="text-overline">Keine Lieferung möglich</h6>
           </div>
         </q-img>
 
@@ -140,8 +140,10 @@
     </q-card>
   </div>
   <h5 class="text-caption text-center color-secondary">
-    Fragen? zur
-    <RouterLink class="text-secondary" to="/kontakt">Kontaktseite</RouterLink>
+    Sie haben Fragen? zum
+    <RouterLink class="text-secondary" to="/kontakt"
+      >Kontaktformular</RouterLink
+    >
   </h5>
 </template>
 
