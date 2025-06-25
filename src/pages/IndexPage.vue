@@ -66,9 +66,9 @@
               "
             ></div>
             <h6 class="text-caption text-weight-medium">
-              Inmitten von Nordhorn bieten wir Ihnen nicht nur eine Auswahl an
-              köstlichen Gerichten, sondern auch ein einzigartiges Ambiente, das
-              zum Genießen einlädt.
+              Inmitten von Nordhorn-Klausheide bieten wir Ihnen nicht nur eine
+              Auswahl an köstlichen Gerichten, sondern auch ein einzigartiges
+              Ambiente, das zum Genießen einlädt.
             </h6>
 
             <div

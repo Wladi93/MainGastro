@@ -38,7 +38,7 @@
         </h6>
         <q-separator
           inset
-          class="separator bg-blue-8 q-mb-md q-mt-md"
+          class="separator bg-white q-mb-md q-mt-md"
           width="10px"
         />
         <h6 class="text-caption">Kleingewerbe gemäß § 19 UStG.</h6>
