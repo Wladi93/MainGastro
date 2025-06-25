@@ -266,7 +266,7 @@ const shouldShowDialog = computed(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  position: bottom;
+  position: absolute;
   bottom: 0;
   width: 100%;
   z-index: 100;
