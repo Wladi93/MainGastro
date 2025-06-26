@@ -83,61 +83,113 @@
             Keine Einträge gefunden
           </div>
 
-          <q-list v-else separator>
-            <q-item
-              v-for="log in sortedLogs"
-              :key="log.id"
-              class="q-pa-md q-mt-sm"
-              style="border: 1px solid grey; border-radius: 6px"
+          <div>
+            <q-list separator>
+              <q-item
+                v-for="log in paginatedLogs"
+                :key="log.id"
+                class="q-pa-md q-mt-sm"
+                style="border: 1px solid grey; border-radius: 6px"
+              >
+                <q-item-section>
+                  <q-item-label class="text-weight-medium q-mb-sm">
+                    <div class="row q-gutter-xs">
+                      <q-chip :color="getActionColor(log.action)">
+                        {{ log.action.toUpperCase() }}
+                      </q-chip>
+                    </div>
+                    <q-separator class="q-mt-sm" color="grey-3" size="3px" />
+                  </q-item-label>
+
+                  <q-item-label caption class="q-mb-sm">
+                    <div class="row q-gutter-xs">
+                      <q-chip
+                        dense
+                        color="blue-12"
+                        text-color="white"
+                        size="md"
+                      >
+                        {{ log.username }}
+                      </q-chip>
+                      <q-chip
+                        dense
+                        :color="
+                          log.entity === 'category'
+                            ? 'brown-4'
+                            : 'deep-orange-11'
+                        "
+                        text-color="white"
+                        size="md"
+                      >
+                        {{ log.entity }}
+                      </q-chip>
+                    </div>
+                  </q-item-label>
+
+                  <q-item-label caption class="q-mt-xs">
+                    <q-icon name="schedule" size="xs" class="q-mr-xs" />
+                    {{ formatTimestamp(log.timestamp) }}
+                  </q-item-label>
+
+                  <q-item-label caption class="q-mt-xs" v-if="log.entityId">
+                    <q-icon name="tag" size="md" class="q-mr-xs" />
+                    ID: {{ log.entityId }}
+                  </q-item-label>
+                </q-item-section>
+
+                <q-item-section side>
+                  <q-btn
+                    round
+                    flat
+                    color="primary"
+                    icon="info"
+                    size="md"
+                    @click="showDetails(log.changes)"
+                  />
+                </q-item-section>
+              </q-item>
+            </q-list>
+
+            <!-- Pagination -->
+            <div
+              class="text-center q-mt-md"
+              style="
+                display: flex;
+                justify-content: center;
+                align-items: center;
+              "
             >
-              <q-item-section>
-                <q-item-label class="text-weight-medium q-mb-sm">
-                  <div class="row q-gutter-xs">
-                    <q-chip :color="getActionColor(log.action)">
-                      {{ log.action.toUpperCase() }}
-                    </q-chip>
-                  </div>
-                </q-item-label>
-
-                <q-item-label caption class="q-mb-sm">
-                  <div class="row q-gutter-xs">
-                    <q-chip dense color="blue-12" text-color="white" size="md">
-                      {{ log.username }}
-                    </q-chip>
-                    <q-chip
-                      dense
-                      :color="
-                        log.entity === 'category' ? 'brown-4' : 'deep-orange-11'
-                      "
-                      text-color="white"
-                      size="md"
-                    >
-                      {{ log.entity }}
-                    </q-chip>
-                  </div>
-                </q-item-label>
-                <q-item-label caption class="q-mt-xs">
-                  <q-icon name="schedule" size="xs" class="q-mr-xs" />
-                  {{ formatTimestamp(log.timestamp) }}
-                </q-item-label>
-                <q-item-label caption class="q-mt-xs" v-if="log.entityId">
-                  <q-icon name="tag" size="md" class="q-mr-xs" />
-                  ID: {{ log.entityId }}
-                </q-item-label>
-              </q-item-section>
-
-              <q-item-section side>
-                <q-btn
-                  round
-                  flat
+              <div class="row items-center justify-center q-mt-md">
+                <q-pagination
+                  v-model="currentPage"
+                  :max="totalPages"
+                  max-pages="5"
+                  boundary-numbers
+                  direction-links
                   color="primary"
-                  icon="info"
                   size="md"
-                  @click="showDetails(log.changes)"
                 />
-              </q-item-section>
-            </q-item>
-          </q-list>
+              </div>
+            </div>
+          </div>
+          <div
+            style="display: flex; justify-content: center; align-items: center"
+            class="q-mt-lg full-width"
+          >
+            <q-select
+              outlined
+              class="full-width"
+              v-model="rowsPerPage"
+              :options="[5, 10, 15, 20, 50]"
+              label="Pro Seite"
+              label-color="primary"
+              text-color="primary"
+              color="primary"
+              emit-value
+              map-options
+              style="width: 120px"
+            />
+          </div>
         </div>
       </q-card-section>
     </q-card>
@@ -298,6 +350,18 @@ import type { AuditLog } from "src/types/AuditLog";
 import { fetchAuditLogs } from "src/api/auditLogApi";
 import type { QTableProps } from "quasar";
 import { date } from "quasar";
+
+const rowsPerPage = ref(20);
+const currentPage = ref(1);
+
+const paginatedLogs = computed(() => {
+  const start = (currentPage.value - 1) * rowsPerPage.value;
+  return sortedLogs.value.slice(start, start + rowsPerPage.value);
+});
+
+const totalPages = computed(() => {
+  return Math.ceil(sortedLogs.value.length / rowsPerPage.value);
+});
 
 const highlightedChanges = ref<Set<string>>(new Set());
 const highlightChangedField = (fieldKey: string) => {
