@@ -60,17 +60,36 @@
           :rows="filteredUsers"
           :columns="columns"
           row-key="id"
-          :pagination="pagination"
+          v-model:pagination="pagination"
+          :rows-per-page-options="[10, 20, 30, 40, 50, 0]"
           class="users-table"
           flat
           bordered
           :grid="$q.screen.lt.md"
         >
+          <template #body-cell-username="props">
+            <q-td :props="props">
+              <q-chip
+                class="text-white"
+                :color="props.row.username === 'admin' ? 'red-12' : 'blue-12'"
+              >
+                {{ props.row.username }}</q-chip
+              >
+            </q-td>
+          </template>
+          <!-- Mobile ansicht -->
           <template v-slot:item="props">
             <q-card class="q-ma-sm q-pa-sm full-width">
               <q-card-section>
-                <div class="text-subtitle1 text-bold">
-                  {{ props.row.username }}
+                <div class="text-subtitle1 text-bold row q-gutter-xs">
+                  <q-chip
+                    class="text-white"
+                    :color="
+                      props.row.username === 'admin' ? 'red-12' : 'blue-12'
+                    "
+                  >
+                    {{ props.row.username }}</q-chip
+                  >
                 </div>
                 <div class="text-caption">Id: {{ props.row.id }}</div>
                 <div
@@ -658,7 +677,7 @@ const columns = [
 ];
 
 const pagination = ref({
-  rowsPerPage: 15,
+  rowsPerPage: 10,
   sortBy: "id",
   descending: false,
 });

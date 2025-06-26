@@ -236,7 +236,7 @@
           </div>
 
           <div class="row justify-end q-gutter-sm q-mt-lg">
-            <q-btn label="Abbrechen" color="grey" flat v-close-popup />
+            <q-btn label="Abbrechen" color="negative" flat v-close-popup />
             <q-btn
               label="Kategorie erstellen"
               color="secondary"
@@ -352,7 +352,6 @@
       <q-card-actions align="right" class="text-primary">
         <q-btn label="Abbrechen" color="grey" flat v-close-popup />
         <q-btn
-          flat
           label="Löschen"
           color="negative"
           :disable="selectedCategoriesForDeletion.length === 0"
@@ -402,7 +401,9 @@ import { useQuasar } from "quasar";
 import createDialogAll from "./createDialogAll.vue";
 import editDialogAll from "./editDialogAll.vue";
 import deleteDialogAll from "./deleteDialogAll.vue";
-
+import { useAuditLogger } from "src/composables/useAuditLogger";
+const { logAudit, getCurrentUsername } = useAuditLogger();
+const currentUser = getCurrentUsername();
 const $q = useQuasar();
 const selectedCategoriesForDeletion = ref<number[]>([]);
 const selectAllItems = () => {
@@ -599,7 +600,13 @@ const deleteCategory = async () => {
             );
           }
         }
-
+        await logAudit("delete", "category", category.id, {
+          name: category.name,
+          icon: category.icon,
+          username: currentUser,
+          bannerImage: category.bannerImage,
+          message: `Kategorie "${category.name}" wurde aus Kategorien gelöscht.`,
+        });
         return { ok: itemResponse.ok, categoryId: category.id };
       } catch (error) {
         console.error(
@@ -666,6 +673,13 @@ const onSubmitCategory = async () => {
     if (createdCategory.name) {
       categoryItems.value[createdCategory.name] = [];
     }
+    await logAudit("create", "category", createdCategory.id, {
+      name: createdCategory.name,
+      username: currentUser,
+      icon: createdCategory.icon,
+      bannerImage: createdCategory.bannerImage,
+      message: `Kategorie "${createdCategory.name}" wurde in Kategorien erstellt.`,
+    });
 
     newCategory.value = {
       name: "",

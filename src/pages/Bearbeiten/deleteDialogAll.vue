@@ -14,7 +14,11 @@
           Keine {{ dialogTitle }} verfügbar
         </div>
 
-        <div v-else class="q-gutter-sm" style="max-height: 300px; overflow-y: auto">
+        <div
+          v-else
+          class="q-gutter-sm"
+          style="max-height: 300px; overflow-y: auto"
+        >
           <div class="q-mb-md">
             <q-btn
               size="sm"
@@ -35,7 +39,9 @@
           v-for="item in items"
           :key="item.id"
           class="item-delete-item q-mt-sm"
-          :class="{ 'selected-for-deletion': selectedItemsForDeletion.includes(item.id) }"
+          :class="{
+            'selected-for-deletion': selectedItemsForDeletion.includes(item.id),
+          }"
         >
           <q-card-section class="row items-center no-wrap" style="gap: 5px">
             <q-card style="height: 61px; width: 61px">
@@ -57,9 +63,13 @@
             </q-card>
 
             <div class="col">
-              <div class="text-subtitle1 text-weight-medium">{{ item.name }}</div>
+              <div class="text-subtitle1 text-weight-medium">
+                {{ item.name }}
+              </div>
               <div class="text-body2 text-grey-7">{{ item.description }}</div>
-              <div class="text-caption text-primary">ab {{ item.price.toFixed(2) }}€</div>
+              <div class="text-caption text-primary">
+                ab {{ item.price.toFixed(2) }}€
+              </div>
             </div>
             <q-checkbox
               v-model="selectedItemsForDeletion"
@@ -70,17 +80,19 @@
           </q-card-section>
         </q-card>
 
-        <div v-if="selectedItemsForDeletion.length > 0" class="q-mt-md text-negative">
+        <div
+          v-if="selectedItemsForDeletion.length > 0"
+          class="q-mt-md text-negative"
+        >
           <q-icon name="warning" class="q-mr-xs" />
-          {{ selectedItemsForDeletion.length }} {{ dialogTitle }} werden gelöscht. Diese Aktion kann
-          nicht rückgängig gemacht werden!
+          {{ selectedItemsForDeletion.length }} {{ dialogTitle }} werden
+          gelöscht. Diese Aktion kann nicht rückgängig gemacht werden!
         </div>
       </q-card-section>
 
       <q-card-actions align="right" class="text-primary">
         <q-btn flat label="Abbrechen" @click="closeDeleteDialog" />
         <q-btn
-          flat
           label="Löschen"
           color="negative"
           :disable="selectedItemsForDeletion.length === 0"
@@ -93,169 +105,206 @@
 </template>
 
 <script setup lang="ts">
-import { useQuasar } from 'quasar'
-import { computed, ref, watch } from 'vue'
+import { useQuasar } from "quasar";
+import { computed, ref, watch } from "vue";
+import { useAuditLogger } from "src/composables/useAuditLogger";
+const { logAudit, getCurrentUsername } = useAuditLogger();
 
 interface ItemSizes {
-  sizeName: string
-  price: number
-  categoryItemId: number
+  sizeName: string;
+  price: number;
+  categoryItemId: number;
 }
 
 interface Item {
-  id: number
-  name: string
-  description: string
-  price: number
-  img: string
-  categoryId: number
-  hasSizes: boolean
-  sizes?: ItemSizes[]
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  img: string;
+  categoryId: number;
+  hasSizes: boolean;
+  sizes?: ItemSizes[];
 }
 
-const $q = useQuasar()
-const items = ref<Item[]>([])
-const isDeleting = ref(false)
-const selectedItemsForDeletion = ref<number[]>([])
+const $q = useQuasar();
+const items = ref<Item[]>([]);
+const isDeleting = ref(false);
+const selectedItemsForDeletion = ref<number[]>([]);
 
 const props = defineProps<{
-  modelValue: boolean
-  dialogTitle: string
-  apiEndpoint: string
-  categoryId: number
-}>()
+  modelValue: boolean;
+  dialogTitle: string;
+  apiEndpoint: string;
+  categoryId: number;
+}>();
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  'items-deleted': []
-}>()
+  "update:modelValue": [value: boolean];
+  "items-deleted": [];
+}>();
 
 const deleteDialog = computed({
   get: () => props.modelValue,
-  set: (value) => emit('update:modelValue', value),
-})
+  set: (value) => emit("update:modelValue", value),
+});
 
 const getImageUrl = (imgPath: string): string => {
-  if (!imgPath) return ''
+  if (!imgPath) return "";
 
-  if (imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
-    return imgPath
+  if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
+    return imgPath;
   }
 
-  const baseUrl = 'http://localhost:5008/'
-  const cleanPath = imgPath.startsWith('/') ? imgPath.substring(1) : imgPath
-  return baseUrl + cleanPath
-}
+  const baseUrl = "http://localhost:5008/";
+  const cleanPath = imgPath.startsWith("/") ? imgPath.substring(1) : imgPath;
+  return baseUrl + cleanPath;
+};
 watch(deleteDialog, (newValue) => {
   if (newValue) {
-    void fetchItems()
+    void fetchItems();
   }
-})
+});
 
 const fetchItems = async () => {
   try {
     const response = await fetch(
-      `http://localhost:5008/api/categoryitems/by-category/${props.categoryId}`,
-    )
-    const data = await response.json()
-    items.value = data
-    imageErrors.value = {}
+      `http://localhost:5008/api/categoryitems/by-category/${props.categoryId}`
+    );
+    const data = await response.json();
+    items.value = data;
+    imageErrors.value = {};
   } catch (error) {
-    console.error('Error fetching items:', error)
+    console.error("Error fetching items:", error);
     $q.notify({
-      type: 'negative',
+      type: "negative",
       message: `Fehler beim Laden der ${props.dialogTitle}`,
-    })
+    });
   }
-}
+};
 
 const closeDeleteDialog = () => {
-  deleteDialog.value = false
-  selectedItemsForDeletion.value = []
-  imageErrors.value = {}
-}
+  deleteDialog.value = false;
+  selectedItemsForDeletion.value = [];
+  imageErrors.value = {};
+};
 
 const selectAllItems = () => {
   if (selectedItemsForDeletion.value.length === items.value.length) {
-    selectedItemsForDeletion.value = []
+    selectedItemsForDeletion.value = [];
   } else {
-    selectedItemsForDeletion.value = items.value.map((item) => item.id)
+    selectedItemsForDeletion.value = items.value.map((item) => item.id);
   }
-}
+};
 
 const deleteItems = async () => {
   if (selectedItemsForDeletion.value.length === 0) {
-    return
+    return;
   }
 
-  isDeleting.value = true
+  isDeleting.value = true;
 
   try {
     const itemsToDelete = items.value.filter((item) =>
-      selectedItemsForDeletion.value.includes(item.id),
-    )
+      selectedItemsForDeletion.value.includes(item.id)
+    );
 
     const deletePromises = itemsToDelete.map(async (item) => {
       try {
-        const itemResponse = await fetch(`http://localhost:5008/api/categoryitems/${item.id}`, {
-          method: 'DELETE',
-        })
+        const itemResponse = await fetch(
+          `http://localhost:5008/api/categoryitems/${item.id}`,
+          {
+            method: "DELETE",
+          }
+        );
 
         if (itemResponse.ok && item.img) {
-          const imageEndpoint = `http://localhost:5008/api/uploads/images/${item.img.split('/').pop()}`
+          const imageEndpoint = `http://localhost:5008/api/uploads/images/${item.img.split("/").pop()}`;
 
           try {
             await fetch(imageEndpoint, {
-              method: 'DELETE',
-            })
+              method: "DELETE",
+            });
           } catch (imageError) {
-            console.warn(`Fehler beim Löschen des Bildes für Item ${item.id}:`, imageError)
+            console.warn(
+              `Fehler beim Löschen des Bildes für Item ${item.id}:`,
+              imageError
+            );
           }
         }
 
-        return { ok: itemResponse.ok, itemId: item.id }
+        const categoryName = await getCategoryNameById(props.categoryId);
+        const currentUser = getCurrentUsername();
+        await logAudit("delete", "categoryItem", item.id, {
+          name: item.name,
+          price: item.price,
+          description: item.description,
+          img: item.img,
+          message: `Item "${item.name}" wurde aus der Kategorie "${categoryName}" gelöscht`,
+          username: currentUser,
+        });
+
+        return { ok: itemResponse.ok, itemId: item.id };
       } catch (error) {
-        console.error(`Fehler beim Löschen von Item ${item.id}:`, error)
-        return { ok: false, itemId: item.id }
+        console.error(`Fehler beim Löschen von Item ${item.id}:`, error);
+        return { ok: false, itemId: item.id };
       }
-    })
+    });
 
-    const results = await Promise.all(deletePromises)
-    const successfulDeletions = results.filter((result) => result.ok)
-    const failedDeletions = results.filter((result) => !result.ok)
+    const results = await Promise.all(deletePromises);
+    const successfulDeletions = results.filter((result) => result.ok);
+    const failedDeletions = results.filter((result) => !result.ok);
 
-    const successfulIds = successfulDeletions.map((r) => r.itemId)
-    items.value = items.value.filter((item) => !successfulIds.includes(item.id))
+    const successfulIds = successfulDeletions.map((r) => r.itemId);
+    items.value = items.value.filter(
+      (item) => !successfulIds.includes(item.id)
+    );
 
     if (failedDeletions.length === 0) {
       $q.notify({
-        type: 'positive',
+        type: "positive",
         message: `${selectedItemsForDeletion.value.length} ${props.dialogTitle} erfolgreich gelöscht!`,
-      })
-      emit('items-deleted')
+      });
+      emit("items-deleted");
     } else {
       $q.notify({
-        type: 'warning',
+        type: "warning",
         message: `${successfulDeletions.length} von ${results.length} ${props.dialogTitle} gelöscht. Einige Löschvorgänge sind fehlgeschlagen.`,
-      })
+      });
     }
 
-    closeDeleteDialog()
+    closeDeleteDialog();
   } catch (error) {
-    console.error('Error deleting items:', error)
+    console.error("Error deleting items:", error);
     $q.notify({
-      type: 'negative',
+      type: "negative",
       message: `Fehler beim Löschen der ${props.dialogTitle}`,
-    })
+    });
   } finally {
-    isDeleting.value = false
+    isDeleting.value = false;
   }
-}
-const imageErrors = ref<Record<number, boolean>>({})
+};
+const imageErrors = ref<Record<number, boolean>>({});
 
 const handleImageError = (itemId: number) => {
-  imageErrors.value[itemId] = true
-}
+  imageErrors.value[itemId] = true;
+};
+
+const getCategoryNameById = async (categoryId: number): Promise<string> => {
+  try {
+    const response = await fetch(
+      `http://localhost:5008/api/category/${categoryId}`
+    );
+    if (!response.ok) {
+      throw new Error("Kategorie nicht gefunden");
+    }
+    const category = await response.json();
+    return category.name;
+  } catch (error) {
+    console.error("Fehler beim Laden der Kategorie:", error);
+    return "Unbekannte Kategorie";
+  }
+};
 </script>
 
 <style scoped>

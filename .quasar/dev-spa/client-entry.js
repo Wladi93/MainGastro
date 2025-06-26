@@ -342,7 +342,9 @@ createQuasarApp(createApp, quasarUserOptions)
       
       import('boot/pinia'),
       
-      import('boot/passive-events')
+      import('boot/passive-events'),
+      
+      import('boot/quasar-lang')
       
     ]).then(bootFiles => {
       const boot = mapFn(bootFiles).filter(entry => typeof entry === 'function')

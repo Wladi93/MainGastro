@@ -56,7 +56,7 @@
           <div class="text text-subtitle2 text-center">
             <h6 class="q-mt-md">Herzlich Willkommen</h6>
             <q-separator inset class="q-mb-lg bg-white" size="2px" />
-            <h6 class="text-body2 text-weight-bolder">Unser Lokal</h6>
+
             <div
               class="q-mt-sm"
               style="
@@ -116,7 +116,10 @@
             </div>
 
             <q-separator inset class="q-mt-lg q-mb-sm bg-white" size="2px" />
-            <h6 class="text-overline">Keine Lieferung möglich</h6>
+            <h6 class="text-overline">
+              Sie wollen feiern? Wir Vermieten Ihnen unsere Location. Fragen Sie
+              uns gerne an!
+            </h6>
           </div>
         </q-img>
 

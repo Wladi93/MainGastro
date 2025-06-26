@@ -121,6 +121,20 @@
           </q-item>
 
           <q-item
+            v-if="isAdmin"
+            clickable
+            v-ripple
+            @click="$router.push(`/logs`)"
+            :class="{ 'text-secondary': isActive('/logs') }"
+          >
+            <q-item-section avatar>
+              <q-icon name="fingerprint" />
+            </q-item-section>
+
+            <q-item-section>User Logs</q-item-section>
+          </q-item>
+
+          <q-item
             clickable
             v-ripple
             @click="$router.push(`/oeffnungszeiten`)"
