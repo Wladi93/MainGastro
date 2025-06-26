@@ -41,9 +41,7 @@
           <template #body-cell-entity="props">
             <q-td :props="props">
               <q-chip
-                :color="
-                  props.row.entity === 'category' ? 'brown-4' : 'deep-orange-11'
-                "
+                :color="props.row.entity === 'category' ? 'red-11' : 'green-11'"
               >
                 {{ props.row.entity }}
               </q-chip>
@@ -114,9 +112,7 @@
                       <q-chip
                         dense
                         :color="
-                          log.entity === 'category'
-                            ? 'brown-4'
-                            : 'deep-orange-11'
+                          log.entity === 'category' ? 'red-11' : 'green-12'
                         "
                         text-color="white"
                         size="md"
