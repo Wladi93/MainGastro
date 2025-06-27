@@ -130,6 +130,8 @@
 import { ref } from "vue";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
+import axios from "axios";
+import api from "src/boot/axios";
 
 const router = useRouter();
 
@@ -150,35 +152,37 @@ const sendKontaktToApi = async () => {
       telefon: telefon?.value,
       anliegen: anliegen.value,
     };
-    const response = await fetch("http://localhost:5008/api/kontaktmail", {
-      method: "POST",
+
+    const response = await api.post("/api/kontaktmail", kontaktData, {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(kontaktData),
     });
 
-    if (response.ok) {
-      const result = await response.json();
-      $q.notify({
-        message: "Nachricht erfolgreich gesendet!",
-        icon: "check",
-        color: "green",
-        position: "top",
-        timeout: 400,
-      });
-      console.log(result);
-    } else {
-      const errorText = await response.text();
-      console.error(
-        `Fehler beim Senden der Nachricht: ${response.status} - ${errorText}`
-      );
-      throw new Error("Fehler beim Senden der Bestellung");
-    }
+    $q.notify({
+      message: "Nachricht erfolgreich gesendet!",
+      icon: "check",
+      color: "green",
+      position: "top",
+      timeout: 400,
+    });
+
+    console.log(response.data);
   } catch (error) {
     console.error("Fehler:", error);
+
+    let message = "Fehler beim Senden der Nachricht.";
+
+    if (axios.isAxiosError(error)) {
+      message =
+        error.response?.data?.message ||
+        `Fehler: ${error.response?.status} - ${error.message}`;
+    } else if (error instanceof Error) {
+      message = error.message;
+    }
+
     $q.notify({
-      message: "Fehler beim Senden der Nachricht.",
+      message,
       icon: "cancel",
       color: "red",
       position: "top",

@@ -1,15 +1,15 @@
-import axios from 'axios'
+import axios from "axios";
 
 const api = axios.create({
-  baseURL: 'https://localhost:5001/api',
-})
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5008/",
+});
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken')
+  const token = localStorage.getItem("authToken");
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+    config.headers.Authorization = `Bearer ${token}`;
   }
-  return config
-})
+  return config;
+});
 
-export default api
+export default api;

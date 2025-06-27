@@ -1,6 +1,6 @@
 import { ref } from "vue";
-import axios from "axios";
 import { useQuasar } from "quasar";
+import api from "src/boot/axios";
 
 export interface RegisterData {
   username: string;
@@ -70,7 +70,7 @@ export const useRegister = (onSuccess?: () => void) => {
       !Email.value ||
       !Vorname.value ||
       !Nachname.value ||
-      Telefon.value
+      !Telefon.value // Korrigiert: fehlendes ! hinzugefügt
     ) {
       $q.notify({
         type: "negative",
@@ -99,8 +99,8 @@ export const useRegister = (onSuccess?: () => void) => {
         telephone: Telefon.value,
       };
 
-      const { data } = await axios.post<RegisterResponse>(
-        "http://localhost:5008/api/auth/register",
+      const { data } = await api.post<RegisterResponse>(
+        "/api/auth/register",
         registerData
       );
 
@@ -121,7 +121,11 @@ export const useRegister = (onSuccess?: () => void) => {
         onSuccess();
       }
     } catch (error) {
-      console.error("Fehler beim hinzufügen des Benutzers:", error);
+      console.error("Fehler beim Hinzufügen des Benutzers:", error);
+      $q.notify({
+        type: "negative",
+        message: "Fehler beim Registrieren des Benutzers",
+      });
     } finally {
       isLoading.value = false;
     }

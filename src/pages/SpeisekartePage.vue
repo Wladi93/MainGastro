@@ -54,7 +54,7 @@
         <div class="tab-section-name">
           <q-card-section class="card-section3 bannerHeight">
             <q-img
-              :src="getFullImageUrl2(category.bannerImage)"
+              :src="getFullImageUrl(category.bannerImage)"
               spinner-color="white"
               :alt="`${category.name} Banner`"
               style="
@@ -128,15 +128,14 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import type { ComponentPublicInstance } from "vue";
-
+import api from "src/boot/axios";
 import { useQuasar } from "quasar";
 
-const BASE_URL = "http://localhost:5008/";
 const getFullImageUrl = (imgUrl: string): string => {
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
     return imgUrl;
   }
-  return BASE_URL + imgUrl;
+  return api.defaults.baseURL + imgUrl.replace(/^\/+/, "");
 };
 
 const $q = useQuasar();
@@ -171,12 +170,6 @@ const categories = ref<Category[]>([]);
 
 // Kategorien
 
-const getFullImageUrl2 = (imgPath: string): string => {
-  if (!imgPath) return "";
-  if (imgPath.startsWith("http")) return imgPath;
-  return `${BASE_URL}${imgPath.replace(/^\/+/, "")}`;
-};
-
 const getCategoryItems = (categoryName: string): CategoryItem[] => {
   return categoryItems.value[categoryName] || [];
 };
@@ -193,13 +186,10 @@ const setSectionRef = (
 
 const fetchCategories = async () => {
   try {
-    const response = await fetch("http://localhost:5008/api/category");
-    if (!response.ok) throw new Error("Fehler beim Laden der Kategorien");
-
-    const data = await response.json();
-    categories.value = data;
+    const response = await api.get("/api/category");
+    categories.value = response.data;
   } catch (error) {
-    console.error(error);
+    console.error("Fehler beim Laden der Kategorien:", error);
     $q.notify({
       type: "negative",
       message: "Fehler beim Laden der Kategorien",
@@ -224,16 +214,10 @@ const fetchCategoryItems = async (categoryName: string) => {
   }
 
   try {
-    const response = await fetch(
-      `http://localhost:5008/api/categoryItems/by-category/${category.id}`
+    const response = await api.get(
+      `/api/categoryItems/by-category/${category.id}`
     );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    categoryItems.value[categoryName] = data;
+    categoryItems.value[categoryName] = response.data;
   } catch (error) {
     console.error(`Error fetching ${categoryName}:`, error);
     $q.notify({

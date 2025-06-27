@@ -108,6 +108,7 @@
 import { useQuasar } from "quasar";
 import { computed, ref, watch } from "vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
+import api from "src/boot/axios";
 const { logAudit, getCurrentUsername } = useAuditLogger();
 
 interface ItemSizes {
@@ -156,9 +157,12 @@ const getImageUrl = (imgPath: string): string => {
     return imgPath;
   }
 
-  const baseUrl = "http://localhost:5008/";
+  const baseUrl = api.defaults.baseURL || "http://localhost:5008/";
   const cleanPath = imgPath.startsWith("/") ? imgPath.substring(1) : imgPath;
-  return baseUrl + cleanPath;
+
+  return baseUrl.endsWith("/")
+    ? baseUrl + cleanPath
+    : baseUrl + "/" + cleanPath;
 };
 watch(deleteDialog, (newValue) => {
   if (newValue) {
@@ -168,11 +172,10 @@ watch(deleteDialog, (newValue) => {
 
 const fetchItems = async () => {
   try {
-    const response = await fetch(
-      `http://localhost:5008/api/categoryitems/by-category/${props.categoryId}`
+    const response = await api.get(
+      `/api/categoryitems/by-category/${props.categoryId}`
     );
-    const data = await response.json();
-    items.value = data;
+    items.value = response.data;
     imageErrors.value = {};
   } catch (error) {
     console.error("Error fetching items:", error);
@@ -211,30 +214,25 @@ const deleteItems = async () => {
 
     const deletePromises = itemsToDelete.map(async (item) => {
       try {
-        const itemResponse = await fetch(
-          `http://localhost:5008/api/categoryitems/${item.id}`,
-          {
-            method: "DELETE",
-          }
-        );
+        const itemResponse = await api.delete(`/api/categoryitems/${item.id}`);
 
-        if (itemResponse.ok && item.img) {
-          const imageEndpoint = `http://localhost:5008/api/uploads/images/${item.img.split("/").pop()}`;
-
-          try {
-            await fetch(imageEndpoint, {
-              method: "DELETE",
-            });
-          } catch (imageError) {
-            console.warn(
-              `Fehler beim Löschen des Bildes für Item ${item.id}:`,
-              imageError
-            );
+        if (itemResponse.status === 200 && item.img) {
+          const imageFileName = item.img.split("/").pop();
+          if (imageFileName) {
+            try {
+              await api.delete(`/api/uploads/images/${imageFileName}`);
+            } catch (imageError) {
+              console.warn(
+                `Fehler beim Löschen des Bildes für Item ${item.id}:`,
+                imageError
+              );
+            }
           }
         }
 
         const categoryName = await getCategoryNameById(props.categoryId);
         const currentUser = getCurrentUsername();
+
         await logAudit("delete", "categoryItem", item.id, {
           name: item.name,
           price: item.price,
@@ -244,7 +242,7 @@ const deleteItems = async () => {
           username: currentUser,
         });
 
-        return { ok: itemResponse.ok, itemId: item.id };
+        return { ok: true, itemId: item.id };
       } catch (error) {
         console.error(`Fehler beim Löschen von Item ${item.id}:`, error);
         return { ok: false, itemId: item.id };
@@ -284,6 +282,7 @@ const deleteItems = async () => {
     isDeleting.value = false;
   }
 };
+
 const imageErrors = ref<Record<number, boolean>>({});
 
 const handleImageError = (itemId: number) => {
@@ -292,14 +291,8 @@ const handleImageError = (itemId: number) => {
 
 const getCategoryNameById = async (categoryId: number): Promise<string> => {
   try {
-    const response = await fetch(
-      `http://localhost:5008/api/category/${categoryId}`
-    );
-    if (!response.ok) {
-      throw new Error("Kategorie nicht gefunden");
-    }
-    const category = await response.json();
-    return category.name;
+    const response = await api.get(`/api/category/${categoryId}`);
+    return response.data.name;
   } catch (error) {
     console.error("Fehler beim Laden der Kategorie:", error);
     return "Unbekannte Kategorie";

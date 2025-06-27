@@ -533,6 +533,8 @@ import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
 import type { QForm } from "quasar";
 import { useRegister } from "../components/register";
+import api from "src/boot/axios";
+import axios from "axios";
 
 interface UserInfo {
   id: number;
@@ -718,37 +720,31 @@ const fetchAllUsers = async () => {
       throw new Error("Nicht angemeldet - kein Token gefunden");
     }
 
-    const response = await fetch("http://localhost:5008/api/users", {
-      method: "GET",
+    const response = await api.get("/api/users", {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
+    users.value = response.data;
+  } catch (err: unknown) {
+    console.error("Fehler beim Laden der Benutzerdaten:", err);
+
+    if (axios.isAxiosError(err)) {
+      if (err.response?.status === 401) {
         localStorage.clear();
         sessionStorage.clear();
-        throw new Error("Sitzung abgelaufen. Bitte melden Sie sich erneut an.");
+        error.value = "Sitzung abgelaufen. Bitte melden Sie sich erneut an.";
+      } else if (err.response?.status === 403) {
+        error.value = "Keine Berechtigung für diese Aktion.";
+      } else {
+        error.value = `Fehler beim Laden der Benutzerdaten: ${err.response?.status} - ${err.response?.data || err.message}`;
       }
-      if (response.status === 403) {
-        throw new Error("Keine Berechtigung für diese Aktion.");
-      }
-      const errorText = await response.text();
-      throw new Error(
-        `Fehler beim Laden der Benutzerdaten: ${response.status} - ${errorText}`
-      );
+    } else if (err instanceof Error) {
+      error.value = err.message;
+    } else {
+      error.value = "Ein unbekannter Fehler ist aufgetreten";
     }
-
-    const data = await response.json();
-    users.value = data;
-  } catch (err) {
-    console.error("Fehler beim Laden der Benutzerdaten:", err);
-    error.value =
-      err instanceof Error
-        ? err.message
-        : "Ein unbekannter Fehler ist aufgetreten";
 
     if (
       error.value.includes("Nicht angemeldet") ||
@@ -784,29 +780,20 @@ const saveUserChanges = async () => {
       throw new Error("Nicht angemeldet - kein Token gefunden");
     }
 
-    const response = await fetch(
-      `http://localhost:5008/api/users/${editingUser.value.id}`,
+    await api.put(
+      `/api/users/${editingUser.value.id}`,
       {
-        method: "PUT",
+        email: editingUser.value.email,
+        firstName: editingUser.value.firstName,
+        lastName: editingUser.value.lastName,
+        telephone: editingUser.value.telephone,
+      },
+      {
         headers: {
           Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          email: editingUser.value.email,
-          firstName: editingUser.value.firstName,
-          lastName: editingUser.value.lastName,
-          telephone: editingUser.value.telephone,
-        }),
       }
     );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(
-        `Fehler beim Speichern: ${response.status} - ${errorText}`
-      );
-    }
 
     const userIndex = users.value.findIndex(
       (u) => u.id === editingUser.value!.id
@@ -855,33 +842,14 @@ const submitPasswordChange = async () => {
 
   try {
     const token = getAuthToken();
-
     if (!token) {
       throw new Error("Nicht angemeldet - kein Token gefunden");
     }
 
-    const response = await fetch(
-      `http://localhost:5008/api/users/${passwordUser.value.id}/change-password`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          newPassword: passwordForm.value.newPassword,
-          confirmNewPassword: passwordForm.value.confirmNewPassword,
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      const errorMessage =
-        errorData?.message ||
-        `Fehler beim Ändern des Passworts: ${response.status}`;
-      throw new Error(errorMessage);
-    }
+    await api.post(`/api/users/${passwordUser.value.id}/change-password`, {
+      newPassword: passwordForm.value.newPassword,
+      confirmNewPassword: passwordForm.value.confirmNewPassword,
+    });
 
     $q.notify({
       type: "positive",
@@ -892,10 +860,18 @@ const submitPasswordChange = async () => {
     showPasswordDialog.value = false;
   } catch (err) {
     console.error("Fehler beim Ändern des Passworts:", err);
+
+    let message = "Fehler beim Ändern des Passworts";
+
+    if (axios.isAxiosError(err)) {
+      message = err.response?.data?.message || message;
+    } else if (err instanceof Error) {
+      message = err.message;
+    }
+
     $q.notify({
       type: "negative",
-      message:
-        err instanceof Error ? err.message : "Fehler beim Ändern des Passworts",
+      message,
       position: "top",
     });
   } finally {
@@ -930,21 +906,8 @@ const confirmDeleteUser = async () => {
       throw new Error("Nicht angemeldet - kein Token gefunden");
     }
 
-    const response = await fetch(
-      `http://localhost:5008/api/users/${userToDelete.value.id}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Fehler beim Löschen: ${response.status} - ${errorText}`);
-    }
+    // Wenn dein Axios-Interceptor den Token setzt, kannst du headers weglassen
+    await api.delete(`/api/users/${userToDelete.value.id}`);
 
     users.value = users.value.filter((u) => u.id !== userToDelete.value!.id);
 
@@ -957,12 +920,20 @@ const confirmDeleteUser = async () => {
     showDeleteDialog.value = false;
   } catch (err) {
     console.error("Fehler beim Löschen des Benutzers:", err);
+
+    let message = "Fehler beim Löschen des Benutzers";
+
+    if (axios.isAxiosError(err)) {
+      message =
+        err.response?.data?.message ||
+        `Fehler beim Löschen: ${err.response?.status}`;
+    } else if (err instanceof Error) {
+      message = err.message;
+    }
+
     $q.notify({
       type: "negative",
-      message:
-        err instanceof Error
-          ? err.message
-          : "Fehler beim Löschen des Benutzers",
+      message,
       position: "top",
     });
   } finally {

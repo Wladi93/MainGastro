@@ -1,4 +1,5 @@
 import { jwtDecode } from "jwt-decode";
+import api from "src/boot/axios";
 
 export const useAuditLogger = () => {
   const getCurrentUsername = (): string => {
@@ -50,21 +51,7 @@ export const useAuditLogger = () => {
     };
 
     try {
-      const token = localStorage.getItem("authToken");
-
-      const headers: HeadersInit = {
-        "Content-Type": "application/json",
-      };
-
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
-
-      await fetch("http://localhost:5008/api/auditlog", {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload),
-      });
+      await api.post("/api/auditlog", payload);
     } catch (err) {
       console.warn("Audit log failed", err);
     }

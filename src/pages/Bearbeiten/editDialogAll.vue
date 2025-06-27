@@ -184,6 +184,7 @@
 import { useQuasar } from "quasar";
 import { computed, reactive, ref, watch } from "vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
+import api from "src/boot/axios";
 const { logAudit, getCurrentUsername } = useAuditLogger();
 
 const $q = useQuasar();
@@ -199,12 +200,15 @@ const mittelPrice = ref("");
 const großPrice = ref("");
 const singlePrice = ref("");
 
-const BASE_URL = "http://localhost:5008/";
 const getFullImageUrl = (imgUrl: string): string => {
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
     return imgUrl;
   }
-  return BASE_URL + imgUrl;
+
+  const cleanImgUrl = imgUrl.startsWith("/") ? imgUrl.slice(1) : imgUrl;
+  const baseURL = api.defaults.baseURL || "";
+
+  return `${baseURL.replace(/\/$/, "")}/${cleanImgUrl}`;
 };
 
 interface ItemSizes {
@@ -317,25 +321,34 @@ const handleSinglePriceBlur = () => {
   }
 };
 
-const uploadImage = async (file: File): Promise<string> => {
-  const uploadEndpoint =
-    props.uploadEndpoint || "http://localhost:5008/api/uploads/images";
-
+const uploadImage = async (
+  file: File,
+  customUploadPath?: string
+): Promise<string> => {
   const formData = new FormData();
   formData.append("image", file, file.name);
 
-  try {
-    const response = await fetch(uploadEndpoint, {
-      method: "POST",
-      body: formData,
-    });
+  const uploadPath = customUploadPath || "api/uploads/images";
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Upload failed: ${response.status} - ${errorText}`);
+  try {
+    let response;
+
+    if (uploadPath.startsWith("http://") || uploadPath.startsWith("https://")) {
+      response = await api.post(uploadPath, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        baseURL: "",
+      });
+    } else {
+      response = await api.post(uploadPath, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     }
 
-    const result = await response.json();
+    const result = response.data;
     console.log("Upload result:", result);
 
     return result.imageUrl || result.url || result.path;
@@ -352,17 +365,11 @@ const deleteOldImage = async (imageUrl: string) => {
     const filename = imageUrl.split("/").pop();
     if (!filename) return;
 
-    const imageEndpoint = `http://localhost:5008/api/uploads/images/${filename}`;
+    const endpoint = `api/uploads/images/${filename}`;
 
-    const response = await fetch(imageEndpoint, {
-      method: "DELETE",
-    });
+    await api.delete(endpoint);
 
-    if (response.ok) {
-      console.log("Altes Bild erfolgreich gelöscht:", filename);
-    } else {
-      console.warn("Fehler beim Löschen des alten Bildes:", response.status);
-    }
+    console.log("Altes Bild erfolgreich gelöscht:", filename);
   } catch (error) {
     console.warn("Fehler beim Löschen des alten Bildes:", error);
   }
@@ -534,24 +541,14 @@ const updateItem = async () => {
       ...(props.hasSizes && { sizes: editItem.sizes }),
     };
 
-    const response = await fetch(
-      `${BASE_URL}api/categoryitems/${editItem.id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      }
+    const response = await api.put(
+      `api/categoryitems/${editItem.id}`,
+      requestBody
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("API Response Error:", errorText);
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
-    }
     const categoryName = await getCategoryNameById(props.categoryId!);
     const currentUser = getCurrentUsername();
+
     await logAudit("update", "categoryItem", editItem.id!, {
       oldValues: {
         name: oldItem.name,
@@ -569,30 +566,10 @@ const updateItem = async () => {
       username: currentUser,
     });
 
-    const contentType = response.headers.get("content-type");
-    const contentLength = response.headers.get("content-length");
-
-    let responseData = null;
-
-    if (
-      contentLength &&
-      contentLength !== "0" &&
-      contentType &&
-      contentType.includes("application/json")
-    ) {
-      try {
-        responseData = await response.json();
-        console.log(
-          "API Response Data:",
-          JSON.stringify(responseData, null, 2)
-        );
-      } catch (jsonError) {
-        console.warn(
-          "JSON Parse Error (möglicherweise leere Response):",
-          jsonError
-        );
-      }
+    if (response.data) {
+      console.log("API Response Data:", JSON.stringify(response.data, null, 2));
     }
+
     if (
       newUploadedImageUrl.value &&
       originalImageUrl.value &&
@@ -689,14 +666,8 @@ watch(singlePrice, (newPrice) => {
 
 const getCategoryNameById = async (categoryId: number): Promise<string> => {
   try {
-    const response = await fetch(
-      `http://localhost:5008/api/category/${categoryId}`
-    );
-    if (!response.ok) {
-      throw new Error("Kategorie nicht gefunden");
-    }
-    const category = await response.json();
-    return category.name;
+    const response = await api.get(`api/category/${categoryId}`);
+    return response.data.name;
   } catch (error) {
     console.error("Fehler beim Laden der Kategorie:", error);
     return "Unbekannte Kategorie";

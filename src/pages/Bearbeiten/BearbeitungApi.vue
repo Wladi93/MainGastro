@@ -75,7 +75,7 @@
         <div class="tab-section-name">
           <q-card-section class="card-section3 bannerHeight">
             <q-img
-              :src="getFullImageUrl2(category.bannerImage)"
+              :src="getFullImageUrl(category.bannerImage)"
               spinner-color="white"
               :alt="`${category.name} Banner`"
               style="
@@ -301,7 +301,7 @@
             <q-card style="height: 80px; width: 600px">
               <q-img
                 v-if="category.bannerImage"
-                :src="getFullImageUrl2(category.bannerImage)"
+                :src="getFullImageUrl(category.bannerImage)"
                 :alt="category.name"
                 style="
                   position: absolute;
@@ -402,6 +402,8 @@ import createDialogAll from "./createDialogAll.vue";
 import editDialogAll from "./editDialogAll.vue";
 import deleteDialogAll from "./deleteDialogAll.vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
+import api from "src/boot/axios";
+
 const { logAudit, getCurrentUsername } = useAuditLogger();
 const currentUser = getCurrentUsername();
 const $q = useQuasar();
@@ -456,24 +458,27 @@ const uploadBannerImage = async (file: File): Promise<string> => {
   const formData = new FormData();
   formData.append("image", file, file.name);
 
-  const response = await fetch(`${BASE_URL}api/uploads/images`, {
-    method: "POST",
-    body: formData,
-  });
+  try {
+    const response = await api.post("/api/uploads/images", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`Upload fehlgeschlagen: ${response.statusText}`);
-  }
+    const result = response.data;
 
-  const result = await response.json();
+    if (result.filename) {
+      return `/uploads/images/${result.filename}`;
+    }
+    if (result.url && result.url.includes("/uploads/images/")) {
+      return result.url;
+    }
 
-  if (result.filename) {
-    return `/uploads/images/${result.filename}`;
+    throw new Error("Ungültige Antwort vom Upload-Server");
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Upload fehlgeschlagen: ${errorMessage}`);
   }
-  if (result.url && result.url.includes("/uploads/images/")) {
-    return result.url;
-  }
-  throw new Error("Ungültige Antwort vom Upload-Server");
 };
 
 interface NewCategory {
@@ -552,10 +557,8 @@ const categoryItems = ref<Record<string, CategoryItem[]>>({});
 
 const fetchCategories = async () => {
   try {
-    const response = await fetch("http://localhost:5008/api/category");
-    if (!response.ok) new Error("Fehler beim Laden der Kategorien");
-
-    categories.value = await response.json();
+    const response = await api.get("/api/category");
+    categories.value = response.data;
   } catch (error) {
     console.error(error);
     $q.notify({
@@ -564,6 +567,7 @@ const fetchCategories = async () => {
     });
   }
 };
+
 const isDeleting = ref(false);
 const deleteCategory = async () => {
   if (selectedCategoriesForDeletion.value.length === 0) {
@@ -579,27 +583,24 @@ const deleteCategory = async () => {
 
     const deletePromises = itemsToDelete.map(async (category) => {
       try {
-        const itemResponse = await fetch(
-          `http://localhost:5008/api/category/${category.id}`,
-          {
-            method: "DELETE",
-          }
-        );
+        // Kategorie löschen
+        const itemResponse = await api.delete(`/api/category/${category.id}`);
 
-        if (itemResponse.ok && category.bannerImage) {
-          const imageEndpoint = `http://localhost:5008/api/uploads/images/${category.bannerImage.split("/").pop()}`;
-
-          try {
-            await fetch(imageEndpoint, {
-              method: "DELETE",
-            });
-          } catch (imageError) {
-            console.warn(
-              `Fehler beim Löschen des Bildes für Category ${category.id}:`,
-              imageError
-            );
+        // Bannerbild löschen, falls vorhanden und Löschung erfolgreich
+        if (itemResponse.status === 200 && category.bannerImage) {
+          const imageFileName = category.bannerImage.split("/").pop();
+          if (imageFileName) {
+            try {
+              await api.delete(`/api/uploads/images/${imageFileName}`);
+            } catch (imageError) {
+              console.warn(
+                `Fehler beim Löschen des Bildes für Category ${category.id}:`,
+                imageError
+              );
+            }
           }
         }
+
         await logAudit("delete", "category", category.id, {
           name: category.name,
           icon: category.icon,
@@ -607,7 +608,8 @@ const deleteCategory = async () => {
           bannerImage: category.bannerImage,
           message: `Kategorie "${category.name}" wurde aus Kategorien gelöscht.`,
         });
-        return { ok: itemResponse.ok, categoryId: category.id };
+
+        return { ok: true, categoryId: category.id };
       } catch (error) {
         console.error(
           `Fehler beim Löschen von Category ${category.id}:`,
@@ -655,24 +657,15 @@ const onSubmitCategory = async () => {
 
   categoryLoading.value = true;
   try {
-    const response = await fetch(`${BASE_URL}api/category`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(newCategory.value),
-    });
+    const response = await api.post("/api/category", newCategory.value);
 
-    if (!response.ok) {
-      new Error(`Server error: ${response.status}`);
-    }
-
-    const createdCategory = await response.json();
+    const createdCategory = response.data;
 
     categories.value.push(createdCategory);
     if (createdCategory.name) {
       categoryItems.value[createdCategory.name] = [];
     }
+
     await logAudit("create", "category", createdCategory.id, {
       name: createdCategory.name,
       username: currentUser,
@@ -706,16 +699,16 @@ const onSubmitCategory = async () => {
   }
 };
 
-const getFullImageUrl = (imgUrl: string): string => {
-  if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
-    return imgUrl;
-  }
-  return BASE_URL + imgUrl;
-};
-const getFullImageUrl2 = (imgPath: string): string => {
+const getFullImageUrl = (imgPath: string): string => {
   if (!imgPath) return "";
-  if (imgPath.startsWith("http")) return imgPath;
-  return `${BASE_URL}${imgPath.replace(/^\/+/, "")}`;
+
+  if (/^https?:\/\//.test(imgPath)) {
+    return imgPath;
+  }
+
+  const cleanPath = imgPath.replace(/^\/+/, "");
+
+  return `${BASE_URL}${cleanPath}`;
 };
 
 const getCategoryItems = (categoryName: string): CategoryItem[] => {
@@ -810,15 +803,10 @@ const fetchCategoryItems = async (categoryName: string) => {
   }
 
   try {
-    const response = await fetch(
-      `http://localhost:5008/api/categoryItems/by-category/${category.id}`
+    const response = await api.get(
+      `/api/categoryItems/by-category/${category.id}`
     );
-
-    if (!response.ok) {
-      new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    categoryItems.value[categoryName] = await response.json();
+    categoryItems.value[categoryName] = response.data;
   } catch (error) {
     console.error(`Error fetching ${categoryName}:`, error);
     $q.notify({

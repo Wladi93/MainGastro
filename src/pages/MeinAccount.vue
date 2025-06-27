@@ -345,6 +345,8 @@ import { ref, onMounted } from "vue";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
 import type { QForm } from "quasar";
+import api from "src/boot/axios";
+import axios from "axios";
 
 interface UserInfo {
   id: number;
@@ -386,41 +388,23 @@ const fetchUserData = async () => {
     }
 
     console.log("API-Aufruf wird gestartet...");
-    const apiUrl = "http://localhost:5008/api/auth/me";
-    console.log("API-URL:", apiUrl);
+    const apiUrl = "/api/auth/me";
+    console.log("API-URL:", api.defaults.baseURL + apiUrl);
 
-    const response = await fetch(apiUrl, {
-      method: "GET",
+    const response = await api.get(apiUrl, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
     });
 
     console.log("API-Response Status:", response.status);
     console.log("Response Headers:", response.headers);
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("accessToken");
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("authToken");
-        throw new Error("Sitzung abgelaufen. Bitte melden Sie sich erneut an.");
-      }
-      const errorText = await response.text();
-      console.error("API-Fehler:", errorText);
-      throw new Error(
-        `Fehler beim Laden der Daten: ${response.status} - ${errorText}`
-      );
-    }
-
-    const contentType = response.headers.get("content-type");
+    const contentType = response.headers["content-type"];
     console.log("Content-Type:", contentType);
 
     if (!contentType || !contentType.includes("application/json")) {
-      const responseText = await response.text();
+      const responseText = JSON.stringify(response.data);
       console.error(
         "Unerwartete Antwort (kein JSON):",
         responseText.substring(0, 200)
@@ -428,23 +412,33 @@ const fetchUserData = async () => {
       throw new Error("Server-Fehler: Unerwartete Antwort erhalten");
     }
 
-    const data = await response.json();
-    console.log("Benutzerdaten erhalten:", data);
-    userInfo.value = data;
+    console.log("Benutzerdaten erhalten:", response.data);
+    userInfo.value = response.data;
   } catch (err) {
     console.error("Fehler beim Laden der Benutzerdaten:", err);
-    error.value =
-      err instanceof Error
-        ? err.message
-        : "Ein unbekannter Fehler ist aufgetreten";
 
-    if (
-      error.value.includes("Nicht angemeldet") ||
-      error.value.includes("Sitzung abgelaufen")
-    ) {
-      setTimeout(() => {
-        void router.push("/login");
-      }, 2000);
+    if (axios.isAxiosError(err)) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("accessToken");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("authToken");
+
+        error.value = "Sitzung abgelaufen. Bitte melden Sie sich erneut an.";
+
+        setTimeout(() => {
+          void router.push("/login");
+        }, 2000);
+      } else {
+        const errorText =
+          err.response?.data?.message || err.response?.statusText;
+        error.value = `Fehler beim Laden der Daten: ${err.response?.status} - ${errorText}`;
+      }
+    } else if (err instanceof Error) {
+      error.value = err.message;
+    } else {
+      error.value = "Ein unbekannter Fehler ist aufgetreten";
     }
   } finally {
     loading.value = false;
@@ -453,7 +447,7 @@ const fetchUserData = async () => {
 
 // Profil bearbeiten
 const UserInfoLoading = ref(false);
-const BASE_URL = "http://localhost:5008/";
+
 const saveChangesUserinfo = async () => {
   UserInfoLoading.value = true;
 
@@ -468,39 +462,23 @@ const saveChangesUserinfo = async () => {
     if (!token) {
       throw new Error("Nicht angemeldet - kein Token gefunden");
     }
-    const response = await fetch(`${BASE_URL}api/auth/profile`, {
-      method: "PUT",
+
+    const payload = {
+      username: userInfo.value?.username,
+      firstName: userInfo.value?.firstName,
+      lastName: userInfo.value?.lastName,
+      email: userInfo.value?.email,
+      telephone: userInfo.value?.telephone,
+    };
+
+    const response = await api.put("/api/auth/profile", payload, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        username: userInfo.value?.username,
-        firstName: userInfo.value?.firstName,
-        lastName: userInfo.value?.lastName,
-        email: userInfo.value?.email,
-        telephone: userInfo.value?.telephone,
-      }),
     });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("accessToken");
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("authToken");
-        throw new Error("Sitzung abgelaufen. Bitte melden Sie sich erneut an.");
-      }
-
-      const errorText = await response.text();
-      console.error("API Response Error:", errorText);
-      throw new Error(`HTTP ${response.status}: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log("Benutzerdaten geändert:", data);
-    userInfo.value = data;
+    console.log("Benutzerdaten geändert:", response.data);
+    userInfo.value = response.data;
 
     $q.notify({
       type: "positive",
@@ -512,21 +490,44 @@ const saveChangesUserinfo = async () => {
   } catch (err) {
     console.error("Fehler beim Speichern der Benutzerdaten:", err);
 
-    $q.notify({
-      type: "negative",
-      message:
-        err instanceof Error ? err.message : "Fehler beim Speichern der Daten",
-      position: "top",
-    });
+    if (axios.isAxiosError(err)) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("accessToken");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("authToken");
 
-    if (
-      err instanceof Error &&
-      (err.message.includes("Nicht angemeldet") ||
-        err.message.includes("Sitzung abgelaufen"))
-    ) {
-      setTimeout(() => {
-        void router.push("/login");
-      }, 2000);
+        $q.notify({
+          type: "negative",
+          message: "Sitzung abgelaufen. Bitte melden Sie sich erneut an.",
+          position: "top",
+        });
+
+        setTimeout(() => {
+          void router.push("/login");
+        }, 2000);
+        return;
+      }
+
+      const errorText =
+        err.response?.data?.message ||
+        err.response?.statusText ||
+        "Unbekannter Fehler";
+      $q.notify({
+        type: "negative",
+        message: `HTTP ${err.response?.status}: ${errorText}`,
+        position: "top",
+      });
+    } else {
+      $q.notify({
+        type: "negative",
+        message:
+          err instanceof Error
+            ? err.message
+            : "Fehler beim Speichern der Daten",
+        position: "top",
+      });
     }
   } finally {
     UserInfoLoading.value = false;
@@ -590,43 +591,19 @@ const submitPasswordChange = async () => {
       throw new Error("Nicht angemeldet - kein Token gefunden");
     }
 
-    const response = await fetch(
-      "http://localhost:5008/api/auth/change-password",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          currentPassword: passwordForm.value.currentPassword,
-          newPassword: passwordForm.value.newPassword,
-          confirmNewPassword: passwordForm.value.confirmNewPassword,
-        }),
-      }
-    );
+    const payload = {
+      currentPassword: passwordForm.value.currentPassword,
+      newPassword: passwordForm.value.newPassword,
+      confirmNewPassword: passwordForm.value.confirmNewPassword,
+    };
 
-    console.log("Password Change Response Status:", response.status);
+    const response = await api.post("/api/auth/change-password", payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
-    if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("accessToken");
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("authToken");
-        throw new Error("Sitzung abgelaufen. Bitte melden Sie sich erneut an.");
-      }
-
-      const errorData = await response.json().catch(() => null);
-      const errorMessage =
-        errorData?.message ||
-        `Fehler beim Ändern des Passworts: ${response.status}`;
-      throw new Error(errorMessage);
-    }
-
-    const data = await response.json();
-    console.log("Password changed successfully:", data);
+    console.log("Password changed successfully:", response.data);
 
     $q.notify({
       type: "positive",
@@ -644,22 +621,34 @@ const submitPasswordChange = async () => {
   } catch (err) {
     console.error("Fehler beim Ändern des Passworts:", err);
 
+    let message =
+      err instanceof Error ? err.message : "Fehler beim Ändern des Passworts";
+
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status;
+      const errorMsg = err.response?.data?.message;
+
+      if (status === 401) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("accessToken");
+        sessionStorage.removeItem("token");
+        sessionStorage.removeItem("authToken");
+        message = "Sitzung abgelaufen. Bitte melden Sie sich erneut an.";
+
+        setTimeout(() => {
+          void router.push("/login");
+        }, 2000);
+      } else if (errorMsg) {
+        message = errorMsg;
+      }
+    }
+
     $q.notify({
       type: "negative",
-      message:
-        err instanceof Error ? err.message : "Fehler beim Ändern des Passworts",
+      message,
       position: "top",
     });
-
-    if (
-      err instanceof Error &&
-      (err.message.includes("Nicht angemeldet") ||
-        err.message.includes("Sitzung abgelaufen"))
-    ) {
-      setTimeout(() => {
-        void router.push("/login");
-      }, 2000);
-    }
   } finally {
     passwordLoading.value = false;
   }
@@ -681,42 +670,23 @@ const deleteAccount = async () => {
     if (!token) {
       throw new Error("Nicht angemeldet - kein Token gefunden");
     }
-    const apiUrl = "http://localhost:5008/api/auth/me";
+
+    const apiUrl = "/api/auth/me";
     console.log("API-URL für Löschung:", apiUrl);
 
-    const response = await fetch(apiUrl, {
-      method: "DELETE",
+    const response = await api.delete(apiUrl, {
       headers: {
         Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
       },
     });
 
     console.log("Delete Response Status:", response.status);
-
-    if (!response.ok) {
-      if (response.status === 401) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("accessToken");
-        sessionStorage.removeItem("token");
-        sessionStorage.removeItem("authToken");
-        throw new Error("Sitzung abgelaufen. Bitte melden Sie sich erneut an.");
-      }
-
-      const errorText = await response.text();
-      console.error("Delete API-Fehler:", errorText);
-      throw new Error(
-        `Fehler beim Löschen des Accounts: ${response.status} - ${errorText}`
-      );
-    }
 
     localStorage.removeItem("token");
     localStorage.removeItem("authToken");
     localStorage.removeItem("accessToken");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("authToken");
-
     localStorage.clear();
 
     $q.notify({
@@ -730,22 +700,32 @@ const deleteAccount = async () => {
     }, 500);
   } catch (err) {
     console.error("Fehler beim Löschen des Accounts:", err);
+
+    let message =
+      err instanceof Error ? err.message : "Fehler beim Löschen des Accounts";
+
+    if (axios.isAxiosError(err)) {
+      const status = err.response?.status;
+      const errorText = err.response?.data?.message || err.response?.data;
+
+      if (status === 401) {
+        localStorage.clear();
+        sessionStorage.clear();
+        message = "Sitzung abgelaufen. Bitte melden Sie sich erneut an.";
+
+        setTimeout(() => {
+          void router.push("/login");
+        }, 2000);
+      } else if (errorText) {
+        message = `Fehler beim Löschen des Accounts: ${status} - ${errorText}`;
+      }
+    }
+
     $q.notify({
       type: "negative",
-      message:
-        err instanceof Error ? err.message : "Fehler beim Löschen des Accounts",
+      message,
       position: "top",
     });
-
-    if (
-      err instanceof Error &&
-      (err.message.includes("Nicht angemeldet") ||
-        err.message.includes("Sitzung abgelaufen"))
-    ) {
-      setTimeout(() => {
-        void router.push("/login");
-      }, 2000);
-    }
   } finally {
     deleteLoading.value = false;
     showDeleteDialog.value = false;

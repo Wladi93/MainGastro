@@ -162,6 +162,8 @@
 import { useQuasar } from "quasar";
 import { reactive, ref, computed } from "vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
+import api from "src/boot/axios";
+
 const { logAudit, getCurrentUsername } = useAuditLogger();
 
 interface ItemData {
@@ -205,7 +207,6 @@ const uploadStatus = ref<"idle" | "uploading" | "success" | "error">("idle");
 
 const hasSizesLocal = ref(false);
 
-// Preise für Items mit Größen
 const kleinPrice = ref("0.00");
 const mittelPrice = ref("0.00");
 const großPrice = ref("0.00");
@@ -270,25 +271,21 @@ const handleSinglePriceBlur = () => {
   }
 };
 
-const uploadImage = async (file: File): Promise<string> => {
-  const uploadEndpoint =
-    props.uploadEndpoint || "http://localhost:5008/api/uploads/images";
-
+const uploadImage = async (
+  file: File,
+  uploadPath = "api/uploads/images"
+): Promise<string> => {
   const formData = new FormData();
   formData.append("image", file, file.name);
 
   try {
-    const response = await fetch(uploadEndpoint, {
-      method: "POST",
-      body: formData,
+    const response = await api.post(uploadPath, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Upload failed: ${response.status} - ${errorText}`);
-    }
-
-    const result = await response.json();
+    const result = response.data;
     console.log("Upload result:", result);
 
     return result.imageUrl || result.url || result.path;
@@ -364,32 +361,20 @@ const closeCreateDialog = () => {
 
 const createCategoryItemSizes = async (
   categoryItemId: number,
-  sizes: SizeData[]
+  sizes: SizeData[],
+  hasSizes: boolean
 ) => {
   try {
     for (const size of sizes) {
-      const response = await fetch(
-        "http://localhost:5008/api/categoryItemSizes",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            categoryItemId: categoryItemId,
-            SizeName: size.sizeName,
-            price: size.price,
-            hasSizes: hasSizesLocal.value,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Fehler beim Erstellen der Größe ${size.sizeName}`);
-      }
+      await api.post("/api/categoryItemSizes", {
+        categoryItemId: categoryItemId,
+        SizeName: size.sizeName,
+        price: size.price,
+        hasSizes: hasSizes,
+      });
     }
   } catch (error) {
-    console.error("Error creating sizes:", error);
+    console.error("Fehler beim Erstellen der Größen:", error);
     throw error;
   }
 };
@@ -403,7 +388,6 @@ const createItem = async () => {
     return;
   }
 
-  // Validierung der Preise
   let sizesData: SizeData[] = [];
 
   if (hasSizesLocal.value) {
@@ -430,7 +414,7 @@ const createItem = async () => {
       return;
     }
 
-    itemData.price = mittelValue; // Hauptpreis für Anzeige
+    itemData.price = mittelValue;
     sizesData = [
       { sizeName: "Klein", price: kleinValue },
       { sizeName: "Mittel", price: mittelValue },
@@ -463,29 +447,14 @@ const createItem = async () => {
   isCreating.value = true;
 
   try {
-    const categoryItemResponse = await fetch(
-      "http://localhost:5008/api/categoryItems",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: itemData.name,
-          img: itemData.img,
-          description: itemData.description,
-          price: itemData.price,
-          hasSizes: hasSizesLocal.value,
-          categoryId: props.categoryId,
-        }),
-      }
-    );
-
-    if (!categoryItemResponse.ok) {
-      throw new Error("Fehler beim Erstellen des Items");
-    }
-
-    const createdCategoryItem = await categoryItemResponse.json();
+    const { data: createdCategoryItem } = await api.post("/api/categoryItems", {
+      name: itemData.name,
+      img: itemData.img,
+      description: itemData.description,
+      price: itemData.price,
+      hasSizes: hasSizesLocal.value,
+      categoryId: props.categoryId,
+    });
 
     const categoryName = await getCategoryNameById(props.categoryId);
     const currentUser = getCurrentUsername();
@@ -500,7 +469,11 @@ const createItem = async () => {
     });
 
     if (hasSizesLocal.value && sizesData.length > 0) {
-      await createCategoryItemSizes(createdCategoryItem.id, sizesData);
+      await createCategoryItemSizes(
+        createdCategoryItem.id,
+        sizesData,
+        hasSizesLocal.value
+      );
     }
 
     $q.notify({
@@ -511,7 +484,7 @@ const createItem = async () => {
     closeCreateDialog();
     emit("item-created");
   } catch (error) {
-    console.error("Error creating item:", error);
+    console.error("Fehler beim Erstellen:", error);
     $q.notify({
       type: "negative",
       message: "Fehler beim Erstellen",
@@ -523,14 +496,8 @@ const createItem = async () => {
 
 const getCategoryNameById = async (categoryId: number): Promise<string> => {
   try {
-    const response = await fetch(
-      `http://localhost:5008/api/category/${categoryId}`
-    );
-    if (!response.ok) {
-      throw new Error("Kategorie nicht gefunden");
-    }
-    const category = await response.json();
-    return category.name;
+    const response = await api.get(`/api/category/${categoryId}`);
+    return response.data.name;
   } catch (error) {
     console.error("Fehler beim Laden der Kategorie:", error);
     return "Unbekannte Kategorie";
