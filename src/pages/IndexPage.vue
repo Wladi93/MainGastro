@@ -114,7 +114,35 @@
                 </q-btn>
               </q-card-section>
             </div>
-
+            <div
+              class="q-mt-md"
+              style="display: flex; justify-content: center; gap: 20px"
+            >
+              <div class="social-item">
+                <q-btn
+                  round
+                  color="pink-5"
+                  icon="photo_camera"
+                  size="md"
+                  @click="openInstagram"
+                  class="social-btn instagram-btn"
+                  aria-label="Instagram"
+                />
+                <div class="social-label">Instagram</div>
+              </div>
+              <div class="social-item">
+                <q-btn
+                  round
+                  color="blue-7"
+                  icon="facebook"
+                  size="md"
+                  @click="openFacebook"
+                  class="social-btn facebook-btn"
+                  aria-label="Facebook"
+                />
+                <div class="social-label">Facebook</div>
+              </div>
+            </div>
             <q-separator inset class="q-mt-lg q-mb-sm bg-white" size="2px" />
             <h6 class="text-overline">
               Sie wollen feiern? Wir Vermieten Ihnen unsere Location. Fragen Sie
@@ -156,9 +184,59 @@ const router = useRouter();
 const onSubmit = () => {
   void router.push("/speisekarte");
 };
+
+const openInstagram = () => {
+  window.open(
+    "https://www.instagram.com/imbissamtower_noh.klausheide/profilecard/?igsh=MTVnYzdxNjQxZXVrdA%3D%3D",
+    "_blank"
+  );
+};
+
+const openFacebook = () => {
+  window.open("https://www.facebook.com/imbissamtower/", "_blank");
+};
 </script>
 
 <style scoped>
+.social-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: px;
+}
+
+.social-btn {
+  z-index: 100;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.social-label {
+  font-size: 11px;
+  color: white;
+  font-weight: 600;
+  text-align: center;
+  margin-top: 6px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.instagram-btn:hover {
+  background: linear-gradient(
+    45deg,
+    #f09433 0%,
+    #e6683c 25%,
+    #dc2743 50%,
+    #cc2366 75%,
+    #bc1888 100%
+  );
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 15px rgba(240, 148, 51, 0.4);
+}
+
+.facebook-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 15px rgba(66, 103, 178, 0.4);
+}
 .my-card {
   box-shadow: 1px 1px 0.8rem rgb(53, 53, 53);
   text-align: center;
