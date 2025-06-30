@@ -135,9 +135,21 @@ const getFullImageUrl = (imgUrl: string): string => {
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
     return imgUrl;
   }
-  return api.defaults.baseURL + imgUrl.replace(/^\/+/, "");
-};
 
+  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
+  const isLocalDevelopment = apiBaseURL.includes("localhost");
+
+  const imageBaseURL = isLocalDevelopment
+    ? "https://www.imbissamtower.de/"
+    : apiBaseURL;
+
+  const normalizedBaseURL = imageBaseURL.endsWith("/")
+    ? imageBaseURL
+    : imageBaseURL + "/";
+  const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
+
+  return normalizedBaseURL + cleanedImgUrl;
+};
 const $q = useQuasar();
 
 interface ItemSizes {

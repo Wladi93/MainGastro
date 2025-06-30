@@ -1,0 +1,1 @@
+import{r as a,aq as u}from"./index-CmtPSzKh.js";const e=a(!1),o=a(!1);function d(){return{isAdmin:e,isLoggedIn:o,checkRole:()=>{const t=localStorage.getItem("authToken");if(!t){o.value=!1,e.value=!1;return}try{const s=u(t);o.value=!0;const l=Object.keys(s).find(n=>n.toLowerCase().includes("role")),c=l?s[l]:null;e.value=c==="Admin"}catch{o.value=!1,e.value=!1}}}}export{d as u};

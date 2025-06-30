@@ -29,14 +29,27 @@
                 <q-icon name="file_upload" />
               </template>
             </q-file>
+            <div v-if="isUploading">
+              <h6 class="text-caption">Upload-Status:</h6>
+            </div>
 
             <div v-if="uploadStatus" class="q-mt-sm">
               <q-linear-progress
                 v-if="uploadStatus === 'uploading'"
-                indeterminate
-                color="primary"
-                class="q-mt-xs"
-              />
+                :value="uploadProgress / 100"
+                color="positive"
+                size="16px"
+                class="q-mt-sm"
+                rounded
+              >
+                <div class="absolute-full flex flex-center">
+                  <q-badge
+                    color="white"
+                    text-color="secondary"
+                    :label="`${uploadProgress}%`"
+                  />
+                </div>
+              </q-linear-progress>
               <div
                 v-if="uploadStatus === 'success'"
                 class="text-green text-caption"
@@ -139,21 +152,26 @@
         </q-form>
       </q-card-section>
 
-      <q-card-actions align="right" class="text-primary">
-        <q-btn
-          color="negative"
-          flat
-          label="Abbrechen"
-          @click="closeCreateDialog"
-        />
-        <q-btn
-          :label="createButtonText"
-          @click="createItem"
-          :loading="isCreating"
-          :disable="!selectedFile || uploadStatus === 'uploading'"
-          color="secondary"
-        />
-      </q-card-actions>
+      <div
+        class="row"
+        style="display: flex; justify-content: center; align-items: center"
+      >
+        <q-card-actions align="right" class="text-primary">
+          <q-btn
+            color="negative"
+            flat
+            label="Abbrechen"
+            @click="closeCreateDialog"
+          />
+          <q-btn
+            :label="createButtonText"
+            @click="createItem"
+            :loading="isCreating"
+            :disable="!selectedFile || uploadStatus === 'uploading'"
+            color="secondary"
+          />
+        </q-card-actions>
+      </div>
     </q-card>
   </q-dialog>
 </template>
@@ -165,7 +183,8 @@ import { useAuditLogger } from "src/composables/useAuditLogger";
 import api from "src/boot/axios";
 
 const { logAudit, getCurrentUsername } = useAuditLogger();
-
+const uploadProgress = ref(0);
+const isUploading = ref(false);
 interface ItemData {
   name: string;
   img: string;
@@ -279,9 +298,19 @@ const uploadImage = async (
   formData.append("image", file, file.name);
 
   try {
+    isUploading.value = true;
+    uploadProgress.value = 0;
+
     const response = await api.post(uploadPath, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          uploadProgress.value = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+        }
       },
     });
 
@@ -292,6 +321,9 @@ const uploadImage = async (
   } catch (error) {
     console.error("Upload error:", error);
     throw error;
+  } finally {
+    isUploading.value = false;
+    uploadProgress.value = 0;
   }
 };
 

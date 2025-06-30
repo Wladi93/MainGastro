@@ -86,7 +86,7 @@
                   border-radius: 50%;
                   border: 2px solid #165cb1;
                 "
-                src="/public/icons/Logo Imbiss am Tower 2.jpg"
+                src="../pages/images/Logo Imbiss am Tower 2.jpg"
               />
             </div>
             <h6 class="text-caption">
@@ -1053,7 +1053,7 @@ const openFacebook = () => {
 @media (max-width: 600px) {
   .img {
     max-width: 900px;
-    min-height: 600px;
+    min-height: 650px;
   }
   .bannerImage {
     height: 130px;

@@ -9,7 +9,7 @@
           align="center"
         >
           <q-avatar class="q-mr-md">
-            <img src="/public/icons/Logo Imbiss am Tower 2.jpg" />
+            <img src="../pages/images/Logo Imbiss am Tower 2.jpg" />
           </q-avatar>
           Imbiss am Tower
         </q-toolbar-title>
@@ -33,7 +33,7 @@
           />
           <q-toolbar-title class="headerTxt absolute-center">
             <q-avatar size="md">
-              <img src="/public/icons/Logo Imbiss am Tower 2.jpg" />
+              <img src="../pages/images/Logo Imbiss am Tower 2.jpg" />
             </q-avatar>
           </q-toolbar-title>
         </q-toolbar>

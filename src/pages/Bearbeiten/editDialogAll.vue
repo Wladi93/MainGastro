@@ -32,7 +32,7 @@
               <q-linear-progress
                 v-if="uploadStatus === 'uploading'"
                 indeterminate
-                color="primary"
+                color="positive"
                 class="q-mt-xs"
               />
               <div
@@ -205,12 +205,20 @@ const getFullImageUrl = (imgUrl: string): string => {
     return imgUrl;
   }
 
-  const cleanImgUrl = imgUrl.startsWith("/") ? imgUrl.slice(1) : imgUrl;
-  const baseURL = api.defaults.baseURL || "";
+  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
+  const isLocalDevelopment = apiBaseURL.includes("localhost");
 
-  return `${baseURL.replace(/\/$/, "")}/${cleanImgUrl}`;
+  const imageBaseURL = isLocalDevelopment
+    ? "https://www.imbissamtower.de/"
+    : apiBaseURL;
+
+  const normalizedBaseURL = imageBaseURL.endsWith("/")
+    ? imageBaseURL
+    : imageBaseURL + "/";
+  const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
+
+  return normalizedBaseURL + cleanedImgUrl;
 };
-
 interface ItemSizes {
   sizeName: string;
   price: number;

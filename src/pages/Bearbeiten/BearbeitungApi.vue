@@ -167,7 +167,7 @@
 
   <!-- Kategorie erstellen -->
   <q-dialog v-model="showCategoryDialog" persistent>
-    <q-card style="min-width: 400px; max-width: 600px">
+    <q-card style="min-width: 350px; max-width: 600px">
       <q-card-section class="row items-center q-pb-none">
         <div class="text-h6">Neue Kategorie erstellen</div>
         <q-space />
@@ -220,11 +220,32 @@
               accept="image/*"
               :model-value="null"
               @update:model-value="onBannerFileChange"
+              :loading="isUploading"
             >
               <template v-slot:prepend>
                 <q-icon name="attach_file" />
               </template>
             </q-file>
+            <div v-if="isUploading">
+              <h6 class="text-caption">Upload-Status:</h6>
+            </div>
+            <!-- Upload Progress Bar (zusätzlich zur Circular Progress) -->
+            <q-linear-progress
+              v-if="isUploading"
+              :value="uploadProgress / 100"
+              color="positive"
+              size="16px"
+              class="q-mt-sm"
+              rounded
+            >
+              <div class="absolute-full flex flex-center">
+                <q-badge
+                  color="white"
+                  text-color="secondary"
+                  :label="`${uploadProgress}%`"
+                />
+              </div>
+            </q-linear-progress>
 
             <div v-if="bannerPreview" class="q-mt-md">
               <q-img
@@ -235,7 +256,7 @@
             </div>
           </div>
 
-          <div class="row justify-end q-gutter-sm q-mt-lg">
+          <div class="row justify-end q-gutter-sm q-mt-xl">
             <q-btn label="Abbrechen" color="negative" flat v-close-popup />
             <q-btn
               label="Kategorie erstellen"
@@ -404,6 +425,8 @@ import deleteDialogAll from "./deleteDialogAll.vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
 import api from "src/boot/axios";
 
+const uploadProgress = ref(0);
+const isUploading = ref(false);
 const { logAudit, getCurrentUsername } = useAuditLogger();
 const currentUser = getCurrentUsername();
 const $q = useQuasar();
@@ -417,8 +440,6 @@ const selectAllItems = () => {
     );
   }
 };
-
-const BASE_URL = "http://localhost:5008/";
 
 interface ItemSizes {
   sizeName: string;
@@ -459,9 +480,19 @@ const uploadBannerImage = async (file: File): Promise<string> => {
   formData.append("image", file, file.name);
 
   try {
+    isUploading.value = true;
+    uploadProgress.value = 0;
+
     const response = await api.post("/api/uploads/images", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
+      },
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          uploadProgress.value = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+        }
       },
     });
 
@@ -478,6 +509,9 @@ const uploadBannerImage = async (file: File): Promise<string> => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Upload fehlgeschlagen: ${errorMessage}`);
+  } finally {
+    isUploading.value = false;
+    uploadProgress.value = 0;
   }
 };
 
@@ -518,9 +552,12 @@ const iconOptions = [
 ];
 
 const isCategoryFormValid = computed(() => {
-  return newCategory.value.name.trim() !== "" && newCategory.value.icon !== "";
+  return (
+    newCategory.value.name.trim() !== "" &&
+    newCategory.value.icon !== "" &&
+    !isUploading.value
+  );
 });
-
 const onBannerFileChange = async (file: File | null) => {
   if (!file) {
     bannerPreview.value = "";
@@ -699,16 +736,24 @@ const onSubmitCategory = async () => {
   }
 };
 
-const getFullImageUrl = (imgPath: string): string => {
-  if (!imgPath) return "";
-
-  if (/^https?:\/\//.test(imgPath)) {
-    return imgPath;
+const getFullImageUrl = (imgUrl: string): string => {
+  if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
+    return imgUrl;
   }
 
-  const cleanPath = imgPath.replace(/^\/+/, "");
+  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
+  const isLocalDevelopment = apiBaseURL.includes("localhost");
 
-  return `${BASE_URL}${cleanPath}`;
+  const imageBaseURL = isLocalDevelopment
+    ? "https://www.imbissamtower.de/"
+    : apiBaseURL;
+
+  const normalizedBaseURL = imageBaseURL.endsWith("/")
+    ? imageBaseURL
+    : imageBaseURL + "/";
+  const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
+
+  return normalizedBaseURL + cleanedImgUrl;
 };
 
 const getCategoryItems = (categoryName: string): CategoryItem[] => {

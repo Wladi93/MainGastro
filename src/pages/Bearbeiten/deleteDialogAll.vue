@@ -47,7 +47,7 @@
             <q-card style="height: 61px; width: 61px">
               <q-img
                 v-if="item.img && !imageErrors[item.id]"
-                :src="getImageUrl(item.img)"
+                :src="getFullImageUrl(item.img)"
                 :alt="item.name"
                 style="height: 60px; width: 60px"
                 class="rounded-borders q-mr-md"
@@ -150,20 +150,26 @@ const deleteDialog = computed({
   set: (value) => emit("update:modelValue", value),
 });
 
-const getImageUrl = (imgPath: string): string => {
-  if (!imgPath) return "";
-
-  if (imgPath.startsWith("http://") || imgPath.startsWith("https://")) {
-    return imgPath;
+const getFullImageUrl = (imgUrl: string): string => {
+  if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
+    return imgUrl;
   }
 
-  const baseUrl = api.defaults.baseURL || "http://localhost:5008/";
-  const cleanPath = imgPath.startsWith("/") ? imgPath.substring(1) : imgPath;
+  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
+  const isLocalDevelopment = apiBaseURL.includes("localhost");
 
-  return baseUrl.endsWith("/")
-    ? baseUrl + cleanPath
-    : baseUrl + "/" + cleanPath;
+  const imageBaseURL = isLocalDevelopment
+    ? "https://www.imbissamtower.de/"
+    : apiBaseURL;
+
+  const normalizedBaseURL = imageBaseURL.endsWith("/")
+    ? imageBaseURL
+    : imageBaseURL + "/";
+  const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
+
+  return normalizedBaseURL + cleanedImgUrl;
 };
+
 watch(deleteDialog, (newValue) => {
   if (newValue) {
     void fetchItems();
