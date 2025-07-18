@@ -1,5 +1,5 @@
 <template>
-  <q-layout view="hHh lpr fff">
+  <q-layout view="hHh lpr fff" v-for="firma in firmenName" :key="firma.id">
     <q-header class="bg-primary text-white header">
       <q-toolbar>
         <q-btn dense flat round icon="menu" @click="drawerLeft = !drawerLeft" />
@@ -9,9 +9,13 @@
           align="center"
         >
           <q-avatar class="q-mr-md">
-            <img src="../pages/images/Logo Imbiss am Tower 2.jpg" />
+            <img
+              v-for="logos in logo.filter((item) => item.id === 1)"
+              :key="logos.id"
+              :src="getFullImageUrl(logos.url)"
+            />
           </q-avatar>
-          Imbiss am Tower
+          {{ firma.firmenName }}
         </q-toolbar-title>
       </q-toolbar>
     </q-header>
@@ -33,7 +37,11 @@
           />
           <q-toolbar-title class="headerTxt absolute-center">
             <q-avatar size="md">
-              <img src="../pages/images/Logo Imbiss am Tower 2.jpg" />
+              <img
+                v-for="logos in logo.filter((item) => item.id === 1)"
+                :key="logos.id"
+                :src="getFullImageUrl(logos.url)"
+              />
             </q-avatar>
           </q-toolbar-title>
         </q-toolbar>
@@ -44,7 +52,7 @@
                 class="text-caption text-center color-white"
                 style="margin: 0"
               >
-                © Imbiss am Tower GmbH
+                © {{ firma.firmenName }}
               </h5>
             </q-toolbar-title>
           </q-toolbar>
@@ -198,6 +206,20 @@
 
             <q-item-section> Impressum </q-item-section>
           </q-item>
+
+          <q-item
+            v-if="isLoggedIn"
+            clickable
+            v-ripple
+            @click="$router.push(`/settingspage`)"
+            :class="{ 'text-secondary': isActive('/settingspage') }"
+          >
+            <q-item-section avatar>
+              <q-icon name="settings" />
+            </q-item-section>
+
+            <q-item-section>Einstellungen</q-item-section>
+          </q-item>
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -213,7 +235,7 @@
           style="display: flex; justify-content: center; align-items: center"
         >
           <h5 class="text-caption text-center color-white" style="margin: 0">
-            © Imbiss am Tower GmbH
+            © {{ firma.firmenName }}
           </h5>
         </q-toolbar-title>
       </q-toolbar>
@@ -225,11 +247,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-
 import { useRoute } from "vue-router";
 
 import cookiesDialog from "src/pages/Dialog/cookiesDialog.vue";
 import { useAuth } from "src/composables/useAuth";
+import { useFirmenName } from "src/composables/Firmenname";
+import { useLogo } from "src/composables/LogoLoad";
 
 const { isAdmin, checkRole, isLoggedIn } = useAuth();
 
@@ -246,6 +269,14 @@ const isActive = (path: string) => {
 };
 const shouldShowDialog = computed(() => {
   return route.path !== "/cookies" && route.path !== "/datenschutzerklaerung";
+});
+
+const { firmenName, loadFirmenName } = useFirmenName();
+const { loadLogo, logo, getFullImageUrl } = useLogo();
+
+onMounted(async () => {
+  await loadFirmenName();
+  await loadLogo();
 });
 </script>
 

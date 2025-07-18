@@ -55,6 +55,15 @@ const routes: RouteRecordRaw[] = [
         component: () => import("pages/AuditLog.vue"),
         meta: { requiresAuth: true, requiresAdmin: true },
       },
+      {
+        path: "test",
+        component: () => import("pages/TestPage.vue"),
+      },
+      {
+        path: "settingspage",
+        component: () => import("pages/SettingsPage.vue"),
+        meta: { requiresAdmin: true },
+      },
     ],
   },
 ];

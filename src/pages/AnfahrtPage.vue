@@ -16,20 +16,40 @@
   <q-img class="background-img" />
 
   <div class="q-mt-md row items-start">
-    <q-card class="my-card align-center">
-      <q-img class="img" src="./images/anfahrt5.jpg">
-        <iframe
-          v-if="cookiesAccepted"
-          class="iframe q-mt-sm"
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2431.1844580471966!2d7.173619478162399!3d52.45768674083941!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47b8274dfe6d92df%3A0xd9cca197bf1dd9c9!2sImbiss%20am%20Tower!5e0!3m2!1sde!2sde!4v1750745008417!5m2!1sde!2sde"
-          allowfullscreen="true"
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade"
-        ></iframe>
+    <q-card
+      v-for="firma in firmenName"
+      :key="firma.id"
+      class="my-card align-center"
+    >
+      <q-img
+        v-for="logos in logo.filter((item) => item.id === 3)"
+        :key="logos.id"
+        class="img"
+        :src="getFullImageUrl(logos.url)"
+      >
+        <div
+          class="full-width"
+          style="display: flex; justify-content: center; align-items: center"
+        >
+          <iframe
+            class="iframe q-mt-sm"
+            allowfullcreen="true"
+            referrerpolicy="no-referrer-when-downgrade"
+            :src="embedCode"
+            width="100%"
+            height="400"
+            frameborder="0"
+          ></iframe>
+        </div>
 
         <div
           class="beschreibung column full-width"
-          style="display: flex; justify-content: center; align-items: center"
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            bottom: 0;
+          "
         >
           <span class="text-caption text-grey-6 q-mt-xs"
             >Powered by Google Maps</span
@@ -37,18 +57,19 @@
           <q-separator class="content-separator full-width q-mt-md q-mb-md" />
 
           <h6 class="text-subtitle2 text-subtitle1 text">
-            Imbiss am Tower GmbH
+            {{ firma.firmenName }}
           </h6>
-          <h6 class="text-subtitle2">Flugplatzstraße 56</h6>
-          <h6 class="text-subtitle2">48531 Nordhorn-Klausheide</h6>
+          <h6 class="text-subtitle2">
+            {{ firma.strasse }} {{ firma.hausnummer }}
+          </h6>
+          <h6 class="text-subtitle2">{{ firma.plz }} {{ firma.ort }}</h6>
         </div>
-        <div class="seperator"></div>
       </q-img>
     </q-card>
   </div>
 
   <h5 class="text-caption text-center color-secondary">
-    Unsere Auswahl entdecken? zur
+    Bestellen? zur
     <RouterLink class="text-secondary" to="/speisekarte"
       >Speisekarte</RouterLink
     >
@@ -58,12 +79,32 @@
 </template>
 
 <script setup lang="ts">
+import api from "src/boot/axios";
 import { ref, onMounted } from "vue";
+import { useFirmenName } from "../composables/Firmenname";
+import { useLogo } from "../composables/LogoLoad";
 const cookiesAccepted = ref(false);
-onMounted(() => {
+const embedCode = ref("");
+const { firmenName, loadFirmenName } = useFirmenName();
+
+const { logo, loadLogo, getFullImageUrl } = useLogo();
+
+const loadExistingMap = async () => {
+  try {
+    const response = await api.get("/api/mapembed");
+
+    embedCode.value = response.data.embedCode;
+  } catch (error) {
+    console.error("Fehler beim Laden der Karte:", error);
+  }
+};
+onMounted(async () => {
   if (localStorage.getItem("cookiesAccepted") === "true") {
     cookiesAccepted.value = true;
   }
+  await loadExistingMap();
+  await loadFirmenName();
+  await loadLogo();
 });
 </script>
 
@@ -130,6 +171,7 @@ p.one {
   height: 50vh;
   width: 96%;
   display: flex;
+  z-index: 120;
 }
 .separator {
   margin-top: 10px;

@@ -23,9 +23,6 @@ export const useAuditLogger = () => {
         ] as string) ||
         "Anonymous";
 
-      console.log("Extracted username from token:", username);
-      console.log("Available claims in token:", Object.keys(decoded));
-
       return username;
     } catch (error) {
       console.error("Error extracting username from token:", error);

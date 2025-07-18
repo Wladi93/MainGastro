@@ -209,7 +209,7 @@ const getFullImageUrl = (imgUrl: string): string => {
   const isLocalDevelopment = apiBaseURL.includes("localhost");
 
   const imageBaseURL = isLocalDevelopment
-    ? "https://www.imbissamtower.de/"
+    ? "http://localhost:5008/"
     : apiBaseURL;
 
   const normalizedBaseURL = imageBaseURL.endsWith("/")
@@ -357,7 +357,6 @@ const uploadImage = async (
     }
 
     const result = response.data;
-    console.log("Upload result:", result);
 
     return result.imageUrl || result.url || result.path;
   } catch (error) {
@@ -376,8 +375,6 @@ const deleteOldImage = async (imageUrl: string) => {
     const endpoint = `api/uploads/images/${filename}`;
 
     await api.delete(endpoint);
-
-    console.log("Altes Bild erfolgreich gelöscht:", filename);
   } catch (error) {
     console.warn("Fehler beim Löschen des alten Bildes:", error);
   }

@@ -1,6 +1,6 @@
 <template>
   <div class="sticky-tabs">
-    <q-banner class="banner full-width text-accent">
+    <q-banner class="banner full-width text-secondary">
       <h6 class="bannerText">
         <q-icon class="bannerIcon" name="edit" />
         Speisekarte bearbeiten
@@ -8,7 +8,7 @@
     </q-banner>
 
     <div class="above bg-white">
-      <q-separator color="accent" />
+      <q-separator color="secondary" />
       <q-card class="full-width text-center">
         <q-card-section class="row justify-evenly q-gutter-sm">
           <q-btn
@@ -69,7 +69,7 @@
       v-for="category in categories"
       :key="category.apiEndpoint"
       v-show="true"
-      :ref="(el) => setSectionRef(category.name, el)"
+      :ref="(el: any) => setSectionRef(category.name, el)"
     >
       <q-card class="q-gutter-y-xl">
         <div class="tab-section-name">
@@ -229,7 +229,7 @@
             <div v-if="isUploading">
               <h6 class="text-caption">Upload-Status:</h6>
             </div>
-            <!-- Upload Progress Bar (zusätzlich zur Circular Progress) -->
+
             <q-linear-progress
               v-if="isUploading"
               :value="uploadProgress / 100"
@@ -620,10 +620,8 @@ const deleteCategory = async () => {
 
     const deletePromises = itemsToDelete.map(async (category) => {
       try {
-        // Kategorie löschen
         const itemResponse = await api.delete(`/api/category/${category.id}`);
 
-        // Bannerbild löschen, falls vorhanden und Löschung erfolgreich
         if (itemResponse.status === 200 && category.bannerImage) {
           const imageFileName = category.bannerImage.split("/").pop();
           if (imageFileName) {
@@ -745,7 +743,7 @@ const getFullImageUrl = (imgUrl: string): string => {
   const isLocalDevelopment = apiBaseURL.includes("localhost");
 
   const imageBaseURL = isLocalDevelopment
-    ? "https://www.imbissamtower.de/"
+    ? "http://localhost:5008/"
     : apiBaseURL;
 
   const normalizedBaseURL = imageBaseURL.endsWith("/")
@@ -875,7 +873,6 @@ const setSectionRef = (
 };
 
 const onTabChange = () => {
-  console.log(tab.value);
   isUserScrolling.value = true;
 
   const headerOffset = 160;

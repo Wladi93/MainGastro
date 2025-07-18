@@ -48,7 +48,7 @@
       v-for="category in categories"
       :key="category.apiEndpoint"
       v-show="true"
-      :ref="(el) => setSectionRef(category.name, el)"
+      :ref="(el: any) => setSectionRef(category.name, el)"
     >
       <q-card class="q-gutter-y-xl">
         <div class="tab-section-name">
@@ -114,7 +114,7 @@
               "
             >
               <h6 class="preisText text-subtitle2">Preis:</h6>
-              <q-chip color="green-6"
+              <q-chip color="info"
                 >{{ item.price ? item.price.toFixed(2) : "0.00" }}€</q-chip
               >
             </div>
@@ -140,7 +140,7 @@ const getFullImageUrl = (imgUrl: string): string => {
   const isLocalDevelopment = apiBaseURL.includes("localhost");
 
   const imageBaseURL = isLocalDevelopment
-    ? "https://www.imbissamtower.de/"
+    ? "http://localhost:5008/"
     : apiBaseURL;
 
   const normalizedBaseURL = imageBaseURL.endsWith("/")
@@ -243,7 +243,6 @@ const tab = ref("");
 const isUserScrolling = ref(false);
 
 const onTabChange = () => {
-  console.log(tab.value);
   isUserScrolling.value = true;
 
   const headerOffset = 160;

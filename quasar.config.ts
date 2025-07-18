@@ -11,7 +11,7 @@ export default defineConfig((/* ctx */) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ["pinia", "passive-events", "quasar-lang"],
+    boot: ["pinia", "passive-events", "quasar-lang", "colors"],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ["app.scss"],
@@ -82,7 +82,7 @@ export default defineConfig((/* ctx */) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
     devServer: {
-      open: true, // öffnet den Browser automatisch
+      open: false, // öffnet den Browser automatisch
       proxy: {
         "/create-transaction": {
           target: "http://localhost:3000", // Ziel deines Backend-Servers

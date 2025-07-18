@@ -15,7 +15,12 @@
 
   <q-img class="background-img" />
   <q-card class="my-card q-mt-lg">
-    <q-img class="img" src="./images/uhr.jpg">
+    <q-img
+      v-for="logos in logo.filter((item) => item.id === 4)"
+      :key="logos.id"
+      class="img"
+      :src="getFullImageUrl(logos.url)"
+    >
       <div class="text text-subtitle2 absolute-top text-center">
         <h6>Öffnungszeiten</h6>
         <q-separator inset class="q-mb-lg bg-grey-8" size="2px" />
@@ -30,54 +35,21 @@
               gap: 5px;
             "
           >
-            <div style="display: flex; gap: 20px">
+            <div
+              style="display: flex; gap: 20px"
+              v-for="oeffnungszeit in oeffnungsZeiten"
+              :key="oeffnungszeit.id"
+            >
               <div style="width: 100px">
-                <h6 class="text-body2">Montag:</h6>
+                <h6 class="text-body2">{{ oeffnungszeit.tag }}:</h6>
               </div>
-              <div><h6 class="text-body2">10:00 Uhr - 20:00 Uhr</h6></div>
+              <div>
+                <h6 class="text-body2">
+                  {{ oeffnungszeit.von }} Uhr - {{ oeffnungszeit.bis }} Uhr
+                </h6>
+              </div>
             </div>
             <q-separator class="bg-white" size="4px" />
-            <div style="display: flex; gap: 20px">
-              <div style="width: 100px">
-                <h6 class="text-body2">Dienstag:</h6>
-              </div>
-              <div><h6 class="text-body2">10:00 Uhr - 20:00 Uhr</h6></div>
-            </div>
-            <q-separator class="bg-white" size="4px" />
-            <div style="display: flex; gap: 20px">
-              <div style="width: 100px">
-                <h6 class="text-body2">Mittwoch:</h6>
-              </div>
-              <div><h6 class="text-body2">10:00 Uhr - 20:00 Uhr</h6></div>
-            </div>
-            <q-separator class="bg-white" size="4px" />
-            <div style="display: flex; gap: 20px">
-              <div style="width: 100px">
-                <h6 class="text-body2">Donnerstag:</h6>
-              </div>
-              <div><h6 class="text-body2">10:00 Uhr - 20:00 Uhr</h6></div>
-            </div>
-            <q-separator class="bg-white" size="4px" />
-            <div style="display: flex; gap: 20px">
-              <div style="width: 100px">
-                <h6 class="text-body2">Freitag:</h6>
-              </div>
-              <div><h6 class="text-body2">10:00 Uhr - 20:00 Uhr</h6></div>
-            </div>
-            <q-separator class="bg-white" size="4px" />
-            <div style="display: flex; gap: 20px">
-              <div style="width: 100px">
-                <h6 class="text-body2">Samstag:</h6>
-              </div>
-              <div><h6 class="text-body2">10:00 Uhr - 20:00 Uhr</h6></div>
-            </div>
-            <q-separator class="bg-white" size="4px" />
-            <div style="display: flex; gap: 20px">
-              <div style="width: 100px">
-                <h6 class="text-body2">Sonntag:</h6>
-              </div>
-              <div><h6 class="text-body2">10:00 Uhr - 20:00 Uhr</h6></div>
-            </div>
           </div>
         </div>
 
@@ -90,13 +62,37 @@
   </q-card>
   <h5 class="text-caption text-center color-secondary">
     Unsere Auswahl entdecken? zur
-    <RouterLink class="text-secondary" to="/speisekarte"
-      >Speisekarte</RouterLink
-    >
+    <RouterLink class="text-accent" to="/speisekarte">Speisekarte</RouterLink>
   </h5>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import type { Oeffnungszeiten } from "./types/OeffnungszeitenType";
+import api from "src/boot/axios";
+import { useLogo } from "../composables/LogoLoad";
+
+const oeffnungsZeiten = ref<Oeffnungszeiten[]>([]);
+
+const loadOeffnungszeiten = async () => {
+  try {
+    const response = await api.get(`/api/oeffnungszeiten`);
+    oeffnungsZeiten.value = response.data;
+    oeffnungsZeiten.value.sort((a, b) => {
+      return a.id >= b.id ? 1 : -1;
+    });
+  } catch (error) {
+    console.error(`Error fetching opening hours`, error);
+  }
+};
+
+const { loadLogo, logo, getFullImageUrl } = useLogo();
+
+onMounted(async () => {
+  await loadOeffnungszeiten();
+  await loadLogo();
+});
+</script>
 
 <style scoped>
 .my-card {

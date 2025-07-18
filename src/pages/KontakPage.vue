@@ -120,9 +120,7 @@
   </div>
   <h5 class="text-caption text-center color-secondary">
     Unsere Auswahl entdecken? zur
-    <RouterLink class="text-secondary" to="/speisekarte"
-      >Speisekarte</RouterLink
-    >
+    <RouterLink class="text-accent" to="/speisekarte">Speisekarte</RouterLink>
   </h5>
 </template>
 

@@ -159,7 +159,7 @@ const getFullImageUrl = (imgUrl: string): string => {
   const isLocalDevelopment = apiBaseURL.includes("localhost");
 
   const imageBaseURL = isLocalDevelopment
-    ? "https://www.imbissamtower.de/"
+    ? "http://localhost:5008/"
     : apiBaseURL;
 
   const normalizedBaseURL = imageBaseURL.endsWith("/")

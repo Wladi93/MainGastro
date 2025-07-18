@@ -315,7 +315,6 @@ const uploadImage = async (
     });
 
     const result = response.data;
-    console.log("Upload result:", result);
 
     return result.imageUrl || result.url || result.path;
   } catch (error) {

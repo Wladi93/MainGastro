@@ -16,25 +16,35 @@
   </div>
   <q-img class="background-img" />
 
-  <q-card class="my-card q-mt-lg">
-    <q-img class="img" src="./images/impressum.jpg">
+  <q-card class="my-card q-mt-lg" v-for="firma in firmenName" :key="firma.id">
+    <q-img
+      v-for="logos in logo.filter((item) => item.id === 5)"
+      :key="logos.id"
+      class="img"
+      :src="getFullImageUrl(logos.url)"
+    >
       <div class="text text-subtitle2 absolute-top text-center">
         <h6>Impressum</h6>
         <q-separator inset class="q-mb-lg bg-grey-8" size="2px" />
         <h6 class="text-body2 text-weight-bolder">Geschäftsführer</h6>
-        <h6 class="text-caption text-weight-medium">Kamal Zein</h6>
-        <h6 class="text-caption">Flugplatzstraße 56</h6>
-        <h6 class="text-caption">48531 Nordhorn-Klausheide</h6>
+        <h6 class="text-caption text-weight-medium">
+          {{ firma.geschaeftsführerName }}
+        </h6>
+        <h6 class="text-caption">{{ firma.strasse }} {{ firma.hausnummer }}</h6>
+        <h6 class="text-caption">{{ firma.plz }} {{ firma.ort }}</h6>
         <h6 class="text-caption">Deutschland</h6>
         <h6 class="text-caption text-weight-medium">
           Telefon:
-          <a class="text-secondary" href="tel:+491634773039">+491634773039</a>
+          <a class="text-secondary" :href="'tel:' + firma.telefonnummer">
+            {{ firma.telefonnummer }}
+          </a>
         </h6>
+
         <h6 class="text-caption text-weight-medium">
           E-Mail:
-          <a class="text-secondary" href="mailto:info@imbissamtower.de"
-            >info@imbissamtower.de</a
-          >
+          <a class="text-secondary" :href="'mailto:' + firma.email">{{
+            firma.email
+          }}</a>
         </h6>
         <q-separator
           inset
@@ -45,9 +55,11 @@
         <h6 class="text-caption">
           Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:
         </h6>
-        <h6 class="text-caption text-weight-medium">Kamal Zein</h6>
-        <h6 class="text-caption">Flugplatzstraße 56</h6>
-        <h6 class="text-caption">48531 Nordhorn-Klausheide</h6>
+        <h6 class="text-caption text-weight-medium">
+          {{ firma.geschaeftsführerName }}
+        </h6>
+        <h6 class="text-caption">{{ firma.strasse }} {{ firma.hausnummer }}</h6>
+        <h6 class="text-caption">{{ firma.plz }} {{ firma.ort }}</h6>
         <h6 class="text-caption">Deutschland</h6>
         <q-separator inset class="q-mt-lg q-mb-sm bg-grey-8" size="2px" />
         <h6 class="text-overline">
@@ -87,8 +99,7 @@
   >
     <h5 class="text-caption text-center color-secondary">
       Unsere Auswahl entdecken? zur
-      <RouterLink class="text-secondary" to="/speisekarte"
-        >Speisekarte</RouterLink
+      <RouterLink class="text-accent" to="/speisekarte">Speisekarte</RouterLink
       >.
     </h5>
   </div>
@@ -97,15 +108,35 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useAuth } from "src/composables/useAuth";
+import type { Firmenname } from "./types/SettingsFirmenNameType";
+import { onMounted, ref } from "vue";
+import api from "src/boot/axios";
+import { useLogo } from "../composables/LogoLoad";
 
 const { isLoggedIn } = useAuth();
 const router = useRouter();
+const firmenName = ref<Firmenname[]>([]);
+const { loadLogo, getFullImageUrl, logo } = useLogo();
 
 async function logout() {
   localStorage.removeItem("authToken");
   await router.push("/");
   location.reload();
 }
+
+const loadFirmenName = async () => {
+  try {
+    const response = await api.get("api/firmenname/");
+    firmenName.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden des Namens", error);
+  }
+};
+
+onMounted(async () => {
+  await loadFirmenName();
+  await loadLogo();
+});
 </script>
 
 <style scoped>

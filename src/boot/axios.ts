@@ -1,7 +1,30 @@
 import axios from "axios";
 
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    console.log(
+      "Verwende Umgebungsvariable VITE_API_BASE_URL:",
+      import.meta.env.VITE_API_BASE_URL
+    );
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+
+  const currentDomain = window.location.hostname;
+  console.log("Aktuelle Domain:", currentDomain);
+
+  const isLocal =
+    currentDomain === "localhost" || currentDomain === "127.0.0.1";
+
+  const baseURL = isLocal
+    ? `http://localhost:5008/`
+    : `https://${currentDomain}/`;
+
+  console.log("Basis-URL:", baseURL);
+  return baseURL;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: getBaseURL(),
 });
 
 api.interceptors.request.use((config) => {
@@ -12,18 +35,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// 👉 Antwort-Interceptor (z.B. Token abgelaufen)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Token abgelaufen oder ungültig
       localStorage.removeItem("authToken");
-
-      // Optional: zur Login-Seite weiterleiten
       window.location.href = "/login";
     }
-
     // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
     return Promise.reject(error);
   }

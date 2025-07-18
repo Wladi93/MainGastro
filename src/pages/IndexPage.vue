@@ -52,9 +52,16 @@
   <div class="q-mt-md" style="display: flex; justify-content: center">
     <q-card class="column my-card" style="max-width: 900px">
       <div class="img-container">
-        <q-img class="img" src="./images/imbisstower2.jpeg">
+        <q-img
+          class="img"
+          v-for="logos in logo.filter((item) => item.id === 2)"
+          :key="logos.id"
+          :src="getFullImageUrl(logos.url)"
+        >
           <div class="text text-subtitle2 text-center">
-            <h6 class="q-mt-md">Herzlich Willkommen</h6>
+            <h6 v-for="inhalte in inhalt" :key="inhalte.id" class="q-mt-md">
+              {{ inhalte.inhalt1 }}
+            </h6>
             <q-separator inset class="q-mb-lg bg-white" size="2px" />
 
             <div
@@ -65,10 +72,12 @@
                 align-items: center;
               "
             ></div>
-            <h6 class="text-caption text-weight-medium">
-              Inmitten von Nordhorn-Klausheide bieten wir Ihnen nicht nur eine
-              Auswahl an köstlichen Gerichten, sondern auch ein einzigartiges
-              Ambiente, das zum Genießen einlädt.
+            <h6
+              v-for="inhalte in inhalt"
+              :key="inhalte.id"
+              class="text-caption text-weight-medium"
+            >
+              {{ inhalte.inhalt2 }}
             </h6>
 
             <div
@@ -80,17 +89,23 @@
               "
             >
               <q-img
+                v-for="logos in logo.filter((item) => item.id === 1)"
+                :key="logos.id"
                 style="
                   height: 150px;
                   width: 150px;
                   border-radius: 50%;
-                  border: 2px solid #165cb1;
+                  border: 2px solid var(--q-secondary);
                 "
-                src="../pages/images/Logo Imbiss am Tower 2.jpg"
+                :src="getFullImageUrl(logos.url)"
               />
             </div>
-            <h6 class="text-caption">
-              Unsere Speisen können Sie vor Ort, als auch zum Abholen bestellen.
+            <h6
+              v-for="inhalte in inhalt"
+              :key="inhalte.id"
+              class="text-caption"
+            >
+              {{ inhalte.inhalt3 }}
             </h6>
 
             <div
@@ -107,6 +122,7 @@
                   label="Zur Speisekarte"
                   class="gradient-btn full-width"
                   text-color="white"
+                  color="secondary"
                   icon="restaurant_menu"
                   clickable
                   @click="onSubmit"
@@ -120,11 +136,14 @@
             >
               <div class="social-item">
                 <q-btn
+                  v-for="firma in firmenName"
+                  :key="firma.id"
                   round
                   color="pink-5"
                   icon="photo_camera"
                   size="md"
-                  @click="openInstagram"
+                  :href="firma.instagram"
+                  target="instagram-window"
                   class="social-btn instagram-btn"
                   aria-label="Instagram"
                 />
@@ -132,11 +151,14 @@
               </div>
               <div class="social-item">
                 <q-btn
+                  v-for="firma in firmenName"
+                  :key="firma.id"
                   round
                   color="blue-7"
                   icon="facebook"
                   size="md"
-                  @click="openFacebook"
+                  :href="firma.facebook"
+                  target="facebook-window"
                   class="social-btn facebook-btn"
                   aria-label="Facebook"
                 />
@@ -144,9 +166,12 @@
               </div>
             </div>
             <q-separator inset class="q-mt-lg q-mb-sm bg-white" size="2px" />
-            <h6 class="text-overline">
-              Sie wollen feiern? Wir Vermieten Ihnen unsere Location. Fragen Sie
-              uns gerne an!
+            <h6
+              v-for="inhalte in inhalt"
+              :key="inhalte.id"
+              class="text-overline"
+            >
+              {{ inhalte.inhalt4 }}
             </h6>
           </div>
         </q-img>
@@ -172,29 +197,32 @@
   </div>
   <h5 class="text-caption text-center color-secondary">
     Sie haben Fragen? zum
-    <RouterLink class="text-secondary" to="/kontakt"
-      >Kontaktformular</RouterLink
-    >
+    <RouterLink class="text-accent" to="/kontakt">Kontaktformular</RouterLink>
   </h5>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import { useLogo } from "../composables/LogoLoad";
+import { onMounted } from "vue";
+import { useFirmenName } from "../composables/Firmenname";
+import { useInhalt } from "../composables/InhaltLoad";
+
 const router = useRouter();
 const onSubmit = () => {
   void router.push("/speisekarte");
 };
 
-const openInstagram = () => {
-  window.open(
-    "https://www.instagram.com/imbissamtower_noh.klausheide/profilecard/?igsh=MTVnYzdxNjQxZXVrdA%3D%3D",
-    "_blank"
-  );
-};
+const { loadLogo, logo, getFullImageUrl } = useLogo();
+const { loadInhalt, inhalt } = useInhalt();
 
-const openFacebook = () => {
-  window.open("https://www.facebook.com/imbissamtower/", "_blank");
-};
+const { firmenName, loadFirmenName } = useFirmenName();
+
+onMounted(async () => {
+  await loadLogo();
+  await loadFirmenName();
+  await loadInhalt();
+});
 </script>
 
 <style scoped>
@@ -254,15 +282,7 @@ const openFacebook = () => {
 /* Gradient Button Styling */
 .gradient-btn {
   z-index: 100;
-  background: linear-gradient(
-    135deg,
-    #165cb1 0%,
-    #165cb1 25%,
-    #165cb1 45%,
-    #165cb1 55%,
-    #165cb1 75%,
-    #165cb1 100%
-  );
+
   border: none;
   position: relative;
   overflow: hidden;
