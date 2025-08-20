@@ -55,16 +55,58 @@ const routes: RouteRecordRaw[] = [
         component: () => import("pages/AuditLog.vue"),
         meta: { requiresAuth: true, requiresAdmin: true },
       },
-      {
-        path: "test",
-        component: () => import("pages/TestPage.vue"),
-      },
+
       {
         path: "settingspage",
         component: () => import("pages/SettingsPage.vue"),
         meta: { requiresAdmin: true },
       },
+      {
+        path: "register",
+        component: () => import("pages/RegistrierenPage.vue"),
+      },
+      { path: "warenkorb", component: () => import("pages/WarenkorbPage.vue") },
+      {
+        path: "bestellung",
+        component: () => import("pages/BestellungAbschliessen.vue"),
+      },
+      {
+        path: "abgeschlossen",
+        component: () => import("pages/BestellungAbgeschlossen.vue"),
+      },
     ],
+  },
+  {
+    path: "/vorschau1",
+    component: () => import("src/components/VorschauPages/VorschauMotiv1.vue"),
+  },
+  {
+    path: "/vorschau2",
+    component: () => import("src/components/VorschauPages/VorschauMotiv2.vue"),
+  },
+  {
+    path: "/vorschau3",
+    component: () => import("src/components/VorschauPages/VorschauMotiv3.vue"),
+  },
+  {
+    path: "/vorschau4",
+    component: () => import("src/components/VorschauPages/VorschauMotiv4.vue"),
+  },
+  {
+    path: "/vorschau5",
+    component: () => import("src/components/VorschauPages/VorschauMotiv5.vue"),
+  },
+  {
+    path: "/vorschau6",
+    component: () => import("src/components/VorschauPages/VorschauMotiv6.vue"),
+  },
+  {
+    path: "/vorschau7",
+    component: () => import("src/components/VorschauPages/VorschauMotiv7.vue"),
+  },
+  {
+    path: "/vorschau8",
+    component: () => import("src/components/VorschauPages/VorschauMotiv8.vue"),
   },
 ];
 

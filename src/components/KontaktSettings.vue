@@ -3,7 +3,7 @@
     <div class="full-width">
       <q-item-section>
         <q-item-label class="q-mb-sm" caption>Kontakt E-Mail:</q-item-label>
-        <q-input label="E-Mail:" filled v-model="kontakt.email" />
+        <q-input clearable label="E-Mail:" filled v-model="kontakt.email" />
       </q-item-section>
 
       <q-separator class="q-mt-md q-mb-md" />
@@ -33,14 +33,14 @@
 
       <q-item-section>
         <q-item-label class="q-mb-sm" caption>SMTP-Server:</q-item-label>
-        <q-input label="Smtp:" filled v-model="kontakt.smtp" />
+        <q-input clearable label="Smtp:" filled v-model="kontakt.smtp" />
       </q-item-section>
 
       <q-separator class="q-mt-md q-mb-md" />
 
       <q-item-section>
         <q-item-label class="q-mb-sm" caption>SMTP-Port:</q-item-label>
-        <q-input label="Port:" filled v-model="kontakt.port" />
+        <q-input clearable label="Port:" filled v-model="kontakt.port" />
       </q-item-section>
 
       <q-separator class="q-mt-md q-mb-sm" />

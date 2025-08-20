@@ -66,24 +66,6 @@
           Bei Fragen, bitte an den Geschäftsführer wenden.
           <p></p>
         </h6>
-        <q-btn
-          v-if="isLoggedIn"
-          size="md"
-          class="banner full-wdith"
-          label="Logout"
-          color="negative"
-          icon="logout"
-          @click="logout"
-        />
-        <q-btn
-          v-else
-          size="md"
-          class="banner full-wdith"
-          label="Login"
-          color="secondary"
-          icon="login"
-          @click="$router.push('/login')"
-        />
       </div>
     </q-img>
   </q-card>
@@ -106,23 +88,13 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from "vue-router";
-import { useAuth } from "src/composables/useAuth";
 import type { Firmenname } from "./types/SettingsFirmenNameType";
 import { onMounted, ref } from "vue";
 import api from "src/boot/axios";
 import { useLogo } from "../composables/LogoLoad";
 
-const { isLoggedIn } = useAuth();
-const router = useRouter();
 const firmenName = ref<Firmenname[]>([]);
 const { loadLogo, getFullImageUrl, logo } = useLogo();
-
-async function logout() {
-  localStorage.removeItem("authToken");
-  await router.push("/");
-  location.reload();
-}
 
 const loadFirmenName = async () => {
   try {

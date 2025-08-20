@@ -65,6 +65,7 @@
             <div class="col">
               <div class="text-subtitle1 text-weight-medium">
                 {{ item.name }}
+                <q-chip color="info" v-if="item.neu == true" label="Neu" />
               </div>
               <div class="text-body2 text-grey-7">{{ item.description }}</div>
               <div class="text-caption text-primary">
@@ -109,27 +110,11 @@ import { useQuasar } from "quasar";
 import { computed, ref, watch } from "vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
 import api from "src/boot/axios";
+import type { CategoryItem } from "../types/CategoryItem";
 const { logAudit, getCurrentUsername } = useAuditLogger();
 
-interface ItemSizes {
-  sizeName: string;
-  price: number;
-  categoryItemId: number;
-}
-
-interface Item {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  img: string;
-  categoryId: number;
-  hasSizes: boolean;
-  sizes?: ItemSizes[];
-}
-
 const $q = useQuasar();
-const items = ref<Item[]>([]);
+const items = ref<CategoryItem[]>([]);
 const isDeleting = ref(false);
 const selectedItemsForDeletion = ref<number[]>([]);
 
@@ -182,11 +167,16 @@ const fetchItems = async () => {
       `/api/categoryitems/by-category/${props.categoryId}`
     );
     items.value = response.data;
+    items.value.sort((a, b) => {
+      return a.sortOrder >= b.sortOrder ? 1 : -1;
+    });
     imageErrors.value = {};
   } catch (error) {
     console.error("Error fetching items:", error);
     $q.notify({
       type: "negative",
+      position: "top",
+
       message: `Fehler beim Laden der ${props.dialogTitle}`,
     });
   }
@@ -267,12 +257,16 @@ const deleteItems = async () => {
     if (failedDeletions.length === 0) {
       $q.notify({
         type: "positive",
+        position: "top",
+
         message: `${selectedItemsForDeletion.value.length} ${props.dialogTitle} erfolgreich gelöscht!`,
       });
       emit("items-deleted");
     } else {
       $q.notify({
         type: "warning",
+        position: "top",
+
         message: `${successfulDeletions.length} von ${results.length} ${props.dialogTitle} gelöscht. Einige Löschvorgänge sind fehlgeschlagen.`,
       });
     }
@@ -282,6 +276,8 @@ const deleteItems = async () => {
     console.error("Error deleting items:", error);
     $q.notify({
       type: "negative",
+      position: "top",
+
       message: `Fehler beim Löschen der ${props.dialogTitle}`,
     });
   } finally {

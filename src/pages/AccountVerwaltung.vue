@@ -105,8 +105,8 @@
                 <div class="text-caption">
                   Rolle:
                   <q-badge
-                    :color="props.row.role === 1 ? 'negative' : 'primary'"
-                    :label="props.row.role"
+                    :color="props.row.role === 1 ? 'negative' : 'accent'"
+                    :label="props.row.role === 1 ? 'Admin' : 'User'"
                   />
                 </div>
               </q-card-section>
@@ -136,7 +136,7 @@
                   label="Löschen"
                   color="negative"
                   @click="deleteUser(props.row)"
-                  v-if="props.row.role === 0"
+                  v-if="props.row.id != 1"
                 />
               </q-card-actions>
             </q-card>
@@ -182,7 +182,6 @@
                 flat
                 round
                 @click="deleteUser(props.row)"
-                :disable="props.row.role === 'Admin'"
               >
                 <q-tooltip>
                   {{
@@ -219,6 +218,14 @@
           @reset="resetForm"
           class="q-gutter-md q-mt-md"
         >
+          <q-select
+            :options="roleOptions"
+            label="User-Role"
+            filled
+            v-model="Role"
+            emit-value
+            map-options
+          />
           <q-input
             class="q-mt-md"
             label="Username"
@@ -550,6 +557,11 @@ const $q = useQuasar();
 const router = useRouter();
 
 // Benutzer hinzufügen
+
+const roleOptions = [
+  { label: "User", value: 0 },
+  { label: "Admin", value: 1 },
+];
 const emailRules = [
   (val: string) => !!val || "E-Mail ist erforderlich",
   (val: string) => {
@@ -567,6 +579,7 @@ const onUserAddSuccess = () => {
   void fetchAllUsers();
 };
 const {
+  Role,
   Username,
   Email,
   Vorname,
@@ -583,6 +596,8 @@ const {
   resetForm,
 } = useRegister(onUserAddSuccess);
 const handleSubmit = () => {
+  console.log("Role.value:", Role.value);
+  console.log("Type of Role.value:", typeof Role.value);
   void register();
 };
 const addUserDialog = () => {
@@ -881,15 +896,6 @@ const submitPasswordChange = async () => {
 
 // Benutzer löschen
 const deleteUser = (user: UserInfo) => {
-  if (user.role === "Admin") {
-    $q.notify({
-      type: "warning",
-      message: "Admin-Benutzer können nicht gelöscht werden",
-      position: "top",
-    });
-    return;
-  }
-
   userToDelete.value = user;
   showDeleteDialog.value = true;
 };

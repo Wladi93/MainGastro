@@ -7,14 +7,45 @@
 
       <q-card-section class="q-pt-none">
         <q-form @submit="updateItem" class="q-gutter-md">
-          <q-input
-            filled
-            v-model="editItem.name"
-            label="Name"
-            :rules="[(val) => !!val || 'Name ist erforderlich']"
-          />
+          <div class="relative-position">
+            <q-input
+              filled
+              v-model="editItem.name"
+              label="Name"
+              :rules="[(val) => !!val || 'Name ist erforderlich']"
+              ref="inputRef"
+            >
+              <template v-slot:append>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                  "
+                  class="row"
+                >
+                  <q-item-label caption>Status Neu:</q-item-label>
+                  <q-toggle
+                    checked-icon="check"
+                    color="positive"
+                    v-model="editItem.neu"
+                  />
+                </div>
+              </template>
+            </q-input>
 
-          <div class="q-gutter-sm">
+            <q-chip
+              v-if="editItem.neu === true && editItem.name"
+              label="Neu"
+              color="info"
+              clickable
+              @click.stop
+              :style="chipStyle"
+              class="floating-chip"
+            />
+          </div>
+
+          <div>
             <q-file
               filled
               v-model="selectedEditFile"
@@ -98,8 +129,19 @@
             Preise:
           </div>
 
+          <q-toggle
+            class="text-caption text-grey-8"
+            v-model="editItem.hasSizes"
+            left-label
+            label="verschiedene Größen"
+            color="positive"
+            @update:model-value="onHasSizesToggle"
+          />
+
           <q-input
-            v-if="hasSizes === true"
+            v-if="editItem.hasSizes"
+            :key="sizeKleinOn ? 1 : 0"
+            :readonly="!sizeKleinOn"
             filled
             v-model="kleinPrice"
             label="Klein (€)"
@@ -112,10 +154,17 @@
             ]"
             @focus="handleFocus('klein')"
             @blur="handleBlur('klein')"
-          />
+            @update:model-value="updateStandardPrice"
+          >
+            <template v-slot:append>
+              <q-checkbox v-model="sizeKleinOn" />
+            </template>
+          </q-input>
 
           <q-input
-            v-if="hasSizes === true"
+            v-if="editItem.hasSizes"
+            :key="sizeMittelOn ? 1 : 0"
+            :readonly="!sizeMittelOn"
             filled
             v-model="mittelPrice"
             label="Mittel (€)"
@@ -128,11 +177,16 @@
             ]"
             @focus="handleFocus('mittel')"
             @blur="handleBlur('mittel')"
-            @update:model-value="updateStandardPrice"
-          />
+          >
+            <template v-slot:append>
+              <q-checkbox v-model="sizeMittelOn" />
+            </template>
+          </q-input>
 
           <q-input
-            v-if="hasSizes === true"
+            v-if="editItem.hasSizes"
+            :key="sizeGrossOn ? 1 : 0"
+            :readonly="!sizeGrossOn"
             filled
             v-model="großPrice"
             label="Groß (€)"
@@ -144,10 +198,35 @@
             ]"
             @focus="handleFocus('groß')"
             @blur="handleBlur('groß')"
-          />
+          >
+            <template v-slot:append>
+              <q-checkbox v-model="sizeGrossOn" />
+            </template>
+          </q-input>
 
           <q-input
-            v-if="hasSizes === false"
+            v-if="editItem.hasSizes"
+            :key="sizeFamilieOn ? 1 : 0"
+            :readonly="!sizeFamilieOn"
+            filled
+            v-model="familiePrice"
+            label="Familie (€)"
+            type="text"
+            step="0.01"
+            min="0"
+            :rules="[
+              (val) => parseFloat(val) > 0 || 'Preis für Groß ist erforderlich',
+            ]"
+            @focus="handleFocus('familie')"
+            @blur="handleBlur('familie')"
+          >
+            <template v-slot:append>
+              <q-checkbox v-model="sizeFamilieOn" />
+            </template>
+          </q-input>
+
+          <q-input
+            v-if="!editItem.hasSizes"
             filled
             v-model="singlePrice"
             label="Preis (€)"
@@ -199,6 +278,22 @@ const kleinPrice = ref("");
 const mittelPrice = ref("");
 const großPrice = ref("");
 const singlePrice = ref("");
+const familiePrice = ref("");
+
+const chipStyle = computed(() => {
+  if (!editItem.name) return { display: "none" };
+  const textWidth = editItem.name.length * 6.6;
+  const leftPosition = Math.min(textWidth + 20, 300);
+
+  return {
+    position: "absolute",
+    left: `${leftPosition}px`,
+    top: "41%",
+    transform: "translateY(-50%)",
+    zIndex: "10",
+    pointerEvents: "auto",
+  };
+});
 
 const getFullImageUrl = (imgUrl: string): string => {
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
@@ -234,6 +329,8 @@ interface MenuItem {
   categoryId: number;
   hasSizes: boolean;
   sizes?: ItemSizes[];
+  sortOrder: number;
+  neu: boolean;
 }
 
 const props = defineProps<{
@@ -246,7 +343,18 @@ const props = defineProps<{
   uploadEndpoint?: string;
   categoryId?: number | undefined;
   sizes?: ItemSizes[] | undefined;
+  sortOrder?: number | undefined;
+  neu?: boolean | undefined;
 }>();
+
+const activeSizesCount = computed(() => {
+  let count = 0;
+  if (sizeKleinOn.value) count++;
+  if (sizeMittelOn.value) count++;
+  if (sizeGrossOn.value) count++;
+  if (sizeFamilieOn.value) count++;
+  return count;
+});
 
 const emit = defineEmits<{
   "update:modelValue": [value: boolean];
@@ -266,29 +374,100 @@ const editItem = reactive({
   price: 0,
   sizes: [] as ItemSizes[],
   categoryId: props.categoryId,
+  sortOrder: props.sortOrder,
+  neu: props.neu,
+  hasSizes: props.hasSizes,
 });
 
-const updateStandardPrice = () => {
-  const mittelValue = parseFloat(mittelPrice.value) || 0;
-  editItem.price = mittelValue;
+const sizeKleinOn = ref(true);
+const sizeMittelOn = ref(true);
+const sizeGrossOn = ref(true);
+const sizeFamilieOn = ref(true);
 
-  const mittelSize = editItem.sizes.find((size) => size.sizeName === "mittel");
-  if (mittelSize) {
-    mittelSize.price = mittelValue;
+const onHasSizesToggle = (value: boolean) => {
+  editItem.hasSizes = value;
+
+  if (!value) {
+    const kleinValue = parseFloat(kleinPrice.value) || editItem.price || 0;
+    singlePrice.value = kleinValue.toFixed(2);
+    editItem.price = kleinValue;
+
+    kleinPrice.value = "0.00";
+    mittelPrice.value = "0.00";
+    großPrice.value = "0.00";
+    familiePrice.value = "0.00";
+    editItem.sizes = [];
+  } else {
+    if (activeSizesCount.value < 2) {
+      editItem.hasSizes = false;
+      $q.notify({
+        type: "warning",
+        position: "top",
+        message:
+          "Mindestens zwei Größen müssen ausgewählt sein. Verwende Einzelpreis.",
+      });
+      return;
+    }
+
+    const currentPrice = parseFloat(singlePrice.value) || editItem.price || 0;
+
+    kleinPrice.value = currentPrice.toFixed(2);
+    mittelPrice.value = "0.00";
+    großPrice.value = "0.00";
+    familiePrice.value = "0.00";
+
+    editItem.sizes = [
+      {
+        sizeName: "klein",
+        price: currentPrice,
+        categoryItemId: editItem.id || 0,
+      },
+      {
+        sizeName: "mittel",
+        price: 0,
+        categoryItemId: editItem.id || 0,
+      },
+      { sizeName: "groß", price: 0, categoryItemId: editItem.id || 0 },
+      { sizeName: "familie", price: 0, categoryItemId: editItem.id || 0 },
+    ];
+
+    editItem.price = currentPrice;
+    singlePrice.value = "0.00";
+  }
+};
+const updateStandardPrice = () => {
+  const kleinValue = parseFloat(kleinPrice.value) || 0;
+  editItem.price = kleinValue;
+
+  const kleinSize = editItem.sizes.find((size) => size.sizeName === "klein");
+  if (kleinSize) {
+    kleinSize.price = kleinValue;
   }
 };
 
-const handleFocus = (size: "klein" | "mittel" | "groß") => {
+const handleFocus = (size: "klein" | "mittel" | "groß" | "familie") => {
   const currentRef =
-    size === "klein" ? kleinPrice : size === "mittel" ? mittelPrice : großPrice;
+    size === "klein"
+      ? kleinPrice
+      : size === "mittel"
+        ? mittelPrice
+        : size === "groß"
+          ? großPrice
+          : familiePrice;
   if (currentRef.value === "0" || currentRef.value === "0.00") {
     currentRef.value = "";
   }
 };
 
-const handleBlur = (size: "klein" | "mittel" | "groß") => {
+const handleBlur = (size: "klein" | "mittel" | "groß" | "familie") => {
   const currentRef =
-    size === "klein" ? kleinPrice : size === "mittel" ? mittelPrice : großPrice;
+    size === "klein"
+      ? kleinPrice
+      : size === "mittel"
+        ? mittelPrice
+        : size === "groß"
+          ? großPrice
+          : familiePrice;
   const rawValue = (currentRef.value || "").toString().replace(",", ".");
   const value = parseFloat(rawValue);
 
@@ -298,7 +477,7 @@ const handleBlur = (size: "klein" | "mittel" | "groß") => {
       sizeObj.price = value;
     }
 
-    if (size === "mittel") {
+    if (size === "klein") {
       editItem.price = value;
     }
   }
@@ -401,8 +580,8 @@ const onEditFileSelected = async (file: File | null) => {
 
       $q.notify({
         type: "positive",
+        position: "top",
         message: "Neues Bild erfolgreich hochgeladen!",
-        timeout: 2000,
       });
     } catch {
       uploadStatus.value = "error";
@@ -411,8 +590,8 @@ const onEditFileSelected = async (file: File | null) => {
 
       $q.notify({
         type: "negative",
+        position: "top",
         message: "Fehler beim Hochladen des neuen Bildes",
-        timeout: 3000,
       });
     }
   } else {
@@ -445,6 +624,7 @@ const updateItem = async () => {
   if (!props.item) {
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Das zu bearbeitende Item konnte nicht geladen werden.",
     });
     return;
@@ -455,6 +635,7 @@ const updateItem = async () => {
   if (uploadStatus.value === "uploading") {
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Bitte warten Sie bis das Bild vollständig hochgeladen ist",
     });
     return;
@@ -464,52 +645,68 @@ const updateItem = async () => {
     editItem.img = newUploadedImageUrl.value;
   }
 
-  if (props.hasSizes) {
-    const kleinValue =
-      parseFloat((kleinPrice.value || "").toString().replace(",", ".")) || 0;
-    const mittelValue =
-      parseFloat((mittelPrice.value || "").toString().replace(",", ".")) || 0;
-    const großValue =
-      parseFloat((großPrice.value || "").toString().replace(",", ".")) || 0;
+  if (editItem.hasSizes) {
+    const kleinValue = sizeKleinOn.value
+      ? parseFloat((kleinPrice.value || "").toString().replace(",", ".")) || 0
+      : 0;
+    const mittelValue = sizeMittelOn.value
+      ? parseFloat((mittelPrice.value || "").toString().replace(",", ".")) || 0
+      : 0;
+    const großValue = sizeGrossOn.value
+      ? parseFloat((großPrice.value || "").toString().replace(",", ".")) || 0
+      : 0;
+    const familieValue = sizeFamilieOn.value
+      ? parseFloat((familiePrice.value || "").toString().replace(",", ".")) || 0
+      : 0;
 
-    const updatedSizes = editItem.sizes.map((size) => {
-      let newPrice = 0;
-
-      switch (size.sizeName.toLowerCase()) {
-        case "klein":
-          newPrice = kleinValue;
-          break;
-        case "mittel":
-          newPrice = mittelValue;
-          break;
-        case "groß":
-        case "gross":
-          newPrice = großValue;
-          break;
-        default:
-          newPrice = size.price;
-      }
-
-      return {
-        ...size,
-        price: newPrice,
-      };
-    });
+    const updatedSizes = [];
+    if (sizeKleinOn.value)
+      updatedSizes.push({
+        sizeName: "Klein",
+        price: kleinValue,
+        categoryItemId: editItem.id || 0,
+      });
+    if (sizeMittelOn.value)
+      updatedSizes.push({
+        sizeName: "Mittel",
+        price: mittelValue,
+        categoryItemId: editItem.id || 0,
+      });
+    if (sizeGrossOn.value)
+      updatedSizes.push({
+        sizeName: "Groß",
+        price: großValue,
+        categoryItemId: editItem.id || 0,
+      });
+    if (sizeFamilieOn.value)
+      updatedSizes.push({
+        sizeName: "Familie",
+        price: familieValue,
+        categoryItemId: editItem.id || 0,
+      });
 
     editItem.sizes = updatedSizes;
-    editItem.price = mittelValue;
+
+    editItem.price = kleinValue || mittelValue || großValue || familieValue;
+
+    const activeInvalidPrices = [
+      sizeKleinOn.value && kleinValue <= 0,
+      sizeMittelOn.value && mittelValue <= 0,
+      sizeGrossOn.value && großValue <= 0,
+      sizeFamilieOn.value && familieValue <= 0,
+    ].some(Boolean);
 
     if (
       !editItem.name ||
       !editItem.img ||
       !editItem.description ||
-      kleinValue <= 0 ||
-      mittelValue <= 0 ||
-      großValue <= 0
+      activeInvalidPrices
     ) {
       $q.notify({
         type: "negative",
-        message: "Bitte füllen Sie alle Felder korrekt aus",
+        position: "top",
+        message:
+          "Bitte füllen Sie alle Felder korrekt aus und stellen Sie sicher, dass alle aktivierten Preise größer als 0 sind",
       });
       return;
     }
@@ -517,7 +714,7 @@ const updateItem = async () => {
     const singleValue =
       parseFloat((singlePrice.value || "").toString().replace(",", ".")) || 0;
     editItem.price = singleValue;
-
+    editItem.sizes = [];
     if (
       !editItem.name ||
       !editItem.img ||
@@ -526,6 +723,7 @@ const updateItem = async () => {
     ) {
       $q.notify({
         type: "negative",
+        position: "top",
         message: "Bitte füllen Sie alle Felder korrekt aus",
       });
       return;
@@ -533,7 +731,6 @@ const updateItem = async () => {
   }
 
   isUpdating.value = true;
-
   try {
     const requestBody = {
       id: editItem.id,
@@ -542,8 +739,10 @@ const updateItem = async () => {
       description: editItem.description,
       price: editItem.price,
       categoryId: editItem.categoryId || props.categoryId,
-      hasSizes: props.hasSizes,
-      ...(props.hasSizes && { sizes: editItem.sizes }),
+      hasSizes: editItem.hasSizes,
+      ...(editItem.hasSizes ? { sizes: editItem.sizes } : { sizes: [] }),
+      sortOrder: editItem.sortOrder,
+      neu: editItem.neu,
     };
 
     const response = await api.put(
@@ -560,12 +759,18 @@ const updateItem = async () => {
         description: oldItem.description,
         price: oldItem.price,
         img: oldItem.img,
+        sortOrder: oldItem.sortOrder,
+        neu: oldItem.neu,
+        hasSizes: oldItem.hasSizes,
       },
       newValues: {
         name: editItem.name,
         description: editItem.description,
         price: editItem.price,
         img: editItem.img,
+        sortOrder: editItem.sortOrder,
+        neu: editItem.neu,
+        hasSizes: editItem.hasSizes,
       },
       message: `Item "${oldItem.name}" wurde in der Kategorie "${categoryName}" aktualisiert`,
       username: currentUser,
@@ -585,6 +790,7 @@ const updateItem = async () => {
 
     $q.notify({
       type: "positive",
+      position: "top",
       message: `${props.dialogTitle} wurde erfolgreich aktualisiert!`,
     });
 
@@ -600,6 +806,7 @@ const updateItem = async () => {
     console.error(`Error updating ${props.dialogTitle}:`, error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: `Fehler beim Aktualisieren des ${props.dialogTitle}`,
     });
   } finally {
@@ -623,6 +830,9 @@ watch(
       editItem.img = props.item.img;
       editItem.description = props.item.description;
       editItem.price = props.item.price;
+      editItem.sortOrder = props.item.sortOrder;
+      editItem.neu = props.item.neu;
+      editItem.hasSizes = props.item.hasSizes;
 
       if (props.hasSizes && props.sizes && props.sizes.length > 0) {
         editItem.sizes = [...props.sizes];
@@ -630,12 +840,21 @@ watch(
         const kleinSize = props.sizes.find((s) => s.sizeName === "Klein");
         const mittelSize = props.sizes.find((s) => s.sizeName === "Mittel");
         const großSize = props.sizes.find((s) => s.sizeName === "Groß");
+        const familieSize = props.sizes.find((s) => s.sizeName === "Familie");
 
         kleinPrice.value = kleinSize ? kleinSize.price.toFixed(2) : "0.00";
         mittelPrice.value = mittelSize ? mittelSize.price.toFixed(2) : "0.00";
         großPrice.value = großSize ? großSize.price.toFixed(2) : "0.00";
+        familiePrice.value = familieSize
+          ? familieSize.price.toFixed(2)
+          : "0.00";
 
-        editItem.price = mittelSize ? mittelSize.price : props.item.price;
+        sizeKleinOn.value = parseFloat(kleinPrice.value) > 0;
+        sizeMittelOn.value = parseFloat(mittelPrice.value) > 0;
+        sizeGrossOn.value = parseFloat(großPrice.value) > 0;
+        sizeFamilieOn.value = parseFloat(familiePrice.value) > 0;
+
+        editItem.price = kleinSize ? kleinSize.price : props.item.price;
       } else {
         editItem.sizes = [];
         singlePrice.value = props.item.price.toFixed(2);
@@ -645,23 +864,29 @@ watch(
   { immediate: true }
 );
 
-watch([kleinPrice, mittelPrice, großPrice], ([klein, mittel, groß]) => {
-  if (props.hasSizes) {
-    const kleinValue = parseFloat(klein) || 0;
-    const mittelValue = parseFloat(mittel) || 0;
-    const großValue = parseFloat(groß) || 0;
+watch(
+  [kleinPrice, mittelPrice, großPrice, familiePrice],
+  ([klein, mittel, groß, familie]) => {
+    if (props.hasSizes == true) {
+      const kleinValue = parseFloat(klein) || 0;
+      const mittelValue = parseFloat(mittel) || 0;
+      const großValue = parseFloat(groß) || 0;
+      const familieValue = parseFloat(familie) || 0;
 
-    const kleinSize = editItem.sizes.find((s) => s.sizeName === "klein");
-    const mittelSize = editItem.sizes.find((s) => s.sizeName === "mittel");
-    const großSize = editItem.sizes.find((s) => s.sizeName === "groß");
+      const kleinSize = editItem.sizes.find((s) => s.sizeName === "klein");
+      const mittelSize = editItem.sizes.find((s) => s.sizeName === "mittel");
+      const großSize = editItem.sizes.find((s) => s.sizeName === "groß");
+      const familieSize = editItem.sizes.find((s) => s.sizeName === "familie");
 
-    if (kleinSize) kleinSize.price = kleinValue;
-    if (mittelSize) mittelSize.price = mittelValue;
-    if (großSize) großSize.price = großValue;
+      if (kleinSize) kleinSize.price = kleinValue;
+      if (mittelSize) mittelSize.price = mittelValue;
+      if (großSize) großSize.price = großValue;
+      if (familieSize) familieSize.price = familieValue;
 
-    editItem.price = mittelValue;
+      editItem.price = kleinValue;
+    }
   }
-});
+);
 
 watch(singlePrice, (newPrice) => {
   if (!props.hasSizes) {
@@ -680,4 +905,12 @@ const getCategoryNameById = async (categoryId: number): Promise<string> => {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.floating-chip {
+  transition: left 0.2s ease;
+}
+
+.relative-position {
+  position: relative;
+}
+</style>

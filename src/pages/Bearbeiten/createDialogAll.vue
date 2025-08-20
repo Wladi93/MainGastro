@@ -7,15 +7,44 @@
 
       <q-card-section class="q-pt-none">
         <q-form @submit="createItem" class="q-gutter-md">
-          <q-input
-            filled
-            v-model="itemData.name"
-            label="Name"
-            :rules="[(val) => !!val || 'Name ist erforderlich']"
-            ref="nameInput"
-          />
+          <div class="relative-position">
+            <q-input
+              filled
+              v-model="itemData.name"
+              label="Name"
+              :rules="[(val) => !!val || 'Name ist erforderlich']"
+              ref="inputRef"
+            >
+              <template v-slot:append>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                  "
+                  class="row"
+                >
+                  <q-item-label caption>Status Neu:</q-item-label>
+                  <q-toggle
+                    checked-icon="check"
+                    color="positive"
+                    v-model="itemData.neu"
+                  />
+                </div>
+              </template>
+            </q-input>
 
-          <div class="q-gutter-sm">
+            <q-chip
+              v-if="itemData.neu === true && itemData.name"
+              label="Neu"
+              color="info"
+              clickable
+              @click.stop
+              :style="chipStyle"
+              class="floating-chip"
+            />
+          </div>
+          <div class="">
             <q-file
               filled
               v-model="selectedFile"
@@ -86,11 +115,21 @@
             :rules="[(val) => !!val || 'Beschreibung ist erforderlich']"
           />
 
+          <q-toggle
+            class="text-caption text-grey-8"
+            v-model="hasSizesLocal"
+            left-label
+            label="verschiedene Größen"
+            color="positive"
+          />
+
           <!-- Preise für Items mit Größen (Pizza) -->
           <div v-if="hasSizesLocal" class="text-subtitle2 q-mt-md">Preise:</div>
 
           <template v-if="hasSizesLocal">
             <q-input
+              :key="sizeKleinOn ? 1 : 0"
+              :readonly="!sizeKleinOn"
               filled
               v-model="kleinPrice"
               label="Klein (€)"
@@ -103,9 +142,15 @@
               ]"
               @focus="handleFocus('klein')"
               @blur="handleBlur('klein')"
-            />
+            >
+              <template v-slot:append>
+                <q-checkbox v-model="sizeKleinOn" />
+              </template>
+            </q-input>
 
             <q-input
+              :key="sizeMittelOn ? 1 : 0"
+              :readonly="!sizeMittelOn"
               filled
               v-model="mittelPrice"
               label="Mittel (€)"
@@ -118,9 +163,15 @@
               ]"
               @focus="handleFocus('mittel')"
               @blur="handleBlur('mittel')"
-            />
+            >
+              <template v-slot:append>
+                <q-checkbox v-model="sizeMittelOn" />
+              </template>
+            </q-input>
 
             <q-input
+              :key="sizeGrossOn ? 1 : 0"
+              :readonly="!sizeGrossOn"
               filled
               v-model="großPrice"
               label="Groß (€)"
@@ -133,7 +184,32 @@
               ]"
               @focus="handleFocus('groß')"
               @blur="handleBlur('groß')"
-            />
+            >
+              <template v-slot:append>
+                <q-checkbox v-model="sizeGrossOn" />
+              </template>
+            </q-input>
+
+            <q-input
+              :key="sizeFamilieOn ? 1 : 0"
+              :readonly="!sizeFamilieOn"
+              filled
+              v-model="familiePrice"
+              label="Familie (€)"
+              type="text"
+              step="0.01"
+              min="0"
+              :rules="[
+                (val) =>
+                  parseFloat(val) > 0 || 'Preis für Familie ist erforderlich',
+              ]"
+              @focus="handleFocus('familie')"
+              @blur="handleBlur('familie')"
+            >
+              <template v-slot:append>
+                <q-checkbox v-model="sizeFamilieOn" />
+              </template>
+            </q-input>
           </template>
 
           <!-- Einzelpreis für Items ohne Größen -->
@@ -178,8 +254,9 @@
 
 <script setup lang="ts">
 import { useQuasar } from "quasar";
-import { reactive, ref, computed } from "vue";
+import { reactive, ref, computed, watch } from "vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
+import type { ItemSizes } from "../types/CategoryItemsSizes";
 import api from "src/boot/axios";
 
 const { logAudit, getCurrentUsername } = useAuditLogger();
@@ -192,12 +269,35 @@ interface ItemData {
   price: number;
   hasSizes: boolean;
   categoryId: number;
+  sortOrder: number;
+  neu: boolean;
+  sizes?: ItemSizes;
 }
 
 interface SizeData {
   sizeName: string;
   price: number;
 }
+
+const nextSortOrder = ref(0);
+
+const computedSortOrder = computed(() => {
+  return nextSortOrder.value;
+});
+
+const loadNextSortOrder = async () => {
+  try {
+    const response = await api.get(
+      `/api/categoryItems/next-sort-order/${props.categoryId}`
+    );
+    nextSortOrder.value = response.data.nextSortOrder || 1;
+  } catch (error) {
+    console.error("Fehler beim Laden der nächsten sortOrder:", error);
+    nextSortOrder.value = 1;
+  }
+};
+
+//sizes
 
 const props = defineProps<{
   modelValue: boolean;
@@ -229,8 +329,27 @@ const hasSizesLocal = ref(false);
 const kleinPrice = ref("0.00");
 const mittelPrice = ref("0.00");
 const großPrice = ref("0.00");
-
+const familiePrice = ref("0.00");
 const singlePrice = ref("0.00");
+const sizeKleinOn = ref(true);
+const sizeMittelOn = ref(true);
+const sizeGrossOn = ref(true);
+const sizeFamilieOn = ref(true);
+
+const chipStyle = computed(() => {
+  if (!itemData.name) return { display: "none" };
+  const textWidth = itemData.name.length * 6.6;
+  const leftPosition = Math.min(textWidth + 20, 300);
+
+  return {
+    position: "absolute",
+    left: `${leftPosition}px`,
+    top: "42%",
+    transform: "translateY(-50%)",
+    zIndex: "10",
+    pointerEvents: "auto",
+  };
+});
 
 const defaultItemData: ItemData = {
   name: "",
@@ -239,23 +358,37 @@ const defaultItemData: ItemData = {
   price: 0,
   hasSizes: hasSizesLocal.value,
   categoryId: props.categoryId,
+  sortOrder: 0,
+  neu: false,
 };
 
 const itemData = reactive<ItemData>({
   ...defaultItemData,
 });
 
-const handleFocus = (size: "klein" | "mittel" | "groß") => {
+const handleFocus = (size: "klein" | "mittel" | "groß" | "familie") => {
   const currentRef =
-    size === "klein" ? kleinPrice : size === "mittel" ? mittelPrice : großPrice;
+    size === "klein"
+      ? kleinPrice
+      : size === "mittel"
+        ? mittelPrice
+        : size === "groß"
+          ? großPrice
+          : familiePrice;
   if (currentRef.value === "0" || currentRef.value === "0.00") {
     currentRef.value = "";
   }
 };
 
-const handleBlur = (size: "klein" | "mittel" | "groß") => {
+const handleBlur = (size: "klein" | "mittel" | "groß" | "familie") => {
   const currentRef =
-    size === "klein" ? kleinPrice : size === "mittel" ? mittelPrice : großPrice;
+    size === "klein"
+      ? kleinPrice
+      : size === "mittel"
+        ? mittelPrice
+        : size === "groß"
+          ? großPrice
+          : familiePrice;
 
   const rawValue = (currentRef.value || "").toString().replace(",", ".");
   const value = parseFloat(rawValue);
@@ -347,8 +480,8 @@ const onFileSelected = async (file: File | null) => {
 
       $q.notify({
         type: "positive",
+        position: "top",
         message: "Bild erfolgreich hochgeladen!",
-        timeout: 2000,
       });
     } catch {
       uploadStatus.value = "error";
@@ -356,8 +489,8 @@ const onFileSelected = async (file: File | null) => {
 
       $q.notify({
         type: "negative",
+        position: "top",
         message: "Fehler beim Hochladen des Bildes",
-        timeout: 3000,
       });
     }
   } else {
@@ -381,6 +514,7 @@ const closeCreateDialog = () => {
   kleinPrice.value = "0.00";
   mittelPrice.value = "0.00";
   großPrice.value = "0.00";
+  familiePrice.value = "0.00";
   singlePrice.value = "0.00";
 
   selectedFile.value = null;
@@ -414,6 +548,7 @@ const createItem = async () => {
   if (!itemData.name || !itemData.img || !itemData.description) {
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Bitte füllen Sie alle Felder korrekt aus",
     });
     return;
@@ -429,28 +564,41 @@ const createItem = async () => {
       mittelPrice.value.toString().replace(",", ".")
     );
     const großValue = parseFloat(großPrice.value.toString().replace(",", "."));
+    const familieValue = parseFloat(
+      familiePrice.value.toString().replace(",", ".")
+    );
 
-    if (
-      kleinValue <= 0 ||
-      mittelValue <= 0 ||
-      großValue <= 0 ||
-      isNaN(kleinValue) ||
-      isNaN(mittelValue) ||
-      isNaN(großValue)
-    ) {
-      $q.notify({
-        type: "negative",
-        message: "Bitte füllen Sie alle Preise korrekt aus",
-      });
-      return;
-    }
-
-    itemData.price = mittelValue;
-    sizesData = [
+    const sizes = [
       { sizeName: "Klein", price: kleinValue },
       { sizeName: "Mittel", price: mittelValue },
       { sizeName: "Groß", price: großValue },
+      { sizeName: "Familie", price: familieValue },
     ];
+
+    const validSizes = sizes.filter((s) => !isNaN(s.price) && s.price > 0);
+
+    if (validSizes.length >= 2) {
+      itemData.price =
+        validSizes.find((s) => s.sizeName === "Klein")?.price ??
+        validSizes[0]!.price;
+      sizesData = validSizes;
+    } else {
+      const singleValue = parseFloat(
+        singlePrice.value.toString().replace(",", ".")
+      );
+
+      if (singleValue <= 0 || isNaN(singleValue)) {
+        $q.notify({
+          type: "negative",
+          position: "top",
+          message: "Bitte geben Sie einen gültigen Einzelpreis ein",
+        });
+        return;
+      }
+
+      itemData.price = singleValue;
+      sizesData = [];
+    }
   } else {
     const singleValue = parseFloat(
       singlePrice.value.toString().replace(",", ".")
@@ -459,24 +607,27 @@ const createItem = async () => {
     if (singleValue <= 0 || isNaN(singleValue)) {
       $q.notify({
         type: "negative",
-        message: "Bitte geben Sie einen gültigen Preis ein",
+        position: "top",
+        message: "Bitte geben Sie einen gültigen Einzelpreis ein",
       });
       return;
     }
 
     itemData.price = singleValue;
+    sizesData = [];
   }
 
   if (uploadStatus.value !== "success") {
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Bitte warten Sie bis das Bild vollständig hochgeladen ist",
     });
     return;
   }
 
   isCreating.value = true;
-
+  itemData.sortOrder = computedSortOrder.value;
   try {
     const { data: createdCategoryItem } = await api.post("/api/categoryItems", {
       name: itemData.name,
@@ -485,6 +636,8 @@ const createItem = async () => {
       price: itemData.price,
       hasSizes: hasSizesLocal.value,
       categoryId: props.categoryId,
+      sortOrder: itemData.sortOrder,
+      neu: itemData.neu,
     });
 
     const categoryName = await getCategoryNameById(props.categoryId);
@@ -509,6 +662,7 @@ const createItem = async () => {
 
     $q.notify({
       type: "positive",
+      position: "top",
       message: `${props.dialogTitle.replace("Neues", "").replace("erstellen", "").trim()} wurde erfolgreich erstellt!`,
     });
 
@@ -518,6 +672,7 @@ const createItem = async () => {
     console.error("Fehler beim Erstellen:", error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Fehler beim Erstellen",
     });
   } finally {
@@ -534,6 +689,21 @@ const getCategoryNameById = async (categoryId: number): Promise<string> => {
     return "Unbekannte Kategorie";
   }
 };
+
+watch(
+  () => props.categoryId,
+  async () => {
+    await loadNextSortOrder();
+  }
+);
 </script>
 
-<style scoped></style>
+<style scoped>
+.floating-chip {
+  transition: left 0.2s ease;
+}
+
+.relative-position {
+  position: relative;
+}
+</style>

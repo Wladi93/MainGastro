@@ -1,21 +1,21 @@
 <template>
   <div class="sticky-tabs">
-    <q-banner class="banner full-width text-accent">
+    <q-banner class="banner full-width text-accent bg-white">
       <h6 class="bannerText">
         <q-icon class="bannerIcon" name="restaurant" />
         Speisekarte
       </h6>
     </q-banner>
 
-    <div class="above bg-white">
-      <q-separator color="accent" />
-      <h2 class="textOben text-h5 text-weight-thin text-center">
-        Unsere Speisekarte...
-      </h2>
-      <q-separator size="15px" color="grey-6" class="separatorOben" />
-    </div>
+    <q-input
+      clearable
+      filled
+      v-model="search"
+      debounce="500"
+      placeholder="Suchen"
+      ><template v-slot:append> <q-icon name="search" /> </template
+    ></q-input>
 
-    <q-img class="background-img" />
     <q-card class="tabsBorder sticky-tabs">
       <q-tabs
         v-model="tab"
@@ -50,7 +50,10 @@
       v-show="true"
       :ref="(el: any) => setSectionRef(category.name, el)"
     >
-      <q-card class="q-gutter-y-xl">
+      <q-card
+        v-if="!search.trim() || categoryHasResults(category.name)"
+        class="q-gutter-y-xl"
+      >
         <div class="tab-section-name">
           <q-card-section class="card-section3 bannerHeight">
             <q-img
@@ -86,7 +89,7 @@
       </q-card>
 
       <div
-        v-for="item in getCategoryItems(category.name)"
+        v-for="item in getFilteredCategoryItems(category.name)"
         :key="item.id"
         class="my-card"
       >
@@ -99,8 +102,12 @@
               :alt="item.name"
             />
             <div class="text-container">
-              <h6 class="text-h6">
+              <h6
+                class="text-h6 row"
+                style="display: flex; align-items: center"
+              >
                 {{ item.name }}
+                <q-chip color="info" v-if="item.neu == true" label="Neu" />
               </h6>
               <p class="description nowrap">{{ item.description }}</p>
             </div>
@@ -113,16 +120,32 @@
                 align-items: center;
               "
             >
-              <h6 class="preisText text-subtitle2">Preis:</h6>
-              <q-chip color="info"
-                >{{ item.price ? item.price.toFixed(2) : "0.00" }}€</q-chip
-              >
+              <div class="flex row items-center q-mb-sm">
+                <q-item-label caption>Preis:</q-item-label>
+                <q-chip dense color="info"
+                  >{{ item.price ? item.price.toFixed(2) : "0.00" }}€</q-chip
+                >
+              </div>
+              <q-btn
+                size="sm"
+                class="q-mt-xs"
+                color="secondary"
+                label="hinzufügen"
+                @click="
+                  () => openZumWarenkorbHinzufügen(item, currentCategoryName)
+                "
+              />
             </div>
           </q-card-section>
         </q-card>
       </div>
     </div>
   </div>
+  <ZumWarenkorbHinzufügenDialog
+    v-model:isOpen="isOpenHinzufügen"
+    v-model:selectedItem="selectedItem"
+    v-model:categoryName="currentCategoryName"
+  />
 </template>
 
 <script setup lang="ts">
@@ -130,6 +153,9 @@ import { ref, onMounted, onBeforeUnmount } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import api from "src/boot/axios";
 import { useQuasar } from "quasar";
+import ZumWarenkorbHinzufügenDialog from "./Dialog/ZumWarenkorbHinzufügenDialog.vue";
+import type { Category } from "./types/Category";
+import type { CategoryItem } from "./types/CategoryItem";
 
 const getFullImageUrl = (imgUrl: string): string => {
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
@@ -151,40 +177,12 @@ const getFullImageUrl = (imgUrl: string): string => {
   return normalizedBaseURL + cleanedImgUrl;
 };
 const $q = useQuasar();
-
-interface ItemSizes {
-  sizeName: string;
-  price: number;
-  categoryItemId: number;
-}
-
-interface Category {
-  id: number;
-  name: string;
-  icon: string;
-  apiEndpoint: string;
-  bannerImage: string;
-  categoryItem?: CategoryItem[];
-}
-
-interface CategoryItem {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  img: string;
-  categoryId: number;
-  hasSizes: boolean;
-  sizes?: ItemSizes[];
-}
+const search = ref("");
 
 const categories = ref<Category[]>([]);
 
 // Kategorien
-
-const getCategoryItems = (categoryName: string): CategoryItem[] => {
-  return categoryItems.value[categoryName] || [];
-};
+const currentCategoryName = ref("");
 
 const sectionRefs = ref<Record<string, HTMLElement>>({});
 const setSectionRef = (
@@ -204,6 +202,7 @@ const fetchCategories = async () => {
     console.error("Fehler beim Laden der Kategorien:", error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Fehler beim Laden der Kategorien",
     });
   }
@@ -230,13 +229,32 @@ const fetchCategoryItems = async (categoryName: string) => {
       `/api/categoryItems/by-category/${category.id}`
     );
     categoryItems.value[categoryName] = response.data;
+    categoryItems.value[categoryName]!.sort((a, b) => {
+      return a.sortOrder >= b.sortOrder ? 1 : -1;
+    });
   } catch (error) {
     console.error(`Error fetching ${categoryName}:`, error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: `Fehler beim Laden der ${categoryName}`,
     });
   }
+};
+
+const getFilteredCategoryItems = (categoryName: string): CategoryItem[] => {
+  const items = categoryItems.value[categoryName] || [];
+  if (!search.value.trim()) {
+    return items;
+  }
+
+  return items.filter((item) =>
+    item.name.toLowerCase().includes(search.value.toLowerCase())
+  );
+};
+
+const categoryHasResults = (categoryName: string): boolean => {
+  return getFilteredCategoryItems(categoryName).length > 0;
 };
 
 const tab = ref("");
@@ -278,6 +296,19 @@ const handleIntersection = (entries: IntersectionObserverEntry[]) => {
       }
     }
   });
+};
+
+// Warenkorb hinzufügen
+const isOpenHinzufügen = ref(false);
+const selectedItem = ref<CategoryItem | null>(null);
+
+const openZumWarenkorbHinzufügen = (
+  item: CategoryItem,
+  categoryName: string
+) => {
+  selectedItem.value = item;
+  currentCategoryName.value = categoryName;
+  isOpenHinzufügen.value = true;
 };
 
 onMounted(async () => {

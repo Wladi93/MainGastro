@@ -342,7 +342,9 @@ createQuasarApp(createApp, quasarUserOptions)
       
       import('boot/passive-events'),
       
-      import('boot/quasar-lang')
+      import('boot/quasar-lang'),
+      
+      import('boot/colors')
       
     ]).then(bootFiles => {
       const boot = mapFn(bootFiles).filter(entry => typeof entry === 'function')

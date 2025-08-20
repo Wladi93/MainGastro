@@ -6,12 +6,12 @@
       <q-item-label class="q-mb-sm" caption>{{ logos.name }}:</q-item-label>
       <q-card class="full-width flex column items-center">
         <q-img
+          width="90vw"
+          height="25vh"
           :class="logos.id === 1 ? 'q-my-xs' : 'q-my-xs'"
           alt="Logo"
           :ratio="1"
           :src="getFullImageUrl(logos.url)"
-          width="90vw"
-          height="10vh"
           spinner-color="secondary"
           :style="
             logos.id === 1
@@ -97,3 +97,5 @@ onMounted(async () => {
   await loadLogo();
 });
 </script>
+
+<style></style>

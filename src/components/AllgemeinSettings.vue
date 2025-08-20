@@ -1,55 +1,68 @@
 <template>
   <q-list separator class="q-mt-md">
     <q-item-label> Farben:</q-item-label>
-    <div class="flex row full-width justify-between">
-      <q-item>
-        <q-item-section class="flex full-width justify-between">
-          <q-item-label caption
-            >Layout:
-            <q-icon class="q-mr-sm" color="primary" name="lens" size="sm" />
-            <q-btn
-              @click="openDialogHauptfarbe"
-              label="ändern"
-              color="secondary"
-              style="width: 80px"
-            />
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-      <q-separator vertical inset />
+    <div
+      class="flex column full-width"
+      style="align-items: flex-start; justify-content: flex-start"
+    >
+      <q-item class="column full-width">
+        <div class="row items-center no-wrap" style="width: 100%">
+          <div class="text-caption text-grey-7" style="min-width: 50px">
+            Layout:
+          </div>
+          <q-icon color="primary" name="lens" size="sm" class="q-ml-sm" />
+        </div>
 
-      <q-item>
-        <q-item-section class="flex full-width justify-between">
-          <q-item-label caption
-            >Buttons:
-            <q-icon class="q-mr-sm" color="secondary" name="lens" size="sm" />
-            <q-btn
-              @click="openDialogZweitfarbe"
-              label="ändern"
-              color="secondary"
-              style="width: 80px"
-            />
-          </q-item-label>
+        <q-item-section>
+          <q-btn
+            icon="opacity"
+            @click="openDialogHauptfarbe"
+            label="ändern"
+            color="secondary"
+            class="full-width q-mt-sm"
+          />
         </q-item-section>
+        <q-separator class="q-mt-md" />
+      </q-item>
+
+      <q-item class="full-width column">
+        <div class="row items-center no-wrap" style="width: 100%">
+          <div class="text-caption text-grey-7" style="min-width: 50px">
+            Buttons:
+          </div>
+          <q-icon color="secondary" name="lens" size="sm" class="q-ml-sm" />
+        </div>
+
+        <q-item-section>
+          <q-btn
+            icon="opacity"
+            @click="openDialogZweitfarbe"
+            label="ändern"
+            color="secondary"
+            class="full-width q-mt-sm"
+        /></q-item-section>
+        <q-separator class="q-mt-md" />
+      </q-item>
+
+      <q-item class="column full-width">
+        <div class="row items-center no-wrap" style="width: 100%">
+          <div class="text-caption text-grey-7" style="min-width: 50px">
+            Chips:
+          </div>
+          <q-icon color="info" name="lens" size="sm" class="q-ml-sm" />
+        </div>
+
+        <q-item-section>
+          <q-btn
+            icon="opacity"
+            @click="openDialogChipfarbe"
+            label="ändern"
+            color="secondary"
+            class="full-width q-mt-sm"
+        /></q-item-section>
       </q-item>
     </div>
-    <div class="flex row full-width justify-between">
-      <q-item>
-        <q-item-section class="flex full-width justify-between">
-          <q-item-label caption
-            >Chips:
-            <q-icon class="q-mr-sm" color="info" name="lens" size="sm" />
-            <q-btn
-              @click="openDialogChipfarbe"
-              label="ändern"
-              color="secondary"
-              style="width: 80px"
-            />
-          </q-item-label>
-        </q-item-section>
-      </q-item>
-    </div>
-    <q-separator class="q-mt-sm q-mb-sm" />
+    <q-separator class="q-mt-md q-mb-md" />
     <q-item-label>Firmenname:</q-item-label>
     <q-item v-for="firma in firmenName" :key="firma.id">
       <q-item-section>
@@ -71,6 +84,26 @@
         </q-input>
       </q-item-section>
     </q-item>
+
+    <q-separator class="q-mt-xs q-mb-md" />
+
+    <q-item v-for="firma in firmenName" :key="firma.id">
+      <q-item-section>
+        <div></div>
+        <q-item-label caption>USt-IdNr.:</q-item-label>
+
+        <q-input
+          label="bitte neuen Namen eingeben"
+          filled
+          v-model="firma.ustIdNr"
+        >
+          <template v-slot:append>
+            <q-icon name="pin" color="secondary" class="cursor-pointer"></q-icon
+          ></template>
+        </q-input>
+      </q-item-section>
+    </q-item>
+
     <q-separator class="q-mt-sm q-mb-sm" />
     <q-item-label>Anschrift:</q-item-label>
     <q-item v-for="firma in firmenName" :key="firma.id">
@@ -191,12 +224,32 @@
     </q-item>
 
     <q-separator class="q-mt-sm q-mb-sm" />
+
+    <q-item-label>Lieferando:</q-item-label>
+    <q-item v-for="firma in firmenName" :key="firma.id">
+      <q-item-section>
+        <q-item-label caption>Lieferando-Link:</q-item-label>
+
+        <q-input filled type="text" v-model="firma.lieferando">
+          <template v-slot:append>
+            <q-icon
+              name="takeout_dining"
+              color="secondary"
+              class="cursor-pointer"
+            ></q-icon
+          ></template>
+        </q-input>
+      </q-item-section>
+    </q-item>
+
+    <q-separator class="q-mt-sm q-mb-sm" />
+
     <q-item-label>Socialmedia:</q-item-label>
     <q-item v-for="firma in firmenName" :key="firma.id">
       <q-item-section>
         <q-item-label caption>Instagram:</q-item-label>
 
-        <q-input filled type="text" v-model="firma.instagram" label="Link:">
+        <q-input filled type="text" v-model="firma.instagram">
           <template v-slot:append>
             <q-icon
               name="photo_camera"

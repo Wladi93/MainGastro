@@ -52,12 +52,14 @@
       >
         <q-tab
           v-for="category in categories"
-          :key="category.apiEndpoint"
+          :key="category.sortOrder"
           @click="onTabChange"
           :name="category.name"
           :label="category.name"
           :icon="category.icon"
-        />
+          class="drag-handle2"
+        >
+        </q-tab>
       </q-tabs>
     </q-card>
   </div>
@@ -71,7 +73,7 @@
       v-show="true"
       :ref="(el: any) => setSectionRef(category.name, el)"
     >
-      <q-card class="q-gutter-y-xl">
+      <q-card class="q-gutter-y-xl drag-tab">
         <div class="tab-section-name">
           <q-card-section class="card-section3 bannerHeight">
             <q-img
@@ -107,41 +109,61 @@
       </q-card>
 
       <div
-        v-for="item in getCategoryItems(category.name)"
-        :key="item.id"
-        class="my-card"
+        :id="`sortable-${category.id}`"
+        class="sortable-container"
+        :data-category-id="category.id"
+        :data-category-name="category.name"
       >
-        <q-card>
-          <q-card-section class="card-section">
-            <q-img
-              class="imgGericht"
-              v-if="item.img"
-              :src="getFullImageUrl(item.img)"
-              :alt="item.name"
-            />
-            <div class="text-container">
-              <h6 class="text-h6">
-                {{ item.name }}
-              </h6>
-              <p class="description nowrap">{{ item.description }}</p>
-            </div>
-            <q-separator vertical class="separatorH q-mr-md" />
-            <div class="input-container">
-              <q-btn
-                @click="() => openEditDialog(item, category.name)"
-                class="bg-primary text-white"
-                :size="$q.screen.lt.sm ? 'xs' : 'sm'"
-                icon="edit"
-                label="bearbeiten"
-                color="secondary"
-                square
+        <div
+          v-for="item in getCategoryItems(category.name)"
+          ref="el"
+          :key="item.id"
+          class="my-card"
+        >
+          <q-card>
+            <q-card-section class="card-section">
+              <div class="drag-handle">
+                <q-icon
+                  name="drag_indicator"
+                  color="grey-6"
+                  size="sm"
+                  class="q-mr-sm"
+                />
+              </div>
+              <q-img
+                class="imgGericht"
+                v-if="item.img"
+                :src="getFullImageUrl(item.img)"
+                :alt="item.name"
               />
-              <h6 class="preisText text-subtitle2 q-mt-md">
-                Preis: {{ item.price ? item.price.toFixed(2) : "0.00" }}€
-              </h6>
-            </div>
-          </q-card-section>
-        </q-card>
+              <div class="text-container">
+                <h6
+                  class="text-h6 row"
+                  style="display: flex; align-items: center"
+                >
+                  {{ item.name }}
+                  <q-chip color="info" v-if="item.neu == true" label="Neu" />
+                </h6>
+                <p class="description nowrap">{{ item.description }}</p>
+              </div>
+              <q-separator vertical class="separatorH q-mr-md" />
+              <div class="input-container">
+                <q-btn
+                  @click="() => openEditDialog(item, category.name)"
+                  class="bg-primary text-white"
+                  :size="$q.screen.lt.sm ? 'xs' : 'sm'"
+                  icon="edit"
+                  label="bearbeiten"
+                  color="secondary"
+                  square
+                />
+                <h6 class="preisText text-subtitle2 q-mt-md">
+                  Preis: {{ item.price ? item.price.toFixed(2) : "0.00" }}€
+                </h6>
+              </div>
+            </q-card-section>
+          </q-card>
+        </div>
       </div>
 
       <q-card>
@@ -403,6 +425,8 @@
     :api-endpoint="editDialog.apiEndpoint"
     upload-endpoint="http://localhost:5008/api/uploads/images"
     :image-url-hint="editDialog.imageHint"
+    :sort-Order="editDialog.item?.sortOrder"
+    :neu="editDialog.item?.neu"
     @item-edited="editDialog.onEdited"
   />
 
@@ -417,13 +441,16 @@
 
 <script setup lang="ts">
 import type { ComponentPublicInstance } from "vue";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useQuasar } from "quasar";
 import createDialogAll from "./createDialogAll.vue";
 import editDialogAll from "./editDialogAll.vue";
 import deleteDialogAll from "./deleteDialogAll.vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
 import api from "src/boot/axios";
+import type { Category } from "../types/Category";
+import type { CategoryItem } from "../types/CategoryItem";
+import Sortable from "sortablejs";
 
 const uploadProgress = ref(0);
 const isUploading = ref(false);
@@ -441,31 +468,143 @@ const selectAllItems = () => {
   }
 };
 
-interface ItemSizes {
-  sizeName: string;
-  price: number;
-  categoryItemId: number;
-}
+// Tabs sortieren
+const tabsSortableInstance = ref<Sortable | null>(null);
 
-interface Category {
-  id: number;
-  name: string;
-  icon: string;
-  apiEndpoint: string;
-  bannerImage: string;
-  categoryItem?: CategoryItem[];
-}
+const initializeTabsSortable = () => {
+  const tabsContainer = document.querySelector(
+    ".q-tabs__content"
+  ) as HTMLElement;
+  if (tabsContainer && !tabsSortableInstance.value) {
+    tabsSortableInstance.value = new Sortable(tabsContainer, {
+      animation: 150,
+      handle: ".q-tab",
+      fallbackOnBody: true,
+      ghostClass: "sortable-ghost",
+      chosenClass: "sortable-chosen",
+      dragClass: "sortable-drag",
 
-interface CategoryItem {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  img: string;
-  categoryId: number;
-  hasSizes: boolean;
-  sizes?: ItemSizes[];
-}
+      forceFallback: false,
+      fallbackTolerance: 3,
+      touchStartThreshold: 5,
+      delay: 100,
+
+      delayOnTouchOnly: true,
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onEnd: (evt: any) => {
+        if (evt.oldIndex !== evt.newIndex) {
+          void updateCategoryOrder(evt.oldIndex, evt.newIndex);
+        }
+      },
+    });
+  }
+};
+
+const updateCategoryOrder = async (oldIndex: number, newIndex: number) => {
+  const updatedCategories = [...categories.value];
+  const [movedCategory] = updatedCategories.splice(oldIndex, 1);
+  updatedCategories.splice(newIndex, 0, movedCategory!);
+
+  categories.value = updatedCategories;
+
+  try {
+    const updatePromises = updatedCategories.map((category, index) =>
+      api.put(`/api/category/${category.id}`, {
+        ...category,
+        sortOrder: index,
+      })
+    );
+
+    await Promise.all(updatePromises);
+
+    $q.notify({
+      type: "positive",
+      position: "top",
+      message: "Kategorie-Reihenfolge erfolgreich aktualisiert",
+    });
+  } catch (error) {
+    console.error("Error updating category order:", error);
+    await fetchCategories();
+    $q.notify({
+      type: "negative",
+      position: "top",
+      message: "Fehler beim Aktualisieren der Kategorie-Reihenfolge",
+    });
+  }
+};
+
+// Items sortieren
+const sortableInstances = ref<Record<string, Sortable>>({});
+const initializeSortable = () => {
+  categories.value.forEach((category) => {
+    const container = document.getElementById(`sortable-${category.id}`);
+    if (container && !sortableInstances.value[category.id]) {
+      sortableInstances.value[category.id] = new Sortable(container, {
+        animation: 150,
+        handle: ".drag-handle",
+        fallbackOnBody: true,
+        ghostClass: "sortable-ghost",
+        chosenClass: "sortable-chosen",
+        dragClass: "sortable-drag",
+
+        forceFallback: false,
+        fallbackTolerance: 3,
+        touchStartThreshold: 5,
+        delay: 100,
+
+        delayOnTouchOnly: true,
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onEnd: (evt: any) => {
+          if (evt.oldIndex !== evt.newIndex) {
+            void updateItemOrder(
+              category.id,
+              category.name,
+              evt.oldIndex,
+              evt.newIndex
+            );
+          }
+        },
+      });
+    }
+  });
+};
+
+const updateItemOrder = async (
+  categoryId: number,
+  categoryName: string,
+  oldIndex: number,
+  newIndex: number
+) => {
+  const items = [...getCategoryItems(categoryName)];
+  const [movedItem] = items.splice(oldIndex, 1);
+  items.splice(newIndex, 0, movedItem!);
+
+  categoryItems.value[categoryName] = items;
+
+  try {
+    const updatePromises = items.map((item, index) =>
+      api.put(`/api/categoryItems/${item.id}`, { ...item, sortOrder: index })
+    );
+
+    await Promise.all(updatePromises);
+
+    $q.notify({
+      type: "positive",
+      position: "top",
+      message: "Reihenfolge erfolgreich aktualisiert",
+    });
+  } catch (error) {
+    console.error("Error updating item order:", error);
+    await fetchCategoryItems(categoryName);
+    $q.notify({
+      type: "negative",
+      position: "top",
+      message: "Fehler beim Aktualisieren der Reihenfolge",
+    });
+  }
+};
 
 const categories = ref<Category[]>([]);
 
@@ -577,12 +716,15 @@ const onBannerFileChange = async (file: File | null) => {
 
     $q.notify({
       type: "positive",
+      position: "top",
+
       message: "Bannerbild erfolgreich hochgeladen",
     });
   } catch (error) {
     console.error("Fehler beim Upload:", error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Fehler beim Hochladen des Bannerbildes",
     });
     newCategory.value.bannerImage = "";
@@ -596,10 +738,14 @@ const fetchCategories = async () => {
   try {
     const response = await api.get("/api/category");
     categories.value = response.data;
+    categories.value.sort((a, b) => {
+      return a.sortOrder >= b.sortOrder ? 1 : -1;
+    });
   } catch (error) {
     console.error(error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Fehler beim Laden der Kategorien",
     });
   }
@@ -662,6 +808,7 @@ const deleteCategory = async () => {
     if (successCount > 0) {
       $q.notify({
         type: "positive",
+        position: "top",
         message: `${successCount} Kategorie(n) erfolgreich gelöscht`,
       });
     }
@@ -669,6 +816,7 @@ const deleteCategory = async () => {
     if (failCount > 0) {
       $q.notify({
         type: "negative",
+        position: "top",
         message: `Fehler beim Löschen von ${failCount} Kategorie(n)`,
       });
     }
@@ -678,6 +826,7 @@ const deleteCategory = async () => {
     console.error("Fehler beim Löschvorgang:", error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Fehler beim Löschvorgang",
     });
   } finally {
@@ -719,6 +868,7 @@ const onSubmitCategory = async () => {
 
     $q.notify({
       type: "positive",
+      position: "top",
       message: "Kategorie erfolgreich erstellt!",
     });
 
@@ -727,6 +877,7 @@ const onSubmitCategory = async () => {
     console.error("Error creating category:", error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Fehler beim Erstellen der Kategorie",
     });
   } finally {
@@ -850,10 +1001,14 @@ const fetchCategoryItems = async (categoryName: string) => {
       `/api/categoryItems/by-category/${category.id}`
     );
     categoryItems.value[categoryName] = response.data;
+    categoryItems.value[categoryName]!.sort((a, b) => {
+      return a.sortOrder >= b.sortOrder ? 1 : -1;
+    });
   } catch (error) {
     console.error(`Error fetching ${categoryName}:`, error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: `Fehler beim Laden der ${categoryName}`,
     });
   }
@@ -915,7 +1070,10 @@ onMounted(async () => {
   for (const category of categories.value) {
     await fetchCategoryItems(category.name);
   }
+  await nextTick();
 
+  initializeSortable();
+  initializeTabsSortable();
   observer = new IntersectionObserver(handleIntersection, {
     root: null,
     rootMargin: "0px",
@@ -937,6 +1095,76 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+.q-tab {
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.q-tab:active {
+  cursor: grabbing;
+}
+
+.sortable-ghost {
+  opacity: 0.5;
+  background-color: #f0f0f0;
+}
+
+.sortable-chosen {
+  transform: scale(1.02);
+}
+
+.sortable-drag {
+  transform: rotate(0deg);
+  opacity: 0.8;
+}
+.drag-handle {
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  margin-left: -10px;
+  margin-right: 10px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  padding: 8px;
+  margin: -8px 2px -8px -18px;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.drag-handle2 {
+  cursor: grab;
+  display: flex;
+  margin-left: -0.5px;
+  margin-right: 0.5px;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.drag-handle2:active {
+  cursor: grabbing;
+}
+
+.sortable-container {
+  min-height: 50px;
+  touch-action: pan-y;
+}
+
+.sortable-item {
+  transition: transform 0.2s ease;
+  touch-action: none;
+}
+
 .bannerHeight {
   height: 180px;
 }
@@ -1049,6 +1277,18 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 600px) {
+  .q-tab {
+    min-width: 80px;
+    padding: 8px 12px;
+  }
+  .drag-handle {
+    padding: 12px;
+    margin: -12px 2px -12px -22px;
+  }
+
+  .drag-handle .q-icon {
+    font-size: 24px !important;
+  }
   .bannerHeight {
     height: 120px;
   }

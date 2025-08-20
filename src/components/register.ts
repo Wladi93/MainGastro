@@ -2,6 +2,11 @@ import { ref } from "vue";
 import { useQuasar } from "quasar";
 import api from "src/boot/axios";
 
+enum Role {
+  admin = 1,
+  user = 0,
+}
+
 export interface RegisterData {
   username: string;
   password: string;
@@ -9,6 +14,7 @@ export interface RegisterData {
   firstname: string;
   lastname: string;
   telephone?: string;
+  role?: Role;
 }
 
 export interface UserInfo {
@@ -17,7 +23,7 @@ export interface UserInfo {
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
+  role?: string;
   telephone: string;
 }
 
@@ -39,6 +45,7 @@ export const useRegister = (onSuccess?: () => void) => {
   const PasswordRepeat = ref("");
   const isPwd = ref(true);
   const isLoading = ref(false);
+  const Role = ref<Role>();
 
   const usernameRules = [
     (val: string) => !!val || "Dieses Feld ist erforderlich",
@@ -70,7 +77,7 @@ export const useRegister = (onSuccess?: () => void) => {
       !Email.value ||
       !Vorname.value ||
       !Nachname.value ||
-      !Telefon.value // Korrigiert: fehlendes ! hinzugefügt
+      !Telefon.value
     ) {
       $q.notify({
         type: "negative",
@@ -97,17 +104,21 @@ export const useRegister = (onSuccess?: () => void) => {
         firstname: Vorname.value,
         lastname: Nachname.value,
         telephone: Telefon.value,
+        ...(Role.value !== undefined && { role: Role.value }),
       };
 
       const { data } = await api.post<RegisterResponse>(
         "/api/auth/register",
         registerData
       );
-
+      console.log("Sending to API:", registerData);
+      console.log(data);
       if (!data.success) {
         $q.notify({
           type: "negative",
           message: data.message || "Benutzer hinzufügen fehlgeschlagen",
+          position: "top",
+          icon: "clear",
         });
         return;
       }
@@ -115,6 +126,8 @@ export const useRegister = (onSuccess?: () => void) => {
       $q.notify({
         type: "positive",
         message: "Benutzer wurde erfolgreich hinzugefügt!",
+        position: "top",
+        icon: "check",
       });
       resetForm();
       if (onSuccess) {
@@ -125,6 +138,8 @@ export const useRegister = (onSuccess?: () => void) => {
       $q.notify({
         type: "negative",
         message: "Fehler beim Registrieren des Benutzers",
+        position: "top",
+        icon: "clear",
       });
     } finally {
       isLoading.value = false;
@@ -158,6 +173,8 @@ export const useRegister = (onSuccess?: () => void) => {
     nachnamenameRules,
     passwordRules,
     passwordRepeatRules,
+    Role,
+
     register,
     resetForm,
   };

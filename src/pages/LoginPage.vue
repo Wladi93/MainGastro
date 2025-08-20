@@ -81,7 +81,8 @@
       </q-form>
 
       <div class="text-caption text-center q-mt-sm text-grey-6">
-        Login nur für den Admin
+        Noch keinen Account? Hier
+        <RouterLink class="text-accent" to="/register">Registrieren</RouterLink>
       </div>
     </q-card-section>
   </q-card>

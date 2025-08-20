@@ -8,6 +8,8 @@ export type Firmenname = {
   email: string;
   telefonnummer: string;
   geschaeftsführerName: string;
-  instagram: string;
-  facebook: string;
+  instagram: string | null;
+  facebook: string | null;
+  ustIdNr?: string;
+  lieferando: string | null;
 };

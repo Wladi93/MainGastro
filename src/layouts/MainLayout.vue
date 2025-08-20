@@ -7,6 +7,7 @@
           @click="$router.push(`/`)"
           class="cursor headerTxt q-mr-xl"
           align="center"
+          style="overflow: visible"
         >
           <q-avatar class="q-mr-md">
             <img
@@ -17,6 +18,16 @@
           </q-avatar>
           {{ firma.firmenName }}
         </q-toolbar-title>
+        <q-btn flat round icon="shopping_cart" @click="openWarenkorb">
+          <q-badge
+            v-show="totalItemCount > 0"
+            :label="totalItemCount"
+            class="q-mt-xs"
+            color="negative"
+            floating
+            rounded
+          ></q-badge>
+        </q-btn>
       </q-toolbar>
     </q-header>
 
@@ -220,6 +231,28 @@
 
             <q-item-section>Einstellungen</q-item-section>
           </q-item>
+          <q-item class="full-width">
+            <q-item-section>
+              <q-btn
+                v-if="isLoggedIn"
+                size="md"
+                class="banner full-wdith"
+                label="Logout"
+                color="negative"
+                icon="logout"
+                @click="logout"
+              />
+              <q-btn
+                v-else
+                size="md"
+                class="banner full-wdith"
+                label="Login"
+                color="secondary"
+                icon="logout"
+                @click="$router.push('/login')"
+              />
+            </q-item-section>
+          </q-item>
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -241,18 +274,20 @@
       </q-toolbar>
     </q-footer>
   </q-layout>
-  <q-dialog v-model="isOpen2"> </q-dialog>
+  <WarenkorbBadgeDialog v-model:isOpen="isOpen" />
   <cookiesDialog v-if="shouldShowDialog" />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 
 import cookiesDialog from "src/pages/Dialog/cookiesDialog.vue";
 import { useAuth } from "src/composables/useAuth";
 import { useFirmenName } from "src/composables/Firmenname";
 import { useLogo } from "src/composables/LogoLoad";
+import { useCartStore } from "src/store/cardStore";
+import WarenkorbBadgeDialog from "src/pages/Dialog/WarenkorbBadgeDialog.vue";
 
 const { isAdmin, checkRole, isLoggedIn } = useAuth();
 
@@ -260,9 +295,8 @@ onMounted(() => {
   checkRole();
 });
 
-const isOpen2 = ref(false);
-
 const route = useRoute();
+const router = useRouter();
 const drawerLeft = ref(false);
 const isActive = (path: string) => {
   return route.path === path;
@@ -273,6 +307,28 @@ const shouldShowDialog = computed(() => {
 
 const { firmenName, loadFirmenName } = useFirmenName();
 const { loadLogo, logo, getFullImageUrl } = useLogo();
+
+async function logout() {
+  localStorage.removeItem("authToken");
+  await router.push("/");
+  location.reload();
+}
+
+//Badge#
+const isOpen = ref(false);
+function openWarenkorb() {
+  isOpen.value = true;
+}
+const cartStore = useCartStore();
+const genericCartItems = cartStore.genericCartItems;
+const totalItemCount = computed(() => {
+  const itemCountCartItems = genericCartItems.reduce(
+    (sum, item) => (item.quantity > 0 ? sum + item.quantity : sum),
+    0
+  );
+
+  return itemCountCartItems;
+});
 
 onMounted(async () => {
   await loadFirmenName();
