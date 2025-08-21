@@ -274,11 +274,7 @@
       </q-toolbar>
     </q-footer>
   </q-layout>
-  <WarenkorbBadgeDialog
-    v-model:isOpen="isOpen"
-    :showMwst="currentValue"
-    @updateValue="updateValue"
-  />
+  <WarenkorbBadgeDialog v-model:isOpen="isOpen" />
   <cookiesDialog v-if="shouldShowDialog" />
 </template>
 
@@ -297,12 +293,6 @@ const { isAdmin, checkRole, isLoggedIn } = useAuth();
 onMounted(() => {
   checkRole();
 });
-
-const currentValue = ref(true);
-
-const updateValue = (newValue: boolean) => {
-  currentValue.value = newValue;
-};
 
 const route = useRoute();
 const router = useRouter();

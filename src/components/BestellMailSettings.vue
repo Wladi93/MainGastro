@@ -107,6 +107,7 @@
         />
         <div style="position: relative">
           <q-input
+            :disable="!bestellMail.mwStOn"
             type="number"
             v-model="bestellMail.mwSt"
             filled
