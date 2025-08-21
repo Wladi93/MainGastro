@@ -104,14 +104,26 @@
           v-model="bestellMail.mwStOn"
           label="MwSt aktivieren"
           color="positive"
-          @update:model-value="(val) => $emit('mwStChanged', val)"
         />
-        <q-input
-          type="number"
-          v-model="bestellMail.mwSt"
-          filled
-          label="MwSt in %"
-        />
+        <div style="position: relative">
+          <q-input
+            type="number"
+            v-model="bestellMail.mwSt"
+            filled
+            label="MwSt in %:"
+            ref="inputRef"
+            maxlength="2"
+          />
+
+          <q-icon
+            color="grey-7"
+            name="percent"
+            class="floatingIcon"
+            clickable
+            @click.stop
+            :style="iconStyle"
+          />
+        </div>
       </q-item-section>
 
       <q-separator class="q-mt-md q-mb-sm" />
@@ -131,14 +143,14 @@
 <script setup lang="ts">
 import { Notify } from "quasar";
 import api from "src/boot/axios";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import type {
   BestellMail,
   BestellMailResponse,
 } from "src/pages/types/BestellMailType";
+import { EventBus } from "src/utils/eventBus";
 
 const bestellMail = ref<BestellMail[]>([]);
-
 const isPwd = ref(true);
 const isLoading = ref(false);
 
@@ -154,10 +166,30 @@ const loadBestellMail = async () => {
   }
 };
 
+const iconStyle = computed(() => {
+  if (!bestellMail.value[0]?.mwSt) return { display: "none" };
+
+  const mwStString = String(bestellMail.value[0].mwSt);
+  const textWidth = mwStString.length * 5.8;
+  const leftPosition = Math.min(textWidth + 20, 60);
+
+  return {
+    position: "absolute",
+    left: `${leftPosition}px`,
+    top: "65%",
+    transform: "translateY(-50%)",
+    zIndex: "10",
+    pointerEvents: "auto",
+  };
+});
+
 const updateBestellMail = async (bestellMail: BestellMail) => {
   isLoading.value = true;
   try {
     await api.put(`/api/bestellmail/${bestellMail.id}`, bestellMail);
+
+    EventBus.emit("bestellmail-updated", bestellMail);
+
     Notify.create({
       message: "Daten erfolgreich gespeichert...",
       position: "top",
@@ -181,3 +213,8 @@ onMounted(async () => {
   await loadBestellMail();
 });
 </script>
+<style scoped>
+.floatingIcon {
+  transition: left 0.2s ease;
+}
+</style>

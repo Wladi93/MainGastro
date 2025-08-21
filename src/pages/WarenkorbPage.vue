@@ -18,7 +18,18 @@
     <q-item-label class="flex q-mt-sm" style="justify-content: center">
       Ihr Warenkorb</q-item-label
     >
-    <q-item class="full-width column flex">
+
+    <q-item
+      style="justify-content: center; align-items: center"
+      v-if="genericCartItems.length === 0"
+      class="full-width column flex"
+    >
+      <q-item-label caption>
+        Es befinden sich keine Artikel in Ihrem Warenkorb...
+      </q-item-label>
+    </q-item>
+
+    <q-item v-else class="full-width column flex">
       <q-card
         class="row flex full-width q-mb-xs q-pa-xs"
         v-for="item in genericCartItems"
@@ -88,7 +99,10 @@
   </q-list>
   <q-separator class="q-mb-sm q-mt-xs" inset />
 
-  <q-item-section class="flex column items-center">
+  <q-item-section
+    v-if="genericCartItems.length > 0"
+    class="flex column items-center"
+  >
     <template v-if="showMwSt">
       <q-item-label class="text-black">
         Gesammtsumme inkl. MwSt: {{ totalAmount.toFixed(2) }}€

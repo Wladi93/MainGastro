@@ -274,14 +274,17 @@
       </q-toolbar>
     </q-footer>
   </q-layout>
-  <WarenkorbBadgeDialog v-model:isOpen="isOpen" />
+  <WarenkorbBadgeDialog
+    v-model:isOpen="isOpen"
+    :showMwst="currentValue"
+    @updateValue="updateValue"
+  />
   <cookiesDialog v-if="shouldShowDialog" />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-
 import cookiesDialog from "src/pages/Dialog/cookiesDialog.vue";
 import { useAuth } from "src/composables/useAuth";
 import { useFirmenName } from "src/composables/Firmenname";
@@ -294,6 +297,12 @@ const { isAdmin, checkRole, isLoggedIn } = useAuth();
 onMounted(() => {
   checkRole();
 });
+
+const currentValue = ref(true);
+
+const updateValue = (newValue: boolean) => {
+  currentValue.value = newValue;
+};
 
 const route = useRoute();
 const router = useRouter();

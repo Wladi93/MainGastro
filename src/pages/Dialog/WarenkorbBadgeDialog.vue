@@ -15,7 +15,18 @@
           />
         </q-item-label>
         <q-separator class="q-mt-sm q-mb-xs" inset />
-        <q-item class="full-width column flex">
+
+        <q-item
+          style="justify-content: center; align-items: center"
+          v-if="genericCartItems.length === 0"
+          class="full-width column flex"
+        >
+          <q-item-label caption>
+            Es befinden sich keine Artikel in Ihrem Warenkorb...
+          </q-item-label>
+        </q-item>
+
+        <q-item v-else class="full-width column flex">
           <q-card
             class="row flex full-width q-mb-xs q-pa-xs"
             v-for="item in genericCartItems"
@@ -40,6 +51,7 @@
               "
               class="q-mr-md"
             />
+
             <q-item-section>
               <q-item-label>{{ item.name }} </q-item-label>
               <q-item-label caption>{{ item.description }}</q-item-label>
@@ -71,7 +83,10 @@
       </q-list>
       <q-separator class="q-mb-sm q-mt-xs" inset />
 
-      <q-item-section class="flex column items-center">
+      <q-item-section
+        v-if="genericCartItems.length > 0"
+        class="flex column items-center"
+      >
         <template v-if="showMwSt">
           <q-item-label class="text-black">
             Gesammtsumme inkl. MwSt: {{ totalAmount.toFixed(2) }}€
@@ -106,20 +121,20 @@
 </template>
 <script setup lang="ts">
 import { useCartStore } from "src/store/cardStore";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import type {
   BestellMail,
   BestellMailResponse,
 } from "../types/BestellMailType";
 import api from "src/boot/axios";
+import { EventBus } from "src/utils/eventBus";
 
 const router = useRouter();
 const cartStore = useCartStore();
 const isOpen = defineModel<boolean>("isOpen", { default: false });
 const genericCartItems = computed(() => cartStore.genericCartItems);
 const bestellMail = ref<BestellMail[]>([]);
-
 const showMwSt = computed(() => {
   if (bestellMail.value.length === 0) return false;
   return bestellMail.value[0]!.mwStOn === true;
@@ -183,6 +198,19 @@ const MwSt = computed(() => {
   return totalAmount.value * (mwStProzent / 100);
 });
 
+onMounted(() => {
+  void (async () => {
+    await loadBestellMail();
+
+    EventBus.on("bestellmail-updated", () => {
+      void loadBestellMail();
+    });
+  })();
+});
+
+onUnmounted(() => {
+  EventBus.off("bestellmail-updated");
+});
 onMounted(async () => {
   await loadBestellMail();
 });

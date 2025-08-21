@@ -227,8 +227,7 @@ const addToCart = () => {
       $q.notify({
         message: "Artikel wurde zum Warenkorb hinzugefügt",
         icon: "check",
-        color: "white",
-        textColor: "secondary",
+        type: "positive",
         position: "top",
         timeout: 400,
       });
@@ -239,7 +238,7 @@ const addToCart = () => {
       $q.notify({
         message: "Fehler beim Hinzufügen zum Warenkorb",
         icon: "error",
-        color: "negative",
+        type: "negative",
         position: "top",
         timeout: 2000,
       });
