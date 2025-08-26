@@ -87,6 +87,18 @@
           <q-item
             clickable
             v-ripple
+            @click="$router.push(`/warenkorb`)"
+            :class="{ 'text-secondary': isActive('/') }"
+          >
+            <q-item-section avatar>
+              <q-icon name="shopping_cart" />
+            </q-item-section>
+            <q-item-section> Warenkorb </q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
             @click="$router.push(`/speisekarte`)"
             :class="{ 'text-secondary': isActive('/speisekarte') }"
           >
@@ -109,6 +121,19 @@
             </q-item-section>
 
             <q-item-section> Speisekarte bearbeiten </q-item-section>
+          </q-item>
+
+          <q-item
+            v-if="firma.lieferando"
+            clickable
+            v-ripple
+            @click="openLieferando(firma.lieferando)"
+          >
+            <q-item-section avatar>
+              <q-icon name="takeout_dining" />
+            </q-item-section>
+
+            <q-item-section> Lieferando </q-item-section>
           </q-item>
 
           <q-item
@@ -306,6 +331,10 @@ const shouldShowDialog = computed(() => {
 
 const { firmenName, loadFirmenName } = useFirmenName();
 const { loadLogo, logo, getFullImageUrl } = useLogo();
+
+const openLieferando = (url: string) => {
+  window.open(url, "_blank");
+};
 
 async function logout() {
   localStorage.removeItem("authToken");

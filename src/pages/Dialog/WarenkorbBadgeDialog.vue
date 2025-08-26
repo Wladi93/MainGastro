@@ -14,7 +14,7 @@
             class="q-ml-sm"
           />
         </q-item-label>
-        <q-separator class="q-mt-sm q-mb-xs" inset />
+        <q-separator class="q-mt-sm q-mb-md" inset />
 
         <q-item
           style="justify-content: center; align-items: center"
@@ -26,11 +26,17 @@
           </q-item-label>
         </q-item>
 
-        <q-item v-else class="full-width column flex">
+        <q-list
+          :key="cartKey"
+          separator
+          v-else
+          class="column flex"
+          style="margin-left: 16px; margin-right: 16px"
+        >
           <q-card
             class="row flex full-width q-mb-xs q-pa-xs"
             v-for="item in genericCartItems"
-            :key="item.id + '_' + item.sizes"
+            :key="`${item.id}_${item.categoryName}_${item.selectedSize || 'no-size'}_${item.anmerkung || 'no-note'}`"
           >
             <q-img
               spinner-color="white"
@@ -39,12 +45,12 @@
               style="
                 border-radius: 6px;
                 aspect-ratio: 1;
-                max-width: 80px;
-                width: 80px;
-                min-width: 80px;
-                min-height: 80px;
-                max-height: 80px;
-                height: 80px;
+                max-width: 50px;
+                width: 50px;
+                min-width: 50px;
+                min-height: 50px;
+                max-height: 50px;
+                height: 50px;
                 box-shadow: 2px 3px 0.2rem rgb(56, 56, 56);
                 border: 1px solid;
                 border-color: rgb(204, 204, 204);
@@ -54,24 +60,26 @@
 
             <q-item-section>
               <q-item-label>{{ item.name }} </q-item-label>
-              <q-item-label caption>{{ item.description }}</q-item-label>
-              <q-item-label caption
+
+              <q-item-label caption v-if="item.hasSizes"
                 >Größe: {{ item.selectedSize }}</q-item-label
               >
-              <q-item-label v-if="item.anmerkung!.length > 0" caption
+              <q-item-label
+                v-if="item.anmerkung && item.anmerkung.length > 0"
+                caption
                 >Nachricht:
               </q-item-label>
               <q-item-label caption>{{ item.anmerkung }}</q-item-label>
             </q-item-section>
-            <q-separator vertical class="separatorH q-mr-sm" />
+            <q-separator vertical class="separatorH q-mr-sm q-ml-xl" />
             <q-item-section>
-              <div class="flex row items-center q-mb-sm">
+              <div class="flex row items-center q-mb-xs">
                 <q-item-label caption>Preis: </q-item-label>
                 <q-chip dense color="info">
                   {{ (item.price * item.quantity).toFixed(2) }}€</q-chip
                 >
               </div>
-              <div class="flex row items-center q-mb-sm">
+              <div class="flex row items-center">
                 <q-item-label caption>Anzahl:</q-item-label>
                 <q-chip color="grey-3" dense>
                   {{ item.quantity }}
@@ -79,9 +87,9 @@
               </div>
             </q-item-section>
           </q-card>
-        </q-item>
+        </q-list>
       </q-list>
-      <q-separator class="q-mb-sm q-mt-xs" inset />
+      <q-separator class="q-mb-sm q-mt-md" inset />
 
       <q-item-section
         v-if="genericCartItems.length > 0"
@@ -155,6 +163,15 @@ const loadBestellMail = async () => {
 function closeDialog() {
   isOpen.value = false;
 }
+
+const cartKey = computed(() => {
+  return genericCartItems.value
+    .map(
+      (item) =>
+        `${item.id}_${item.categoryName}_${item.selectedSize || "no-size"}_${item.anmerkung || "no-note"}`
+    )
+    .join(",");
+});
 
 const getFullImageUrl = (imgUrl: string): string => {
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {

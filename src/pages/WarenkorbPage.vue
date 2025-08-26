@@ -68,7 +68,7 @@
               >
             </q-item-label>
           </div>
-          <q-item-label v-if="item.anmerkung" caption>Nachricht:</q-item-label>
+          <q-item-label v-if="item.anmerkung" caption>Anmerkung:</q-item-label>
           <q-item-label v-if="item.anmerkung" caption>{{
             item.anmerkung
           }}</q-item-label>

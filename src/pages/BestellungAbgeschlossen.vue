@@ -18,11 +18,11 @@
       <q-img class="background-img" />
       <q-card>
         <q-card-section class="section">
-          <h6 class="text-caption text">
-            <q-icon class="icon" color="secondary" name="task_alt" />
-            <h6>Vielen Dank!</h6>
+          <q-item-label class="text-caption text">
+            <q-icon class="icon" color="accent" name="task_alt" />
+            <q-item-label class="text-h6">Vielen Dank!</q-item-label>
             deine Bestellung wurde erfolgreich abgeschlossen.
-          </h6>
+          </q-item-label>
         </q-card-section>
       </q-card>
       <h5 class="text-caption text-center color-secondary">

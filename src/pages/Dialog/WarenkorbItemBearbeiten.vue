@@ -1,49 +1,80 @@
 <template>
   <q-dialog v-model="isOpen" persistent>
-    <q-card
-      class="fenster flex items-center full-width"
-      style="justify-content: center"
-    >
-      <q-card-section class="section q-gutter-y-xs full-width">
-        <h6 class="name text-h6">Artikel bearbeiten</h6>
+    <q-card class="full-width" style="justify-content: center">
+      <q-card-section class="full-width">
+        <q-item-label caption class="text-center"
+          >Artikel bearbeiten</q-item-label
+        >
 
-        <div v-if="selectedItem" class="item-info q-mb-md">
-          <div class="item-display">
-            <q-img
-              :src="getFullImageUrl(selectedItem.img)"
-              class="item-image"
-              :alt="selectedItem.name"
-            />
-            <div class="item-details">
-              <p class="text-subtitle1 q-mb-xs">{{ selectedItem.name }}</p>
-              <p class="text-caption text-grey-7">
-                {{ selectedItem.description }}
-              </p>
-            </div>
+        <q-separator inset class="q-mb-md q-mt-sm" />
+
+        <q-card v-if="selectedItem" class="q-mb-md q-pa-sm row flex">
+          <q-img
+            :src="getFullImageUrl(selectedItem.img)"
+            class="q-mr-md"
+            :alt="selectedItem.name"
+            style="
+              border-radius: 6px;
+              aspect-ratio: 1;
+              max-width: 80px;
+              width: 80px;
+              min-width: 80px;
+              height: auto;
+              box-shadow: 2px 3px 0.2rem rgb(56, 56, 56);
+              border: 1px solid;
+              border-color: rgb(204, 204, 204);
+            "
+          />
+          <div class="item-details">
+            <p class="text-subtitle1 q-mb-xs">
+              {{ selectedItem.id }} {{ selectedItem.name }}
+            </p>
+            <p class="text-caption text-grey-7">
+              {{ selectedItem.description }}
+            </p>
           </div>
-        </div>
+        </q-card>
         <q-input
+          v-model.number="newQuantity"
+          label="Anzahl"
+          label-color="secondary"
+          type="number"
+          min="1"
+          max="99"
           filled
-          type="textarea"
-          clearable
-          class="q-mb-md"
-          hint="Anmerkung"
-          :model-value="String(selectedItem?.anmerkung ?? '')"
-          @update:model-value="
-            (val: string | number | null) =>
-              selectedItem && (selectedItem!.anmerkung = String(val ?? ''))
-          "
-        />
+          :rules="[(val) => val > 0 || 'Anzahl muss mindestens 1 sein']"
+        >
+          <template v-slot:append>
+            <div class="quantity-controls">
+              <q-btn
+                flat
+                dense
+                icon="add"
+                size="sm"
+                @click="increaseQuantity"
+                :disable="newQuantity >= 99"
+              />
+              <q-btn
+                flat
+                dense
+                icon="remove"
+                size="sm"
+                @click="decreaseQuantity"
+                :disable="newQuantity <= 1"
+              />
+            </div>
+          </template>
+        </q-input>
 
         <q-select
-          v-if="selectedItem?.hasSizes && availableSizes.length > 0"
+          v-if="selectedItem?.hasSizes"
           v-model="newSize"
-          :options="availableSizes"
+          :options="sizeOptions"
           label="Größe auswählen"
           filled
-          class="select q-gutter-y-xs"
-          option-label="sizeName"
-          option-value="sizeName"
+          class="q-mb-md"
+          option-label="label"
+          option-value="value"
           emit-value
           map-options
           :loading="loadingSizes"
@@ -62,54 +93,42 @@
         </q-select>
 
         <q-input
-          class="input q-gutter-y-xs"
-          v-model.number="newQuantity"
-          label="Anzahl"
-          type="number"
-          min="1"
-          max="99"
           filled
-          :rules="[(val) => val > 0 || 'Anzahl muss mindestens 1 sein']"
-        >
-          <template v-slot:append>
-            <div class="quantity-controls">
-              <q-btn
-                flat
-                dense
-                icon="remove"
-                size="sm"
-                @click="decreaseQuantity"
-                :disable="newQuantity <= 1"
-              />
-              <q-btn
-                flat
-                dense
-                icon="add"
-                size="sm"
-                @click="increaseQuantity"
-                :disable="newQuantity >= 99"
-              />
-            </div>
-          </template>
-        </q-input>
+          type="textarea"
+          clearable
+          class="q-mb-md"
+          label="Anmerkung"
+          label-color="secondary"
+          stack-label
+          placeholder="hier kann eine Nachricht bzgl. der Bestellung hinterlassen werden..."
+          :model-value="String(selectedItem?.anmerkung ?? '')"
+          @update:model-value="
+            (val: string | number | null) =>
+              selectedItem && (selectedItem!.anmerkung = String(val ?? ''))
+          "
+        />
 
         <div v-if="selectedItem" class="price-preview q-mt-md">
           <div class="price-breakdown">
             <div class="price-row">
-              <span>Einzelpreis:</span>
-              <span class="price">{{ getCurrentPrice().toFixed(2) }}€</span>
+              <q-item-label caption>Einzelpreis:</q-item-label>
+              <q-item-label caption class="text-black"
+                >{{ getCurrentPrice().toFixed(2) }}€</q-item-label
+              >
             </div>
             <div class="price-row">
-              <span>Anzahl:</span>
-              <span>{{ newQuantity }}</span>
+              <q-item-label caption>Anzahl:</q-item-label>
+              <q-item-label caption class="text-black">{{
+                newQuantity
+              }}</q-item-label>
             </div>
             <q-separator class="q-my-xs" />
             <div class="price-row total-price">
-              <span><strong>Gesamtpreis:</strong></span>
-              <span class="price"
-                ><strong
-                  >{{ (getCurrentPrice() * newQuantity).toFixed(2) }}€</strong
-                ></span
+              <q-item-label>Gesamtsumme:</q-item-label>
+              <q-item-label>
+                {{
+                  (getCurrentPrice() * newQuantity).toFixed(2)
+                }}€</q-item-label
               >
             </div>
           </div>
@@ -137,7 +156,6 @@
             icon="close"
           />
           <q-btn
-            flat
             @click="saveChanges"
             label="Änderung speichern"
             color="secondary"
@@ -154,9 +172,11 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, onMounted } from "vue";
-import type { GenericCartItem, ItemSizes } from "src/store/cardStore";
+import type { GenericCartItem } from "src/store/cardStore";
 import { useCartStore } from "src/store/cardStore";
 import { useQuasar } from "quasar";
+import type { ItemSizes } from "../types/CategoryItemsSizes";
+import api from "src/boot/axios";
 
 const isOpen = defineModel<boolean>("isOpen", { required: true });
 const selectedItem = defineModel<GenericCartItem | null>("selectedItem", {
@@ -166,6 +186,8 @@ const selectedItem = defineModel<GenericCartItem | null>("selectedItem", {
 const $q = useQuasar();
 const cartStore = useCartStore();
 
+const originalSize = ref<string>("");
+const originalQuantity = ref(1);
 const newSize = ref<string>("");
 const newQuantity = ref(1);
 const availableSizes = ref<ItemSizes[]>([]);
@@ -214,19 +236,29 @@ const decreaseQuantity = () => {
   }
 };
 
+const sizeOptions = computed(() => {
+  if (!availableSizes.value || availableSizes.value.length === 0) return [];
+
+  return [...availableSizes.value]
+    .sort((a, b) => a.price - b.price)
+    .map((size) => ({
+      label: `${size.sizeName} - ${size.price.toFixed(2)}€`,
+      value: size.sizeName,
+      sizeName: size.sizeName,
+      price: size.price,
+    }));
+});
+
 const fetchItemSizes = async () => {
   if (!selectedItem.value?.hasSizes || !selectedItem.value.id) return;
 
   loadingSizes.value = true;
   try {
-    const response = await fetch(
-      `http://localhost:5008/api/categoryItems/${selectedItem.value.id}/sizes`
+    const response = await api.get(
+      `/api/CategoryItemSizes/by-item/${selectedItem.value.id}`
     );
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const sizes = await response.json();
-    availableSizes.value = sizes;
+
+    availableSizes.value = response.data;
   } catch (error) {
     console.error("Error fetching item sizes:", error);
     $q.notify({
@@ -242,17 +274,33 @@ const fetchItemSizes = async () => {
 const saveChanges = () => {
   if (!selectedItem.value || !isValid.value) return;
 
+  if (selectedItem.value.hasSizes && !newSize.value) {
+    $q.notify({
+      type: "warning",
+      position: "top",
+      message: "Bitte wählen Sie eine Größe aus",
+      timeout: 2000,
+    });
+    return;
+  }
+
   saving.value = true;
   try {
-    cartStore.updateGenericCartItem(
+    const currentPrice = getCurrentPrice();
+
+    cartStore.updateOrReplaceGenericCartItem(
       selectedItem.value.id,
       selectedItem.value.categoryName,
+      selectedItem.value.selectedSize,
       newQuantity.value,
-      newSize.value || selectedItem.value.selectedSize
+      newSize.value,
+      selectedItem.value.anmerkung || undefined,
+      currentPrice
     );
 
     $q.notify({
       message: "Artikel wurde erfolgreich bearbeitet",
+      position: "top",
       icon: "check_circle",
       color: "positive",
       timeout: 2000,
@@ -263,6 +311,7 @@ const saveChanges = () => {
     console.error("Error saving changes:", error);
     $q.notify({
       type: "negative",
+      position: "top",
       message: "Fehler beim Speichern der Änderungen",
       timeout: 3000,
     });
@@ -277,6 +326,8 @@ watch(
     if (newItem) {
       newQuantity.value = newItem.quantity;
       newSize.value = newItem.selectedSize || "";
+      originalSize.value = newItem.selectedSize || "";
+      originalQuantity.value = newItem.quantity;
 
       if (newItem.hasSizes) {
         await fetchItemSizes();
@@ -290,6 +341,8 @@ onMounted(async () => {
   if (selectedItem.value) {
     newQuantity.value = selectedItem.value.quantity;
     newSize.value = selectedItem.value.selectedSize || "";
+    originalSize.value = selectedItem.value.selectedSize || "";
+    originalQuantity.value = selectedItem.value.quantity;
 
     if (selectedItem.value.hasSizes) {
       await fetchItemSizes();
@@ -350,7 +403,7 @@ onMounted(async () => {
 .price-preview {
   background-color: #f8f9fa;
   padding: 16px;
-  border-radius: 8px;
+  border-radius: 4px;
   border: 1px solid #e9ecef;
 }
 

@@ -29,14 +29,12 @@
             />
             <q-item-section>
               <q-item-label> {{ selectedItem.name }}</q-item-label>
-              <q-item-label caption>
-                {{ selectedItem.description }}</q-item-label
-              >
+
               <q-item-label caption v-if="hasSizes && selectedSize">
                 Größe: {{ selectedSize }}
               </q-item-label>
             </q-item-section>
-
+            <q-separator inset vertical class="q-mr-md" />
             <q-item-section>
               <div class="flex row items-center q-mb-sm">
                 <q-item-label caption>Preis:</q-item-label>
@@ -58,7 +56,28 @@
               stack-label
               type="number"
               :rules="[(val) => val > 0 || 'Anzahl muss mindestens 1 sein']"
-            />
+            >
+              <template v-slot:append>
+                <div class="quantity-controls">
+                  <q-btn
+                    flat
+                    dense
+                    icon="add"
+                    size="sm"
+                    @click="increaseQuantity"
+                    :disable="anzahl >= 99"
+                  />
+                  <q-btn
+                    flat
+                    dense
+                    icon="remove"
+                    size="sm"
+                    @click="decreaseQuantity"
+                    :disable="anzahl <= 1"
+                  />
+                </div>
+              </template>
+            </q-input>
           </q-item-section>
         </q-item>
 
@@ -84,11 +103,10 @@
               class="q-mb-sm"
               filled
               v-model="anmerkung"
-              label="Nachricht"
+              label="Anmerkuung"
               label-color="secondary"
               stack-label
               placeholder="hier kann eine Nachricht bzgl. der Bestellung hinterlassen werden..."
-              :dense="dense"
               type="textarea"
               :rules="[() => true]"
             />
@@ -124,7 +142,7 @@ import { useCartStore } from "src/store/cardStore";
 
 const cartStore = useCartStore();
 const anzahl = ref(1);
-const dense = ref(false);
+
 const $q = useQuasar();
 const anmerkung = ref("");
 const isOpen = defineModel<boolean>("isOpen", { default: false });
@@ -138,6 +156,18 @@ const categoryName = defineModel<string>("categoryName", {
 function closeDialog() {
   isOpen.value = false;
 }
+
+const increaseQuantity = () => {
+  if (anzahl.value < 99) {
+    anzahl.value++;
+  }
+};
+
+const decreaseQuantity = () => {
+  if (anzahl.value > 1) {
+    anzahl.value--;
+  }
+};
 
 const getFullImageUrl = (imgUrl: string): string => {
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
@@ -220,6 +250,7 @@ const addToCart = () => {
         selectedSize: hasSizes.value ? selectedSize.value : undefined,
         totalPrice: calculatedPrice.value,
         anmerkung: anmerkung.value,
+        hasSizes: selectedItem.value.hasSizes,
       };
 
       cartStore.addGenericToCart(cartItem);
@@ -233,6 +264,7 @@ const addToCart = () => {
       });
 
       closeDialog();
+      anmerkung.value = "";
     } catch (error) {
       console.error("Fehler beim Hinzufügen zum Warenkorb:", error);
       $q.notify({
@@ -268,3 +300,10 @@ watch(
   { immediate: true }
 );
 </script>
+<style scoped>
+.quantity-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+</style>

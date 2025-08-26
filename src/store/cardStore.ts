@@ -14,10 +14,10 @@ export interface GenericCartItem {
   quantity: number;
   categoryName: string;
   sizes?: ItemSizes[];
-  hasSizes?: boolean;
+  hasSizes: boolean;
   selectedSize?: string | undefined;
   totalPrice: number;
-  anmerkung?: string;
+  anmerkung?: string | undefined;
 }
 
 export const useCartStore = defineStore("cart", {
@@ -32,7 +32,7 @@ export const useCartStore = defineStore("cart", {
           cartItem.id === item.id &&
           cartItem.categoryName === item.categoryName &&
           cartItem.selectedSize === item.selectedSize &&
-          cartItem.anmerkung === item.anmerkung
+          (cartItem.anmerkung || "") === (item.anmerkung || "")
       );
 
       if (existingItem) {
@@ -67,25 +67,59 @@ export const useCartStore = defineStore("cart", {
         }
       }
     },
-
     updateGenericCartItem(
       id: number,
       categoryName: string,
+      originalSize: string | undefined,
       newQuantity: number,
-      selectedSize?: string,
-      anmerkung?: string
+      newSelectedSize?: string,
+      anmerkung?: string,
+      newPrice?: number
     ) {
       const item = this.genericCartItems.find(
         (cartItem) =>
           cartItem.id === id &&
           cartItem.categoryName === categoryName &&
-          cartItem.selectedSize === selectedSize &&
-          cartItem.anmerkung === anmerkung
+          cartItem.selectedSize === originalSize
       );
 
       if (item && newQuantity >= 1) {
         item.quantity = newQuantity;
+        item.selectedSize = newSelectedSize;
+        item.anmerkung = anmerkung;
+        if (newPrice !== undefined) {
+          item.price = newPrice;
+        }
         item.totalPrice = item.price * newQuantity;
+      }
+    },
+
+    updateOrReplaceGenericCartItem(
+      id: number,
+      categoryName: string,
+      originalSize: string | undefined,
+      newQuantity: number,
+      newSelectedSize: string | undefined,
+      anmerkung: string | undefined,
+      newPrice: number
+    ) {
+      // Altes Item finden
+      const oldItemIndex = this.genericCartItems.findIndex(
+        (cartItem) =>
+          cartItem.id === id &&
+          cartItem.categoryName === categoryName &&
+          cartItem.selectedSize === originalSize
+      );
+
+      if (oldItemIndex !== -1) {
+        const oldItem = this.genericCartItems[oldItemIndex];
+
+        // Direkt das vorhandene Item aktualisieren
+        oldItem!.quantity = newQuantity;
+        oldItem!.selectedSize = newSelectedSize;
+        oldItem!.anmerkung = anmerkung;
+        oldItem!.price = newPrice;
+        oldItem!.totalPrice = newPrice * newQuantity;
       }
     },
 
