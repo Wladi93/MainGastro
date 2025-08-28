@@ -128,11 +128,12 @@
 
           <template v-if="hasSizesLocal">
             <q-input
+              prefix="€"
               :key="sizeKleinOn ? 1 : 0"
               :readonly="!sizeKleinOn"
               filled
               v-model="kleinPrice"
-              label="Klein (€)"
+              label="Klein:"
               type="text"
               step="0.01"
               min="0"
@@ -149,11 +150,12 @@
             </q-input>
 
             <q-input
+              prefix="€"
               :key="sizeMittelOn ? 1 : 0"
               :readonly="!sizeMittelOn"
               filled
               v-model="mittelPrice"
-              label="Mittel (€)"
+              label="Mittel:"
               type="text"
               step="0.01"
               min="0"
@@ -170,11 +172,12 @@
             </q-input>
 
             <q-input
+              prefix="€"
               :key="sizeGrossOn ? 1 : 0"
               :readonly="!sizeGrossOn"
               filled
               v-model="großPrice"
-              label="Groß (€)"
+              label="Groß:"
               type="text"
               step="0.01"
               min="0"
@@ -191,11 +194,12 @@
             </q-input>
 
             <q-input
+              prefix="€"
               :key="sizeFamilieOn ? 1 : 0"
               :readonly="!sizeFamilieOn"
               filled
               v-model="familiePrice"
-              label="Familie (€)"
+              label="Familie:"
               type="text"
               step="0.01"
               min="0"
@@ -214,10 +218,11 @@
 
           <!-- Einzelpreis für Items ohne Größen -->
           <q-input
+            prefix="€"
             v-else
             filled
             v-model="singlePrice"
-            label="Preis (€)"
+            label="Preis:"
             type="text"
             step="0.01"
             min="0"

@@ -160,21 +160,49 @@
                 >
                 </q-input>
               </div>
-              <q-select
-                v-model="auswahl"
-                :options="options"
-                label="Liefern/Abholen"
-                label-color="secondary"
-                placeholder="bitte Auswählen ob zum Liefern oder Abholen"
-                filled
-                class="q-mb-lg"
-                stack-label
-                :rules="[(val) => !!val || 'Bitte Auswählen']"
+
+              <q-list
+                v-if="bestellMail[0]?.liefernOn || bestellMail[0]?.abholenOn"
+                class="flex column q-mb-md"
               >
-                <template v-slot:prepend>
-                  <q-icon name="delivery_dining" />
-                </template>
-              </q-select>
+                <q-separator class="q-mb-sm" />
+                <div class="flex row" style="align-items: center; gap: 15px">
+                  <q-item-label class="float-left flex" caption
+                    >Liefern/Abholen:</q-item-label
+                  >
+
+                  <q-chip
+                    color="grey-3"
+                    v-if="cartStore.liefernAbholen.liefern"
+                    class="text-subtitle1 text-accent"
+                  >
+                    <q-icon
+                      name="moped"
+                      color="accent"
+                      size="sm"
+                      class="q-mr-xs"
+                    />
+                    Liefern</q-chip
+                  >
+
+                  <q-chip
+                    color="grey-3"
+                    v-if="cartStore.liefernAbholen.abholen"
+                    class="text-subtitle1 text-accent"
+                  >
+                    <q-icon
+                      name="storefront"
+                      color="accent"
+                      size="sm"
+                      class="q-mr-xs"
+                    />
+                    Abholen</q-chip
+                  >
+                </div>
+
+                <q-separator class="q-mt-sm" />
+              </q-list>
+
               <q-input
                 class="q-mb-sm"
                 filled
@@ -256,18 +284,16 @@ const telefon = ref("");
 const anliegen = ref("");
 const dense = ref(false);
 
-const auswahl = ref();
+const auswahl = computed(() => {
+  if (cartStore.liefernAbholen.liefern) {
+    return "Liefern";
+  } else if (cartStore.liefernAbholen.abholen) {
+    return "Abholen";
+  }
+  return "";
+});
 const anmerkung = ref("");
 const bestellMail = ref<BestellMail[]>([]);
-
-const options = computed(() => {
-  const availableOptions = [];
-  if (bestellMail.value.length > 0) {
-    if (bestellMail.value[0]!.liefernOn) availableOptions.push("Liefern");
-    if (bestellMail.value[0]!.abholenOn) availableOptions.push("Abholen");
-  }
-  return availableOptions;
-});
 
 const loadBestellMail = async () => {
   try {

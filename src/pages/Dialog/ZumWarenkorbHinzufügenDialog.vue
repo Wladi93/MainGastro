@@ -97,6 +97,23 @@
             />
           </q-item-section>
         </q-item>
+
+        <q-item class="flex column">
+          <q-select
+            filled
+            v-model="selectedBeilagen"
+            :options="beilagenOptions"
+            label="Beilagen auswählen"
+            color="accent"
+            option-label="label"
+            option-value="value"
+            multiple
+            use-chips
+            emit-value
+            map-options
+            :key="selectedSize"
+          />
+        </q-item>
         <q-item>
           <q-item-section>
             <q-input
@@ -135,15 +152,54 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import type { CategoryItem } from "../types/CategoryItem";
 import { useQuasar } from "quasar";
 import { useCartStore } from "src/store/cardStore";
+import type { BeilagenName, BeilagenPreise } from "../types/BeilagenType";
+import api from "src/boot/axios";
 
 const cartStore = useCartStore();
 const anzahl = ref(1);
 
 const $q = useQuasar();
+const beilageName = ref<BeilagenName[]>([]);
+const selectedBeilagen = ref<string[]>([]);
+const beilagenOptions = computed(() => {
+  return beilageName.value.map((beilage) => {
+    const beilagenPreis =
+      beilagenPreise.value.find((preis) => preis.id === beilage.id) ||
+      beilagenPreise.value[0];
+
+    let price = 0;
+    if (beilagenPreis && selectedSize.value) {
+      const sizeLower = selectedSize.value.toLowerCase();
+      if (sizeLower.includes("klein")) {
+        price = beilagenPreis.kleinpreis;
+      } else if (sizeLower.includes("mittel")) {
+        price = beilagenPreis.mittelpreis;
+      } else if (sizeLower.includes("groß") || sizeLower.includes("gross")) {
+        price = beilagenPreis.grosspreis;
+      } else if (sizeLower.includes("familie")) {
+        price = beilagenPreis.familiepreis;
+      } else {
+        price = beilagenPreis.kleinpreis;
+      }
+    }
+
+    return {
+      label:
+        price > 0
+          ? `${beilage.beilageName} - ${price.toFixed(2)}€`
+          : beilage.beilageName,
+      value: beilage.beilageName,
+      beilageName: beilage.beilageName,
+      price: price,
+    };
+  });
+});
+
+const beilagenPreise = ref<BeilagenPreise[]>([]);
 const anmerkung = ref("");
 const isOpen = defineModel<boolean>("isOpen", { default: false });
 const selectedItem = defineModel<CategoryItem | null>("selectedItem", {
@@ -168,6 +224,22 @@ const decreaseQuantity = () => {
     anzahl.value--;
   }
 };
+
+async function loadBeilagen() {
+  try {
+    const response = await api.get("/api/beilagen/beilagenname");
+    beilageName.value = response.data;
+
+    const responsePreise = await api.get("/api/beilagen/beilagenpreise");
+    beilagenPreise.value = responsePreise.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Fahrkosten:", error, beilageName);
+  }
+}
+
+onMounted(async () => {
+  await loadBeilagen();
+});
 
 const getFullImageUrl = (imgUrl: string): string => {
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
@@ -251,6 +323,7 @@ const addToCart = () => {
         totalPrice: calculatedPrice.value,
         anmerkung: anmerkung.value,
         hasSizes: selectedItem.value.hasSizes,
+        selectedBeilagen: selectedBeilagen.value,
       };
 
       cartStore.addGenericToCart(cartItem);

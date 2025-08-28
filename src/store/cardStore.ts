@@ -20,12 +20,27 @@ export interface GenericCartItem {
   anmerkung?: string | undefined;
 }
 
+export interface LiefernAbholen {
+  liefern: boolean;
+  abholen: boolean;
+}
+
 export const useCartStore = defineStore("cart", {
   state: () => ({
     genericCartItems: [] as GenericCartItem[],
+    liefernAbholen: {
+      liefern: true,
+      abholen: false,
+    } as LiefernAbholen,
   }),
-  getters: {},
+  getters: {
+    getLiefernAbholen: (state) => state.liefernAbholen,
+  },
   actions: {
+    setLiefernAbholen(item: LiefernAbholen) {
+      this.liefernAbholen = { ...item };
+    },
+
     addGenericToCart(item: GenericCartItem) {
       const existingItem = this.genericCartItems.find(
         (cartItem) =>
@@ -103,7 +118,6 @@ export const useCartStore = defineStore("cart", {
       anmerkung: string | undefined,
       newPrice: number
     ) {
-      // Altes Item finden
       const oldItemIndex = this.genericCartItems.findIndex(
         (cartItem) =>
           cartItem.id === id &&
@@ -114,7 +128,6 @@ export const useCartStore = defineStore("cart", {
       if (oldItemIndex !== -1) {
         const oldItem = this.genericCartItems[oldItemIndex];
 
-        // Direkt das vorhandene Item aktualisieren
         oldItem!.quantity = newQuantity;
         oldItem!.selectedSize = newSelectedSize;
         oldItem!.anmerkung = anmerkung;

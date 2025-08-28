@@ -3,7 +3,7 @@
     <q-card class="full-width" style="min-width: 90vw">
       <q-list>
         <q-item-label
-          class="text-caption flex q-mt-sm text-accent"
+          class="text-caption flex q-mt-md text-accent"
           style="justify-content: center; font-size: 14px"
         >
           Ihr Warenkorb
@@ -14,7 +14,36 @@
             class="q-ml-sm"
           />
         </q-item-label>
-        <q-separator class="q-mt-sm q-mb-md" inset />
+        <q-separator class="q-mt-sm" inset />
+
+        <q-item
+          class="flex row"
+          style="justify-content: center; align-items: center"
+        >
+          <q-btn
+            v-if="bestellMail[0]?.liefernOn"
+            icon="moped"
+            dense
+            flat
+            :color="liefern ? 'accent' : 'grey-6'"
+            label="Liefern"
+            @click="onLiefern"
+          />
+          <q-item-label class="text-subtitle1 text-grey-6 q-mx-sm"
+            >/</q-item-label
+          >
+          <q-btn
+            v-if="bestellMail[0]?.abholenOn"
+            icon="storefront"
+            dense
+            flat
+            :color="abholen ? 'accent' : 'grey-6'"
+            label="abholen"
+            @click="onAbholen"
+          />
+        </q-item>
+
+        <q-separator inset class="q-mb-md" />
 
         <q-item
           style="justify-content: center; align-items: center"
@@ -96,9 +125,31 @@
         class="flex column items-center"
       >
         <template v-if="showMwSt">
-          <q-item-label class="text-black">
-            Gesammtsumme inkl. MwSt: {{ totalAmount.toFixed(2) }}€
+          <q-item-label
+            v-if="liefern && fahrkosten[0]?.fahrkostenOn"
+            class="text-black"
+          >
+            Gesammtsumme inkl. MwSt:
+            {{ totalFahrkosten.toFixed(2) }}
           </q-item-label>
+
+          <q-item-label
+            v-if="abholen || !fahrkosten[0]?.fahrkostenOn"
+            class="text-black"
+          >
+            Gesammtsumme inkl. MwSt:
+            {{ totalAmount.toFixed(2) }}
+          </q-item-label>
+
+          <q-item-label v-if="liefern && fahrkosten[0]?.fahrkostenOn" caption
+            >+<q-icon name="moped" class="q-mr-xs q-ml-xs" />Fahrkosten:
+            {{ fahrkosten[0]?.fahrkosten.toFixed(2) }}€</q-item-label
+          >
+
+          <q-item-label v-if="liefern" caption
+            >Gesammtsumme: {{ totalAmount.toFixed(2) }}€</q-item-label
+          >
+
           <q-item-label caption>
             davon MwSt.({{ bestellMail[0]?.mwSt }}%): {{ MwSt.toFixed(2) }}€
           </q-item-label>
@@ -108,11 +159,31 @@
         </template>
 
         <template v-else>
-          <q-item-label class="text-black">
+          <q-item-label
+            v-if="liefern && fahrkosten[0]?.fahrkostenOn"
+            class="text-black"
+          >
+            Gesammtsumme: {{ totalFahrkosten.toFixed(2) }}€
+          </q-item-label>
+          <q-item-label v-if="liefern && fahrkosten[0]!.fahrkostenOn" caption
+            >+<q-icon name="moped" class="q-mr-xs q-ml-xs" />Fahrkosten:
+            {{ fahrkosten[0]?.fahrkosten.toFixed(2) }}€</q-item-label
+          >
+          <q-item-label v-if="liefern && fahrkosten[0]?.fahrkostenOn" caption
+            >Gesammtsumme Artikel: {{ totalAmount.toFixed(2) }}€</q-item-label
+          >
+
+          <q-item-label
+            v-if="abholen || !fahrkosten[0]?.fahrkostenOn"
+            class="text-black"
+          >
             Gesammtsumme: {{ totalAmount.toFixed(2) }}€
           </q-item-label>
         </template>
       </q-item-section>
+
+      <q-separator class="q-mt-sm q-mb-sm" inset />
+
       <q-item class="full-width">
         <q-item-section>
           <q-btn
@@ -137,7 +208,10 @@ import type {
 } from "../types/BestellMailType";
 import api from "src/boot/axios";
 import { EventBus } from "src/utils/eventBus";
+import type { Fahrkosten } from "../types/FahrkostenType";
+import { useQuasar } from "quasar";
 
+const $q = useQuasar();
 const router = useRouter();
 const cartStore = useCartStore();
 const isOpen = defineModel<boolean>("isOpen", { default: false });
@@ -147,6 +221,18 @@ const showMwSt = computed(() => {
   if (bestellMail.value.length === 0) return false;
   return bestellMail.value[0]!.mwStOn === true;
 });
+const fahrkosten = ref<Fahrkosten[]>([]);
+
+const liefern = computed(() => cartStore.liefernAbholen.liefern);
+const abholen = computed(() => cartStore.liefernAbholen.abholen);
+
+function onLiefern() {
+  cartStore.setLiefernAbholen({ liefern: true, abholen: false });
+}
+
+function onAbholen() {
+  cartStore.setLiefernAbholen({ liefern: false, abholen: true });
+}
 
 const loadBestellMail = async () => {
   try {
@@ -197,6 +283,11 @@ const zumWarenkorb = async () => {
   await router.push("/warenkorb");
 };
 
+const totalFahrkosten = computed(() => {
+  const fahrkostenZahl = fahrkosten.value?.[0]?.fahrkosten || 0;
+  return totalAmount.value + fahrkostenZahl;
+});
+
 const totalAmount = computed(() => {
   const totalAmountcartItems = genericCartItems.value.reduce(
     (total, item) => total + item.price * item.quantity,
@@ -215,6 +306,22 @@ const MwSt = computed(() => {
   return totalAmount.value * (mwStProzent / 100);
 });
 
+async function loadFahrkosten() {
+  try {
+    const response = await api.get("/api/fahrkosten");
+
+    fahrkosten.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Fahrkosten:", error, fahrkosten);
+    $q.notify({
+      type: "negative",
+      position: "top",
+      message: "Fehler beim Laden der Fahrkosten",
+      icon: "clear",
+    });
+  }
+}
+
 onMounted(() => {
   void (async () => {
     await loadBestellMail();
@@ -222,13 +329,18 @@ onMounted(() => {
     EventBus.on("bestellmail-updated", () => {
       void loadBestellMail();
     });
+    EventBus.on("fahrkosten-updated", () => {
+      void loadFahrkosten();
+    });
   })();
 });
 
 onUnmounted(() => {
   EventBus.off("bestellmail-updated");
+  EventBus.off("fahrkosten-updated");
 });
 onMounted(async () => {
+  await loadFahrkosten();
   await loadBestellMail();
 });
 </script>

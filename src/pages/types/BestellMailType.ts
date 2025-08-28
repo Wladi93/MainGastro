@@ -10,6 +10,8 @@ export interface BestellMail {
   liefernOn: boolean;
   mwStOn: boolean;
   mwSt: number;
+  fahrkostenOn: boolean;
+  fahrkosten: number;
 }
 
 export interface BestellMailResponse {
@@ -23,4 +25,6 @@ export interface BestellMailResponse {
   abholenOn: boolean;
   mwStOn: boolean;
   mwSt: number;
+  fahrkostenOn: boolean;
+  fahrkosten: number;
 }

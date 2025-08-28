@@ -13,6 +13,7 @@
       <q-tab name="logos" label="Logos" icon="image" />
       <q-tab name="hintergrund" label="Hintergrund" icon="wallpaper" />
       <q-tab name="bestellung" label="Bestellung" icon="attach_email" />
+      <q-tab name="beilagen" label="Beilagen" icon="cookie" />
       <q-tab name="kontakt" label="kontaktdaten" icon="contact_mail" />
       <q-tab name="anfahrt" label="anfahrt" icon="place" />
       <q-tab name="oeffnungszeiten" label="Öffnungszeiten" icon="schedule" />
@@ -35,6 +36,10 @@
 
       <q-tab-panel name="bestellung">
         <BestellMailSettings />
+      </q-tab-panel>
+
+      <q-tab-panel name="beilagen">
+        <BeilagenSettings />
       </q-tab-panel>
 
       <q-tab-panel name="kontakt">
@@ -62,6 +67,7 @@ import AnfahrtSettings from "src/components/AnfahrtSettings.vue";
 import { ref } from "vue";
 import OeffnungszeitenSettings from "src/components/OeffnungszeitenSettings.vue";
 import BestellMailSettings from "src/components/BestellMailSettings.vue";
+import BeilagenSettings from "src/components/BeilagenSettings.vue";
 
 const tab = ref("allgemein");
 </script>

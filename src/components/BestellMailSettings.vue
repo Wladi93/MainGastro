@@ -111,26 +111,40 @@
             type="number"
             v-model="bestellMail.mwSt"
             filled
-            label="MwSt in %:"
+            label="MwSt eingeben:"
             ref="inputRef"
             maxlength="2"
-          />
-
-          <q-icon
-            color="grey-7"
-            name="percent"
-            class="floatingIcon"
-            clickable
-            @click.stop
-            :style="iconStyle"
+            prefix="%"
           />
         </div>
       </q-item-section>
 
       <q-separator class="q-mt-md q-mb-sm" />
 
+      <q-item-section>
+        <q-item-label caption>Fahrkosten:</q-item-label>
+        <q-toggle
+          class="text-caption"
+          v-model="fahrkosten[0]!.fahrkostenOn"
+          label="Fahrkosten aktivieren"
+          color="positive"
+        />
+        <q-input
+          :disable="!fahrkosten[0]!.fahrkostenOn"
+          type="number"
+          v-model="vModelFahrkosten"
+          filled
+          label="Fahrkosten eingeben:"
+          ref="inputRef"
+          maxlength="2"
+          prefix="€"
+        />
+      </q-item-section>
+
+      <q-separator class="q-mt-md q-mb-sm" />
+
       <q-btn
-        @click="updateBestellMail(bestellMail)"
+        @click="updateBestellMail(bestellMail, fahrkosten[0]!)"
         label="Speichern"
         icon="save"
         color="secondary"
@@ -150,10 +164,23 @@ import type {
   BestellMailResponse,
 } from "src/pages/types/BestellMailType";
 import { EventBus } from "src/utils/eventBus";
+import type { Fahrkosten } from "src/pages/types/FahrkostenType";
 
 const bestellMail = ref<BestellMail[]>([]);
 const isPwd = ref(true);
 const isLoading = ref(false);
+const fahrkosten = ref<Fahrkosten[]>([]);
+const vModelFahrkosten = computed({
+  get() {
+    return fahrkosten.value[0] ? fahrkosten.value[0].fahrkosten.toFixed(2) : "";
+  },
+  set(val: string) {
+    const parsed = parseFloat(val.replace(",", "."));
+    if (!isNaN(parsed) && fahrkosten.value[0]) {
+      fahrkosten.value[0].fahrkosten = parsed;
+    }
+  },
+});
 
 const loadBestellMail = async () => {
   try {
@@ -167,29 +194,18 @@ const loadBestellMail = async () => {
   }
 };
 
-const iconStyle = computed(() => {
-  if (!bestellMail.value[0]?.mwSt) return { display: "none" };
-
-  const mwStString = String(bestellMail.value[0].mwSt);
-  const textWidth = mwStString.length * 5.8;
-  const leftPosition = Math.min(textWidth + 20, 60);
-
-  return {
-    position: "absolute",
-    left: `${leftPosition}px`,
-    top: "65%",
-    transform: "translateY(-50%)",
-    zIndex: "10",
-    pointerEvents: "auto",
-  };
-});
-
-const updateBestellMail = async (bestellMail: BestellMail) => {
+const updateBestellMail = async (
+  bestellMail: BestellMail,
+  fahrkosten: Fahrkosten
+) => {
   isLoading.value = true;
   try {
     await api.put(`/api/bestellmail/${bestellMail.id}`, bestellMail);
+    await api.put(`/api/fahrkosten/${fahrkosten.id}`, fahrkosten);
 
     EventBus.emit("bestellmail-updated", bestellMail);
+
+    EventBus.emit("fahrkosten-updated", fahrkosten);
 
     Notify.create({
       message: "Daten erfolgreich gespeichert...",
@@ -210,12 +226,25 @@ const updateBestellMail = async (bestellMail: BestellMail) => {
   }
 };
 
+async function loadFahrkosten() {
+  try {
+    const response = await api.get("/api/fahrkosten");
+
+    fahrkosten.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Fahrkosten:", error, fahrkosten);
+    Notify.create({
+      type: "negative",
+      position: "top",
+      icon: "clear",
+      message: "Fehler beim Laden der Fahrkosten",
+    });
+  }
+}
+
 onMounted(async () => {
+  await loadFahrkosten();
   await loadBestellMail();
 });
 </script>
-<style scoped>
-.floatingIcon {
-  transition: left 0.2s ease;
-}
-</style>
+<style scoped></style>
