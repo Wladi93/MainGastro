@@ -88,7 +88,7 @@
             clickable
             v-ripple
             @click="$router.push(`/warenkorb`)"
-            :class="{ 'text-secondary': isActive('/') }"
+            :class="{ 'text-secondary': isActive('/warenkorb') }"
           >
             <q-item-section avatar>
               <q-icon name="shopping_cart" />

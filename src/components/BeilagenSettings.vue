@@ -1,8 +1,14 @@
 <template>
   <q-list>
     <q-item-label class="q-mb-sm" caption>Beilagen hinzufügen:</q-item-label>
-    <q-input label="bitte Name eingeben" filled v-model="beilage" />
+    <q-input
+      label="bitte Name eingeben"
+      filled
+      v-model="beilage"
+      @keyup.enter="postBeilage()"
+    />
     <q-btn
+      :disable="beilage.length == 0"
       label="speichern"
       icon="save"
       color="secondary"
@@ -14,11 +20,21 @@
       class="q-mt-sm text-grey"
       icon="list"
       label="angelegte Beilagen"
+      header-class="bg-grey-3"
     >
-      <div>
+      <div class="q-mt-md">
         <q-list v-for="beilageName in beilageName" :key="beilageName.id">
-          <q-chip class="q-ml-md flex" dense color="info">
+          <q-chip class="q-ml-md" dense color="info">
             {{ beilageName.beilageName }}
+            <q-btn
+              dense
+              round
+              flat
+              size="xs"
+              icon="close"
+              color="grey"
+              @click.stop="deleteBeilage(beilageName.id)"
+            />
           </q-chip>
         </q-list>
       </div>
@@ -148,7 +164,12 @@ async function loadBeilagen() {
 const postBeilage = async () => {
   try {
     const newBeilage = { beilageName: beilage.value };
+
+    if (beilage.value.length == 0) {
+      return;
+    }
     await api.post(`/api/beilagen/beilagenname`, newBeilage);
+    await loadBeilagen();
 
     Notify.create({
       message: "Daten erfolgreich gespeichert...",
@@ -197,6 +218,22 @@ const updateBeilagenPreise = async () => {
       color: "negative",
       icon: "clear",
     });
+  }
+};
+
+const deleteBeilage = async (id: number) => {
+  try {
+    await api.delete(`/api/beilagen/beilagenname/${id}`);
+    await loadBeilagen();
+
+    Notify.create({
+      message: "Beilage erfolgreich gelöscht",
+      position: "top",
+      color: "positive",
+      icon: "check",
+    });
+  } catch (error) {
+    console.error("Fehler beim löschen der Beilage", error);
   }
 };
 

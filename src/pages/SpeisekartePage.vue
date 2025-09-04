@@ -7,12 +7,7 @@
       </h6>
     </q-banner>
 
-    <q-input
-      clearable
-      filled
-      v-model="search"
-      debounce="500"
-      placeholder="Suchen"
+    <q-input filled v-model="search" debounce="500" placeholder="Suchen"
       ><template v-slot:append> <q-icon name="search" /> </template
     ></q-input>
 
@@ -107,7 +102,11 @@
                 style="display: flex; align-items: center"
               >
                 {{ item.name }}
-                <q-chip color="info" v-if="item.neu == true" label="Neu" />
+                <q-chip
+                  style="background-color: #3de04d"
+                  v-if="item.neu == true"
+                  label="Neu"
+                />
               </h6>
               <p class="description nowrap">{{ item.description }}</p>
             </div>

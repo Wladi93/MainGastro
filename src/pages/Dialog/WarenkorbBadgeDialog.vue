@@ -87,30 +87,76 @@
               class="q-mr-md"
             />
 
-            <q-item-section>
+            <q-item-section class="q-mr-xl full-width">
               <q-item-label>{{ item.name }} </q-item-label>
 
-              <q-item-label caption v-if="item.hasSizes"
-                >Größe: {{ item.selectedSize }}</q-item-label
-              >
               <q-item-label
-                v-if="item.anmerkung && item.anmerkung.length > 0"
                 caption
-                >Nachricht:
+                v-if="item.beilagen!.length > 0"
+                class="flex column"
+              >
+                Beilagen:
+
+                <span
+                  class="text-caption"
+                  v-for="(beilage, index) in item.beilagen"
+                  :key="index"
+                >
+                  <q-chip
+                    dense
+                    size="sm"
+                    style="font-size: 12px; margin-left: -1px"
+                    color="green-1"
+                  >
+                    {{ beilage }} {{ (item.beilagenPreis ?? 0).toFixed(2) }}€
+                  </q-chip>
+                </span>
               </q-item-label>
-              <q-item-label caption>{{ item.anmerkung }}</q-item-label>
+
+              <q-item-label
+                class="flex row"
+                style="align-items: center"
+                caption
+                v-if="item.hasSizes"
+                >Größe:
+                <q-chip
+                  color="green-1"
+                  dense
+                  size="sm"
+                  style="font-size: 12px"
+                  caption
+                >
+                  {{ item.selectedSize }}</q-chip
+                >
+              </q-item-label>
+
+              <q-item-section
+                v-if="item.anmerkung"
+                class="flex column text-grey-4"
+              >
+                <q-item-label v-if="item.anmerkung" caption
+                  >Anmerkung:</q-item-label
+                >
+                <q-item-label
+                  v-if="item.anmerkung"
+                  class="text-black"
+                  style="font-size: 12px"
+                  caption
+                  >{{ item.anmerkung }}</q-item-label
+                ></q-item-section
+              >
             </q-item-section>
-            <q-separator vertical class="separatorH q-mr-sm q-ml-xl" />
+            <q-separator vertical />
             <q-item-section>
-              <div class="flex row items-center q-mb-xs">
+              <div class="flex row items-center q-mb-xs q-ml-md">
                 <q-item-label caption>Preis: </q-item-label>
                 <q-chip dense color="info">
-                  {{ (item.price * item.quantity).toFixed(2) }}€</q-chip
+                  {{ (itemPreis(item) * item.quantity).toFixed(2) }}€</q-chip
                 >
               </div>
-              <div class="flex row items-center">
+              <div class="flex row items-center q-ml-md">
                 <q-item-label caption>Anzahl:</q-item-label>
-                <q-chip color="grey-3" dense>
+                <q-chip color="green-1" dense>
                   {{ item.quantity }}
                 </q-chip>
               </div>
@@ -121,24 +167,32 @@
       <q-separator class="q-mb-sm q-mt-md" inset />
 
       <q-item-section
+        style="
+          background-color: #f8f9fa;
+          padding: 16px;
+          border-radius: 4px;
+          border: 1px solid #e9ecef;
+        "
         v-if="genericCartItems.length > 0"
         class="flex column items-center"
       >
         <template v-if="showMwSt">
           <q-item-label
             v-if="liefern && fahrkosten[0]?.fahrkostenOn"
-            class="text-black"
+            class="text-accent"
           >
             Gesammtsumme inkl. MwSt:
-            {{ totalFahrkosten.toFixed(2) }}
+            {{ totalFahrkosten.toFixed(2) }}€
+            <q-separator class="q-my-xs" />
           </q-item-label>
 
           <q-item-label
             v-if="abholen || !fahrkosten[0]?.fahrkostenOn"
-            class="text-black"
+            class="text-accent"
           >
             Gesammtsumme inkl. MwSt:
-            {{ totalAmount.toFixed(2) }}
+            {{ totalAmount.toFixed(2) }}€
+            <q-separator class="q-my-xs" />
           </q-item-label>
 
           <q-item-label v-if="liefern && fahrkosten[0]?.fahrkostenOn" caption
@@ -161,9 +215,10 @@
         <template v-else>
           <q-item-label
             v-if="liefern && fahrkosten[0]?.fahrkostenOn"
-            class="text-black"
+            class="text-accent"
           >
             Gesammtsumme: {{ totalFahrkosten.toFixed(2) }}€
+            <q-separator class="q-my-xs" />
           </q-item-label>
           <q-item-label v-if="liefern && fahrkosten[0]!.fahrkostenOn" caption
             >+<q-icon name="moped" class="q-mr-xs q-ml-xs" />Fahrkosten:
@@ -175,9 +230,10 @@
 
           <q-item-label
             v-if="abholen || !fahrkosten[0]?.fahrkostenOn"
-            class="text-black"
+            class="text-accent"
           >
             Gesammtsumme: {{ totalAmount.toFixed(2) }}€
+            <q-separator class="q-my-xs" />
           </q-item-label>
         </template>
       </q-item-section>
@@ -222,6 +278,18 @@ const showMwSt = computed(() => {
   return bestellMail.value[0]!.mwStOn === true;
 });
 const fahrkosten = ref<Fahrkosten[]>([]);
+
+const itemPreis = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (item: any) => {
+    if (item?.hasBeilagen && item.beilagen?.length > 0) {
+      const totalBeilagenPreis =
+        item.beilagen.length * (item.beilagenPreis || 0);
+      return item.price + totalBeilagenPreis;
+    }
+    return item?.price || 0;
+  };
+});
 
 const liefern = computed(() => cartStore.liefernAbholen.liefern);
 const abholen = computed(() => cartStore.liefernAbholen.abholen);
@@ -280,7 +348,11 @@ const getFullImageUrl = (imgUrl: string): string => {
 };
 
 const zumWarenkorb = async () => {
-  await router.push("/warenkorb");
+  if (router.currentRoute.value.path === "/warenkorb") {
+    closeDialog();
+  } else {
+    await router.push("/warenkorb");
+  }
 };
 
 const totalFahrkosten = computed(() => {
@@ -289,12 +361,10 @@ const totalFahrkosten = computed(() => {
 });
 
 const totalAmount = computed(() => {
-  const totalAmountcartItems = genericCartItems.value.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
-
-  return totalAmountcartItems;
+  return genericCartItems.value.reduce((total, item) => {
+    const itemTotalPrice = itemPreis.value(item) * item.quantity;
+    return total + itemTotalPrice;
+  }, 0);
 });
 
 const bruttoPreis = computed(() => {
@@ -344,3 +414,4 @@ onMounted(async () => {
   await loadBestellMail();
 });
 </script>
+<style></style>

@@ -18,11 +18,27 @@ export interface GenericCartItem {
   selectedSize?: string | undefined;
   totalPrice: number;
   anmerkung?: string | undefined;
+  hasBeilagen?: boolean;
+  beilagen?: string[] | undefined;
+  beilagenPreis?: number | undefined;
 }
 
 export interface LiefernAbholen {
   liefern: boolean;
   abholen: boolean;
+}
+
+export interface BeilagenName {
+  id: number;
+  beilageName: string;
+}
+
+export interface BeilagenPreise {
+  id: number;
+  kleinpreis: number;
+  mittelpreis: number;
+  grosspreis: number;
+  familiepreis: number;
 }
 
 export const useCartStore = defineStore("cart", {
@@ -47,7 +63,9 @@ export const useCartStore = defineStore("cart", {
           cartItem.id === item.id &&
           cartItem.categoryName === item.categoryName &&
           cartItem.selectedSize === item.selectedSize &&
-          (cartItem.anmerkung || "") === (item.anmerkung || "")
+          (cartItem.anmerkung || "") === (item.anmerkung || "") &&
+          cartItem.beilagen === item.beilagen &&
+          cartItem.beilagenPreis === item.beilagenPreis
       );
 
       if (existingItem) {

@@ -427,6 +427,7 @@
     :image-url-hint="editDialog.imageHint"
     :sort-Order="editDialog.item?.sortOrder"
     :neu="editDialog.item?.neu"
+    :has-beilagen="editDialog.item?.hasBeilagen"
     @item-edited="editDialog.onEdited"
   />
 

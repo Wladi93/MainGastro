@@ -6,7 +6,7 @@
     </h6>
   </q-banner>
 
-  <div class="above bg-white q-gutter-y-xs">
+  <div class="bg-white q-gutter-y-xs">
     <q-separator color="accent" />
     <h2 class="textOben text-h5 text-weight-thin text-center">
       deine Bestellung...
@@ -89,23 +89,81 @@
         />
         <q-item-section>
           <q-item-label>{{ item.name }} </q-item-label>
-          <q-item-label caption>{{ item.description }}</q-item-label>
-          <q-item-label caption>Größe: {{ item.selectedSize }}</q-item-label>
-          <q-item-label caption>Anzahl: {{ item.quantity }}</q-item-label>
-          <div class="flex row items-center q-mb-sm">
+          <q-item-label
+            caption
+            v-if="item.beilagen!.length > 0"
+            class="flex column"
+          >
+            <span
+              class="flex row"
+              style="align-items: center"
+              v-for="(beilage, index) in item.beilagen"
+              :key="index"
+            >
+              <span v-if="index === 0" class="q-mr-xs">Beilagen:</span>
+              <span v-else class="q-mr-xs" style="visibility: hidden"
+                >Beilagen:</span
+              >
+
+              <q-chip dense size="sm" color="green-1" style="font-size: 12px">
+                {{ beilage }} - {{ (item.beilagenPreis ?? 0).toFixed(2) }}€
+              </q-chip>
+            </span>
+          </q-item-label>
+
+          <q-item-label v-if="item.hasSizes" caption style="margin-top: -2px"
+            >Größe:
+            <q-chip
+              dense
+              size="sm"
+              color="green-1"
+              style="font-size: 12px; margin-left: 18px"
+            >
+              {{ item.selectedSize }}</q-chip
+            ></q-item-label
+          >
+          <q-item-label caption style="margin-top: -2px"
+            >Anzahl:
+            <q-chip
+              dense
+              size="sm"
+              color="green-1"
+              style="font-size: 12px; margin-left: 14px"
+            >
+              {{ item.quantity }}</q-chip
+            >
+          </q-item-label>
+          <div class="flex row items-center" style="margin-top: -2px">
             <q-item-label caption
               >Preis:
-              <q-chip dense color="info">
-                {{ (item.price * item.quantity).toFixed(2) }}€</q-chip
+              <q-chip
+                dense
+                color="info"
+                size="sm"
+                style="font-size: 12px; margin-left: 20px"
+              >
+                {{ (itemPreis(item) * item.quantity).toFixed(2) }}€</q-chip
               >
             </q-item-label>
           </div>
-          <q-item-label v-if="item.anmerkung" caption>Anmerkung:</q-item-label>
-          <q-item-label v-if="item.anmerkung" caption>{{
-            item.anmerkung
-          }}</q-item-label>
+          <q-item-section
+            v-if="item.anmerkung"
+            class="flex column text-grey-4 q-pa-xs"
+            style="border: solid 1px; border-radius: 2px"
+          >
+            <q-item-label v-if="item.anmerkung" caption
+              >Anmerkung:</q-item-label
+            >
+            <q-item-label
+              v-if="item.anmerkung"
+              class="text-black"
+              style="font-size: 12px"
+              caption
+              >{{ item.anmerkung }}</q-item-label
+            ></q-item-section
+          >
         </q-item-section>
-        <q-separator vertical class="separatorH q-mr-sm" />
+        <q-separator vertical class="separatorH q-mr-sm q-ml-xs" />
         <q-item-section class="full-width" style="max-width: 80px">
           <div class="flex row items-center q-mb-sm">
             <q-btn
@@ -132,24 +190,32 @@
   <q-separator class="q-mb-sm q-mt-xs" inset />
 
   <q-item-section
+    style="
+      background-color: #f8f9fa;
+      padding: 16px;
+      border-radius: 4px;
+      border: 1px solid #e9ecef;
+    "
     v-if="genericCartItems.length > 0"
     class="flex column items-center"
   >
     <template v-if="showMwSt">
       <q-item-label
         v-if="liefern && fahrkosten[0]?.fahrkostenOn"
-        class="text-black"
+        class="text-accent"
       >
         Gesammtsumme inkl. MwSt:
-        {{ totalFahrkosten.toFixed(2) }}
+        {{ totalFahrkosten.toFixed(2) }}€
+        <q-separator class="q-my-xs" />
       </q-item-label>
 
       <q-item-label
         v-if="abholen || !fahrkosten[0]?.fahrkostenOn"
-        class="text-black"
+        class="text-accent"
       >
         Gesammtsumme inkl. MwSt:
-        {{ totalAmount.toFixed(2) }}
+        {{ totalAmount.toFixed(2) }}€
+        <q-separator class="q-my-xs" />
       </q-item-label>
 
       <q-item-label v-if="liefern && fahrkosten[0]?.fahrkostenOn" caption
@@ -158,8 +224,8 @@
       >
 
       <q-item-label v-if="liefern" caption
-        >Gesammtsumme: {{ totalAmount.toFixed(2) }}€</q-item-label
-      >
+        >Gesammtsumme: {{ totalAmount.toFixed(2) }}€
+      </q-item-label>
 
       <q-item-label caption>
         davon MwSt.({{ bestellMail[0]?.mwSt }}%): {{ MwSt.toFixed(2) }}€
@@ -172,9 +238,10 @@
     <template v-else>
       <q-item-label
         v-if="liefern && fahrkosten[0]?.fahrkostenOn"
-        class="text-black"
+        class="text-accent"
       >
         Gesammtsumme: {{ totalFahrkosten.toFixed(2) }}€
+        <q-separator class="q-my-xs" />
       </q-item-label>
       <q-item-label v-if="liefern && fahrkosten[0]?.fahrkostenOn" caption
         >+<q-icon name="moped" class="q-mr-xs q-ml-xs" />Fahrkosten:
@@ -186,9 +253,10 @@
 
       <q-item-label
         v-if="abholen || !fahrkosten[0]?.fahrkostenOn"
-        class="text-black"
+        class="text-accent"
       >
         Gesammtsumme: {{ totalAmount.toFixed(2) }}€
+        <q-separator class="q-my-xs" />
       </q-item-label>
     </template>
   </q-item-section>
@@ -231,6 +299,18 @@ const fahrkosten = ref<Fahrkosten[]>([]);
 
 const liefern = computed(() => cartStore.liefernAbholen.liefern);
 const abholen = computed(() => cartStore.liefernAbholen.abholen);
+
+const itemPreis = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (item: any) => {
+    if (item?.hasBeilagen && item.beilagen?.length > 0) {
+      const totalBeilagenPreis =
+        item.beilagen.length * (item.beilagenPreis || 0);
+      return item.price + totalBeilagenPreis;
+    }
+    return item?.price || 0;
+  };
+});
 
 function onLiefern() {
   cartStore.setLiefernAbholen({ liefern: true, abholen: false });
@@ -305,10 +385,10 @@ const editItem = (item: GenericCartItem) => {
 };
 
 const totalAmount = computed(() => {
-  return genericCartItems.value.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  return genericCartItems.value.reduce((total, item) => {
+    const itemTotalPrice = itemPreis.value(item) * item.quantity;
+    return total + itemTotalPrice;
+  }, 0);
 });
 
 const MwSt = computed(() => {
@@ -347,44 +427,13 @@ onMounted(async () => {
 </script>
 
 <style>
-.lol {
-  border: 1px solid;
-}
-.bannerImage {
-  height: 230px;
-}
-
-.text {
-  display: grid;
-}
-.separator {
-  margin-left: auto;
-  margin-right: auto;
-}
-.abstand {
-  margin-bottom: 20px;
-}
 .bannerIcon {
   size: 30px;
 }
-.img {
-  max-width: 900px;
-  min-height: 1200px;
-}
-
 @media (max-width: 600px) {
   .img {
     max-width: 900px;
     min-height: 650px;
-  }
-  .bannerImage {
-    height: 130px;
-  }
-  .oben {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    height: 45px;
   }
   .textOben {
     font-size: 12px;

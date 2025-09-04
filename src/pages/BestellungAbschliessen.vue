@@ -321,14 +321,26 @@ const sendOrderToAPI = async () => {
       auswahl: auswahl.value,
       anmerkung: anmerkung.value,
       anliegen: anliegen.value,
-      cartItems: cartStore.genericCartItems.map((item) => ({
-        id: item.id,
-        name: item.name,
-        size: item.sizes,
-        quantity: item.quantity,
-        price: item.price,
-        anmerkung: item.anmerkung,
-      })),
+      cartItems: cartStore.genericCartItems.map((item) => {
+        const basePrice = item.price || 0;
+        const beilagenPrice =
+          item.hasBeilagen && item.beilagen!.length > 0
+            ? item.beilagen!.length * (item.beilagenPreis || 0)
+            : 0;
+        const totalPrice = basePrice + beilagenPrice;
+
+        return {
+          id: item.id,
+          name: item.name,
+          size: item.selectedSize,
+          quantity: item.quantity,
+          price: totalPrice,
+          anmerkung: item.anmerkung,
+          beilagen: Array.isArray(item.beilagen)
+            ? item.beilagen.join(", ")
+            : item.beilagen,
+        };
+      }),
     };
 
     const response = await api.post(`/api/bestellung`, orderData, {

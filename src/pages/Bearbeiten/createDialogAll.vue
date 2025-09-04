@@ -114,7 +114,14 @@
             type="textarea"
             :rules="[(val) => !!val || 'Beschreibung ist erforderlich']"
           />
-
+          <q-toggle
+            class="text-caption text-grey-8"
+            label="auswählen von Beilagen"
+            left-label
+            color="positive"
+            v-model="itemData.hasBeilagen"
+            style="margin-bottom: -18px"
+          />
           <q-toggle
             class="text-caption text-grey-8"
             v-model="hasSizesLocal"
@@ -277,6 +284,7 @@ interface ItemData {
   sortOrder: number;
   neu: boolean;
   sizes?: ItemSizes;
+  hasBeilagen: boolean;
 }
 
 interface SizeData {
@@ -365,6 +373,7 @@ const defaultItemData: ItemData = {
   categoryId: props.categoryId,
   sortOrder: 0,
   neu: false,
+  hasBeilagen: false,
 };
 
 const itemData = reactive<ItemData>({
@@ -643,6 +652,7 @@ const createItem = async () => {
       categoryId: props.categoryId,
       sortOrder: itemData.sortOrder,
       neu: itemData.neu,
+      hasBeilagen: itemData.hasBeilagen,
     });
 
     const categoryName = await getCategoryNameById(props.categoryId);
@@ -654,6 +664,8 @@ const createItem = async () => {
       price: itemData.price,
       img: itemData.img,
       username: currentUser,
+      hasBeilagen: itemData.hasBeilagen,
+      neu: itemData.neu,
       message: `Item "${itemData.name}" wurde in Kategorie "${categoryName}" erstellt${hasSizesLocal.value ? " (mit Größen)" : ""}`,
     });
 

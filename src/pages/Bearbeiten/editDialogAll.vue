@@ -125,9 +125,14 @@
             :rules="[(val) => !!val || 'Beschreibung ist erforderlich']"
           />
 
-          <div v-if="hasSizes === true" class="text-subtitle2 q-mt-md">
-            Preise:
-          </div>
+          <q-toggle
+            color="positive"
+            left-label
+            label="Beilagen verfügbar"
+            v-model="editItem.hasBeilagen"
+            class="text-caption text-grey-8"
+            style="margin-bottom: -18px"
+          />
 
           <q-toggle
             class="text-caption text-grey-8"
@@ -336,6 +341,7 @@ interface MenuItem {
   sizes?: ItemSizes[];
   sortOrder: number;
   neu: boolean;
+  hasBeilagen: boolean;
 }
 
 const props = defineProps<{
@@ -350,6 +356,7 @@ const props = defineProps<{
   sizes?: ItemSizes[] | undefined;
   sortOrder?: number | undefined;
   neu?: boolean | undefined;
+  hasBeilagen?: boolean | undefined;
 }>();
 
 const activeSizesCount = computed(() => {
@@ -382,6 +389,7 @@ const editItem = reactive({
   sortOrder: props.sortOrder,
   neu: props.neu,
   hasSizes: props.hasSizes,
+  hasBeilagen: props.hasBeilagen,
 });
 
 const sizeKleinOn = ref(true);
@@ -748,6 +756,7 @@ const updateItem = async () => {
       ...(editItem.hasSizes ? { sizes: editItem.sizes } : { sizes: [] }),
       sortOrder: editItem.sortOrder,
       neu: editItem.neu,
+      hasBeilagen: editItem.hasBeilagen,
     };
 
     const response = await api.put(
@@ -767,6 +776,7 @@ const updateItem = async () => {
         sortOrder: oldItem.sortOrder,
         neu: oldItem.neu,
         hasSizes: oldItem.hasSizes,
+        hasBeilagen: oldItem.hasBeilagen,
       },
       newValues: {
         name: editItem.name,
@@ -776,6 +786,7 @@ const updateItem = async () => {
         sortOrder: editItem.sortOrder,
         neu: editItem.neu,
         hasSizes: editItem.hasSizes,
+        hasBeilagen: editItem.hasBeilagen,
       },
       message: `Item "${oldItem.name}" wurde in der Kategorie "${categoryName}" aktualisiert`,
       username: currentUser,
@@ -838,6 +849,7 @@ watch(
       editItem.sortOrder = props.item.sortOrder;
       editItem.neu = props.item.neu;
       editItem.hasSizes = props.item.hasSizes;
+      editItem.hasBeilagen = props.item.hasBeilagen;
 
       if (props.hasSizes && props.sizes && props.sizes.length > 0) {
         editItem.sizes = [...props.sizes];

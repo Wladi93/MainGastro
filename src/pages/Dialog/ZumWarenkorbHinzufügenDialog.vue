@@ -38,7 +38,14 @@
             <q-item-section>
               <div class="flex row items-center q-mb-sm">
                 <q-item-label caption>Preis:</q-item-label>
-                <q-chip color="info">{{ calculatedPrice.toFixed(2) }}€</q-chip>
+                <q-chip color="info"
+                  >{{
+                    (
+                      currentPrice +
+                      selectedBeilagen.length * beilagenEinzelpreis
+                    ).toFixed(2)
+                  }}€</q-chip
+                >
               </div>
               <q-item-label caption>Anzahl: {{ anzahl }}</q-item-label>
             </q-item-section>
@@ -81,11 +88,10 @@
           </q-item-section>
         </q-item>
 
-        <q-item>
+        <q-item v-if="hasSizes">
           <q-item-section>
             <q-select
               filled
-              v-if="hasSizes"
               v-model="selectedSize"
               :options="sizeOptions"
               label="bitte Größe auswählen"
@@ -98,7 +104,7 @@
           </q-item-section>
         </q-item>
 
-        <q-item class="flex column">
+        <q-item class="flex column" v-if="selectedItem.hasBeilagen">
           <q-select
             filled
             v-model="selectedBeilagen"
@@ -199,6 +205,29 @@ const beilagenOptions = computed(() => {
   });
 });
 
+const beilagenEinzelpreis = computed(() => {
+  if (!selectedSize.value || beilagenPreise.value.length === 0) return 0;
+
+  const beilagenPreis = beilagenPreise.value[0];
+  const sizeLower = selectedSize.value.toLowerCase();
+
+  if (sizeLower.includes("klein")) {
+    return beilagenPreis!.kleinpreis;
+  } else if (sizeLower.includes("mittel")) {
+    return beilagenPreis!.mittelpreis;
+  } else if (sizeLower.includes("groß") || sizeLower.includes("gross")) {
+    return beilagenPreis!.grosspreis;
+  } else if (sizeLower.includes("familie")) {
+    return beilagenPreis!.familiepreis;
+  }
+  return beilagenPreis!.kleinpreis;
+});
+
+const beilagenMitPreisen = selectedBeilagen.value.map((beilageName) => ({
+  name: beilageName,
+  price: beilagenEinzelpreis.value,
+}));
+
 const beilagenPreise = ref<BeilagenPreise[]>([]);
 const anmerkung = ref("");
 const isOpen = defineModel<boolean>("isOpen", { default: false });
@@ -211,6 +240,7 @@ const categoryName = defineModel<string>("categoryName", {
 
 function closeDialog() {
   isOpen.value = false;
+  selectedBeilagen.value = [];
 }
 
 const increaseQuantity = () => {
@@ -323,7 +353,10 @@ const addToCart = () => {
         totalPrice: calculatedPrice.value,
         anmerkung: anmerkung.value,
         hasSizes: selectedItem.value.hasSizes,
-        selectedBeilagen: selectedBeilagen.value,
+        beilagen: selectedBeilagen.value,
+        beilagenMitPreis: beilagenMitPreisen,
+        beilagenPreis: beilagenEinzelpreis.value,
+        hasBeilagen: selectedItem.value.hasBeilagen,
       };
 
       cartStore.addGenericToCart(cartItem);
@@ -358,6 +391,7 @@ watch(
   (newItem) => {
     if (newItem) {
       anzahl.value = 1;
+      selectedBeilagen.value = [];
       if (newItem.sizes && newItem.sizes.length > 0) {
         const mittelSize = newItem.sizes.find((size) =>
           size.sizeName.toLowerCase().includes("klein")

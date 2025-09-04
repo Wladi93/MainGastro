@@ -11,4 +11,5 @@ export type CategoryItem = {
   sizes?: ItemSizes[];
   sortOrder: number;
   neu: boolean;
+  hasBeilagen: boolean;
 };

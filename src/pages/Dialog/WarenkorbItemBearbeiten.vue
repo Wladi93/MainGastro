@@ -27,7 +27,7 @@
           />
           <div class="item-details">
             <p class="text-subtitle1 q-mb-xs">
-              {{ selectedItem.id }} {{ selectedItem.name }}
+              {{ selectedItem.name }}
             </p>
             <p class="text-caption text-grey-7">
               {{ selectedItem.description }}
@@ -92,6 +92,23 @@
           </template>
         </q-select>
 
+        <q-select
+          v-if="selectedItem?.hasBeilagen"
+          class="q-mb-md"
+          filled
+          v-model="selectedItem.beilagen"
+          :options="beilagenOptions"
+          label="Beilagen auswählen"
+          color="accent"
+          option-label="label"
+          option-value="value"
+          multiple
+          use-chips
+          emit-value
+          map-options
+          :key="selectedItem.selectedSize || 'no-size'"
+        />
+
         <q-input
           filled
           type="textarea"
@@ -108,12 +125,31 @@
           "
         />
 
-        <div v-if="selectedItem" class="price-preview q-mt-md">
+        <q-item-section
+          style="
+            background-color: #f8f9fa;
+            padding: 16px;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+          "
+          v-if="selectedItem"
+          class="q-mt-md full-width"
+        >
           <div class="price-breakdown">
             <div class="price-row">
               <q-item-label caption>Einzelpreis:</q-item-label>
               <q-item-label caption class="text-black"
                 >{{ getCurrentPrice().toFixed(2) }}€</q-item-label
+              >
+            </div>
+            <div
+              v-for="(beilage, index) in selectedItem.beilagen"
+              :key="index"
+              class="price-row"
+            >
+              <q-item-label caption>{{ beilage }}:</q-item-label>
+              <q-item-label caption
+                >+ {{ selectedItem.beilagenPreis?.toFixed(2) }}€</q-item-label
               >
             </div>
             <div class="price-row">
@@ -123,16 +159,16 @@
               }}</q-item-label>
             </div>
             <q-separator class="q-my-xs" />
-            <div class="price-row total-price">
+            <div class="price-row text-accent">
               <q-item-label>Gesamtsumme:</q-item-label>
               <q-item-label>
                 {{
-                  (getCurrentPrice() * newQuantity).toFixed(2)
+                  (itemPreis(selectedItem) * newQuantity).toFixed(2)
                 }}€</q-item-label
               >
             </div>
           </div>
-        </div>
+        </q-item-section>
       </q-card-section>
 
       <q-card-actions
@@ -177,6 +213,7 @@ import { useCartStore } from "src/store/cardStore";
 import { useQuasar } from "quasar";
 import type { ItemSizes } from "../types/CategoryItemsSizes";
 import api from "src/boot/axios";
+import type { BeilagenName, BeilagenPreise } from "../types/BeilagenType";
 
 const isOpen = defineModel<boolean>("isOpen", { required: true });
 const selectedItem = defineModel<GenericCartItem | null>("selectedItem", {
@@ -193,6 +230,20 @@ const newQuantity = ref(1);
 const availableSizes = ref<ItemSizes[]>([]);
 const loadingSizes = ref(false);
 const saving = ref(false);
+const beilageName = ref<BeilagenName[]>([]);
+const beilagenPreise = ref<BeilagenPreise[]>([]);
+
+const itemPreis = computed(() => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (item: any) => {
+    if (item?.hasBeilagen && item.beilagen?.length > 0) {
+      const totalBeilagenPreis =
+        item.beilagen.length * (item.beilagenPreis || 0);
+      return item.price + totalBeilagenPreis;
+    }
+    return item?.price || 0;
+  };
+});
 
 function closeDialog() {
   isOpen.value = false;
@@ -210,6 +261,56 @@ const getFullImageUrl = (imgUrl: string): string => {
   }
   return BASE_URL + imgUrl;
 };
+
+const beilagenOptions = computed(() => {
+  return beilageName.value.map((beilage) => {
+    const beilagenPreis =
+      beilagenPreise.value.find((preis) => preis.id === beilage.id) ||
+      beilagenPreise.value[0];
+
+    let price = 0;
+    if (beilagenPreis && newSize.value) {
+      const sizeLower = newSize.value.toLowerCase();
+      if (sizeLower.includes("klein")) {
+        price = beilagenPreis.kleinpreis;
+      } else if (sizeLower.includes("mittel")) {
+        price = beilagenPreis.mittelpreis;
+      } else if (sizeLower.includes("groß") || sizeLower.includes("gross")) {
+        price = beilagenPreis.grosspreis;
+      } else if (sizeLower.includes("familie")) {
+        price = beilagenPreis.familiepreis;
+      } else {
+        price = beilagenPreis.kleinpreis;
+      }
+    }
+
+    return {
+      label:
+        price > 0
+          ? `${beilage.beilageName} - ${price.toFixed(2)}€`
+          : beilage.beilageName,
+      value: beilage.beilageName,
+      beilageName: beilage.beilageName,
+      price: price,
+    };
+  });
+});
+
+async function loadBeilagen() {
+  try {
+    const response = await api.get("/api/beilagen/beilagenname");
+    beilageName.value = response.data;
+
+    const responsePreise = await api.get("/api/beilagen/beilagenpreise");
+    beilagenPreise.value = responsePreise.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Fahrkosten:", error, beilageName);
+  }
+}
+
+onMounted(async () => {
+  await loadBeilagen();
+});
 
 const getCurrentPrice = (): number => {
   if (!selectedItem.value) return 0;
@@ -417,11 +518,6 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
-
-.price-row.total-price {
-  font-size: 1.1em;
-  color: #1976d2;
 }
 
 .price {
