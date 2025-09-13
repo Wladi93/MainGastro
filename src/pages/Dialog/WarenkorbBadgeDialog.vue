@@ -262,7 +262,7 @@ import type {
   BestellMail,
   BestellMailResponse,
 } from "../types/BestellMailType";
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
 import { EventBus } from "src/utils/eventBus";
 import type { Fahrkosten } from "../types/FahrkostenType";
 import { useQuasar } from "quasar";
@@ -332,16 +332,10 @@ const getFullImageUrl = (imgUrl: string): string => {
     return imgUrl;
   }
 
-  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
-  const isLocalDevelopment = apiBaseURL.includes("localhost");
-
-  const imageBaseURL = isLocalDevelopment
-    ? "http://localhost:5008/"
-    : apiBaseURL;
-
-  const normalizedBaseURL = imageBaseURL.endsWith("/")
-    ? imageBaseURL
-    : imageBaseURL + "/";
+  const apiBaseURL = getBaseURL();
+  const normalizedBaseURL = apiBaseURL.endsWith("/")
+    ? apiBaseURL
+    : apiBaseURL + "/";
   const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
 
   return normalizedBaseURL + cleanedImgUrl;

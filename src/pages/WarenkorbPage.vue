@@ -162,6 +162,42 @@
               >{{ item.anmerkung }}</q-item-label
             ></q-item-section
           >
+
+          <q-item-section class="full-width">
+            <q-expansion-item
+              class="text-caption text-grey-7 expansion-left"
+              expand-separator
+              label="Allergene"
+            >
+              <q-list
+                v-for="allergen in filteredAllergene(item)"
+                :key="allergen.id"
+              >
+                <q-item-label caption>
+                  {{ allergen.name }}
+                </q-item-label>
+                <q-separator class="q-mt-xs" />
+              </q-list>
+            </q-expansion-item>
+          </q-item-section>
+
+          <q-item-section class="full-width">
+            <q-expansion-item
+              class="text-caption text-grey-7"
+              expand-separator
+              label="Zusatzstoffe"
+            >
+              <q-list
+                v-for="zusatzstoff in filteredZusatzstoffe(item)"
+                :key="zusatzstoff.id"
+              >
+                <q-item-label caption>
+                  {{ zusatzstoff.name }}
+                </q-item-label>
+                <q-separator />
+              </q-list>
+            </q-expansion-item>
+          </q-item-section>
         </q-item-section>
         <q-separator vertical class="separatorH q-mr-sm q-ml-xs" />
         <q-item-section class="full-width" style="max-width: 80px">
@@ -284,11 +320,13 @@ import { useCartStore } from "src/store/cardStore";
 import type { GenericCartItem } from "src/store/cardStore";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useQuasar } from "quasar";
+import { Notify, useQuasar } from "quasar";
 import WarenkorbItemBearbeiten from "./Dialog/WarenkorbItemBearbeiten.vue";
 import type { BestellMail, BestellMailResponse } from "./types/BestellMailType";
 import type { Fahrkosten } from "./types/FahrkostenType";
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
+import type { Allergene } from "./types/AllergeneType";
+import type { Zusatzstoffe } from "./types/ZusatzstoffeType";
 
 const router = useRouter();
 const $q = useQuasar();
@@ -296,6 +334,8 @@ const cartStore = useCartStore();
 const bestellMail = ref<BestellMail[]>([]);
 const genericCartItems = computed(() => cartStore.genericCartItems);
 const fahrkosten = ref<Fahrkosten[]>([]);
+const allergene = ref<Allergene[]>([]);
+const zusatzstoffe = ref<Zusatzstoffe[]>([]);
 
 const liefern = computed(() => cartStore.liefernAbholen.liefern);
 const abholen = computed(() => cartStore.liefernAbholen.abholen);
@@ -309,6 +349,24 @@ const itemPreis = computed(() => {
       return item.price + totalBeilagenPreis;
     }
     return item?.price || 0;
+  };
+});
+
+const filteredAllergene = computed(() => {
+  return (item: GenericCartItem) => {
+    if (!item?.allergeneIds) return [];
+    return allergene.value.filter((allergen) =>
+      item.allergeneIds!.includes(allergen.id)
+    );
+  };
+});
+
+const filteredZusatzstoffe = computed(() => {
+  return (item: GenericCartItem) => {
+    if (!item?.zusatzstoffeIds) return [];
+    return zusatzstoffe.value.filter((zusatzstoff) =>
+      item.zusatzstoffeIds!.includes(zusatzstoff.id)
+    );
   };
 });
 
@@ -352,13 +410,18 @@ const bestellen = () => {
   }
 };
 
-const BASE_URL = "http://localhost:5008/";
 const getFullImageUrl = (imgUrl: string): string => {
-  if (!imgUrl) return "";
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
     return imgUrl;
   }
-  return BASE_URL + imgUrl;
+
+  const apiBaseURL = getBaseURL();
+  const normalizedBaseURL = apiBaseURL.endsWith("/")
+    ? apiBaseURL
+    : apiBaseURL + "/";
+  const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
+
+  return normalizedBaseURL + cleanedImgUrl;
 };
 
 const isOpen = ref(false);
@@ -420,9 +483,28 @@ async function loadFahrkosten() {
   }
 }
 
+async function getAllergeneZusatzstoffe() {
+  try {
+    const responeAllergene = await api.get("/api/allergene");
+    const responseZusatzstoffe = await api.get("/api/zusatzstoffe");
+
+    allergene.value = responeAllergene.data;
+    zusatzstoffe.value = responseZusatzstoffe.data;
+  } catch (error) {
+    console.log("Fehler bem Laden der Allergene und Zusatzstoffe", error);
+    Notify.create({
+      type: "negative",
+      position: "top",
+      icon: "clear",
+      message: "Fehler beim Laden der Allergene & Zusatzstoffe",
+    });
+  }
+}
+
 onMounted(async () => {
   await loadBestellMail();
   await loadFahrkosten();
+  await getAllergeneZusatzstoffe();
 });
 </script>
 

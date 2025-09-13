@@ -150,7 +150,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import type { ComponentPublicInstance } from "vue";
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
 import { useQuasar } from "quasar";
 import ZumWarenkorbHinzufügenDialog from "./Dialog/ZumWarenkorbHinzufügenDialog.vue";
 import type { Category } from "./types/Category";
@@ -161,16 +161,10 @@ const getFullImageUrl = (imgUrl: string): string => {
     return imgUrl;
   }
 
-  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
-  const isLocalDevelopment = apiBaseURL.includes("localhost");
-
-  const imageBaseURL = isLocalDevelopment
-    ? "http://localhost:5008/"
-    : apiBaseURL;
-
-  const normalizedBaseURL = imageBaseURL.endsWith("/")
-    ? imageBaseURL
-    : imageBaseURL + "/";
+  const apiBaseURL = getBaseURL();
+  const normalizedBaseURL = apiBaseURL.endsWith("/")
+    ? apiBaseURL
+    : apiBaseURL + "/";
   const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
 
   return normalizedBaseURL + cleanedImgUrl;

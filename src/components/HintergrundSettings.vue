@@ -9,7 +9,7 @@
       >
       <q-item-section class="relative flex">
         <iframe
-          :src="baseUrlCss + hintergrunde.vorschau"
+          :src="fullUrl + hintergrunde.vorschau"
           frameborder="0"
           @load="onIframeLoad(hintergrunde.id)"
           style="opacity: 0; transition: opacity 0.3s; border-radius: 4px"
@@ -42,15 +42,15 @@
 </template>
 
 <script setup lang="ts">
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
 import type { Hintergrund } from "src/pages/types/HintergrundType";
-import { onMounted, ref, reactive } from "vue";
+import { onMounted, ref, reactive, computed } from "vue";
 
-const currentDomain = window.location.hostname;
-const baseUrlCss = `http://${currentDomain}:9000/#/`;
 const hintergrund = ref<Hintergrund[]>([]);
 const apiLoading = ref(false);
 const loadingStates = reactive<Record<number, boolean>>({});
+
+const fullUrl = computed(() => `${getBaseURL()}/#/`);
 
 const loadHintergrund = async () => {
   apiLoading.value = true;

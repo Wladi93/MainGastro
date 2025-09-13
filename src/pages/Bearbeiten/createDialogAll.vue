@@ -237,6 +237,44 @@
             @focus="handleSinglePriceFocus"
             @blur="handleSinglePriceBlur"
           />
+
+          <q-expansion-item
+            expand-separator
+            label="Allergene"
+            header-class="bg-grey-3"
+            icon="list"
+          >
+            <q-list>
+              <div v-for="allergen in allergene" :key="allergen.id">
+                <q-checkbox
+                  v-model="selectedAllergene"
+                  :val="allergen.id"
+                  :label="allergen.name"
+                  class="text-caption"
+                />
+                <q-separator inset />
+              </div>
+            </q-list>
+          </q-expansion-item>
+
+          <q-expansion-item
+            expand-separator
+            label="Zusatzstoffe"
+            header-class="bg-grey-3"
+            icon="list"
+          >
+            <q-list>
+              <div v-for="zusatzstoff in zusatzstoffe" :key="zusatzstoff.id">
+                <q-checkbox
+                  v-model="selectedZusatzstoffe"
+                  :val="zusatzstoff.id"
+                  :label="zusatzstoff.name"
+                  class="text-caption"
+                />
+                <q-separator inset />
+              </div>
+            </q-list>
+          </q-expansion-item>
         </q-form>
       </q-card-section>
 
@@ -265,12 +303,18 @@
 </template>
 
 <script setup lang="ts">
-import { useQuasar } from "quasar";
-import { reactive, ref, computed, watch } from "vue";
+import { Notify, useQuasar } from "quasar";
+import { reactive, ref, computed, watch, onMounted } from "vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
 import type { ItemSizes } from "../types/CategoryItemsSizes";
 import api from "src/boot/axios";
+import type { Allergene } from "../types/AllergeneType";
+import type { Zusatzstoffe } from "../types/ZusatzstoffeType";
 
+const allergene = ref<Allergene[]>([]);
+const selectedAllergene = ref<number[]>([]);
+const selectedZusatzstoffe = ref<number[]>([]);
+const zusatzstoffe = ref<Zusatzstoffe[]>([]);
 const { logAudit, getCurrentUsername } = useAuditLogger();
 const uploadProgress = ref(0);
 const isUploading = ref(false);
@@ -535,6 +579,9 @@ const closeCreateDialog = () => {
   imagePreview.value = "";
   uploadStatus.value = "idle";
 
+  selectedAllergene.value = [];
+  selectedZusatzstoffe.value = [];
+
   emit("update:modelValue", false);
 };
 
@@ -653,6 +700,8 @@ const createItem = async () => {
       sortOrder: itemData.sortOrder,
       neu: itemData.neu,
       hasBeilagen: itemData.hasBeilagen,
+      allergeneIds: selectedAllergene.value,
+      zusatzstoffeIds: selectedZusatzstoffe.value,
     });
 
     const categoryName = await getCategoryNameById(props.categoryId);
@@ -706,6 +755,28 @@ const getCategoryNameById = async (categoryId: number): Promise<string> => {
     return "Unbekannte Kategorie";
   }
 };
+
+async function getAllergeneZusatzstoffe() {
+  try {
+    const responeAllergene = await api.get("/api/allergene");
+    const responseZusatzstoffe = await api.get("/api/zusatzstoffe");
+
+    allergene.value = responeAllergene.data;
+    zusatzstoffe.value = responseZusatzstoffe.data;
+  } catch (error) {
+    console.log("Fehler bem Laden der Allergene und Zusatzstoffe", error);
+    Notify.create({
+      type: "negative",
+      position: "top",
+      icon: "clear",
+      message: "Fehler beim Laden der Allergene & Zusatzstoffe",
+    });
+  }
+}
+
+onMounted(async () => {
+  await getAllergeneZusatzstoffe();
+});
 
 watch(
   () => props.categoryId,

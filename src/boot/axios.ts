@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const getBaseURL = () => {
+export const getBaseURL = () => {
   if (import.meta.env.VITE_API_BASE_URL) {
     console.log(
       "Verwende Umgebungsvariable VITE_API_BASE_URL:",
@@ -10,7 +10,6 @@ const getBaseURL = () => {
   }
 
   const currentDomain = window.location.hostname;
-  console.log("Aktuelle Domain:", currentDomain);
 
   const isLocal =
     currentDomain === "localhost" || currentDomain === "127.0.0.1";
@@ -19,7 +18,6 @@ const getBaseURL = () => {
     ? `http://localhost:5008/`
     : `https://${currentDomain}/`;
 
-  console.log("Basis-URL:", baseURL);
   return baseURL;
 };
 

@@ -1,5 +1,5 @@
 import { ref, type Ref } from "vue";
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
 import type { Logos } from "../pages/types/LogosType";
 import { Notify } from "quasar";
 
@@ -11,16 +11,10 @@ export function useLogo() {
       return imgUrl;
     }
 
-    const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
-    const isLocalDevelopment = apiBaseURL.includes("localhost");
-
-    const imageBaseURL = isLocalDevelopment
-      ? "http://localhost:5008/"
-      : apiBaseURL;
-
-    const normalizedBaseURL = imageBaseURL.endsWith("/")
-      ? imageBaseURL
-      : imageBaseURL + "/";
+    const apiBaseURL = getBaseURL();
+    const normalizedBaseURL = apiBaseURL.endsWith("/")
+      ? apiBaseURL
+      : apiBaseURL + "/";
     const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
 
     return normalizedBaseURL + cleanedImgUrl;
@@ -66,14 +60,11 @@ export function useLogo() {
     return uploadStates.value[logoId];
   };
 
-  const uploadImage = async (
-    file: File,
-    customUploadPath?: string
-  ): Promise<string> => {
+  const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append("image", file, file.name);
 
-    const uploadPath = customUploadPath || "api/uploads/images";
+    const uploadPath = "api/uploads/images";
 
     try {
       let response;

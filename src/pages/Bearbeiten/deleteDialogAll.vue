@@ -109,7 +109,7 @@
 import { useQuasar } from "quasar";
 import { computed, ref, watch } from "vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
 import type { CategoryItem } from "../types/CategoryItem";
 const { logAudit, getCurrentUsername } = useAuditLogger();
 
@@ -140,16 +140,10 @@ const getFullImageUrl = (imgUrl: string): string => {
     return imgUrl;
   }
 
-  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
-  const isLocalDevelopment = apiBaseURL.includes("localhost");
-
-  const imageBaseURL = isLocalDevelopment
-    ? "http://localhost:5008/"
-    : apiBaseURL;
-
-  const normalizedBaseURL = imageBaseURL.endsWith("/")
-    ? imageBaseURL
-    : imageBaseURL + "/";
+  const apiBaseURL = getBaseURL();
+  const normalizedBaseURL = apiBaseURL.endsWith("/")
+    ? apiBaseURL
+    : apiBaseURL + "/";
   const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
 
   return normalizedBaseURL + cleanedImgUrl;

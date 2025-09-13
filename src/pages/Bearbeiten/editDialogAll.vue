@@ -247,6 +247,44 @@
             @focus="handleSinglePriceFocus"
             @blur="handleSinglePriceBlur"
           />
+
+          <q-expansion-item
+            expand-separator
+            label="Allergene"
+            header-class="bg-grey-3"
+            icon="list"
+          >
+            <q-list>
+              <div v-for="allergen in allergene" :key="allergen.id">
+                <q-checkbox
+                  v-model="editItem.allergeneIds"
+                  :val="allergen.id"
+                  :label="allergen.name"
+                  class="text-caption"
+                />
+                <q-separator inset />
+              </div>
+            </q-list>
+          </q-expansion-item>
+
+          <q-expansion-item
+            expand-separator
+            label="Zusatzstoffe"
+            header-class="bg-grey-3"
+            icon="list"
+          >
+            <q-list>
+              <div v-for="zusatzstoff in zusatzstoffe" :key="zusatzstoff.id">
+                <q-checkbox
+                  v-model="editItem.zusatzstoffeIds"
+                  :val="zusatzstoff.id"
+                  :label="zusatzstoff.name"
+                  class="text-caption"
+                />
+                <q-separator inset />
+              </div>
+            </q-list>
+          </q-expansion-item>
         </q-form>
       </q-card-section>
 
@@ -270,10 +308,12 @@
 </template>
 
 <script setup lang="ts">
-import { useQuasar } from "quasar";
-import { computed, reactive, ref, watch } from "vue";
+import { Notify, useQuasar } from "quasar";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
+import type { Allergene } from "../types/AllergeneType";
+import type { Zusatzstoffe } from "../types/ZusatzstoffeType";
 const { logAudit, getCurrentUsername } = useAuditLogger();
 
 const $q = useQuasar();
@@ -283,6 +323,8 @@ const isUpdating = ref(false);
 const uploadStatus = ref<"idle" | "uploading" | "success" | "error">("idle");
 const originalImageUrl = ref("");
 const newUploadedImageUrl = ref("");
+const allergene = ref<Allergene[]>([]);
+const zusatzstoffe = ref<Zusatzstoffe[]>([]);
 
 const kleinPrice = ref("");
 const mittelPrice = ref("");
@@ -310,20 +352,15 @@ const getFullImageUrl = (imgUrl: string): string => {
     return imgUrl;
   }
 
-  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
-  const isLocalDevelopment = apiBaseURL.includes("localhost");
-
-  const imageBaseURL = isLocalDevelopment
-    ? "http://localhost:5008/"
-    : apiBaseURL;
-
-  const normalizedBaseURL = imageBaseURL.endsWith("/")
-    ? imageBaseURL
-    : imageBaseURL + "/";
+  const apiBaseURL = getBaseURL();
+  const normalizedBaseURL = apiBaseURL.endsWith("/")
+    ? apiBaseURL
+    : apiBaseURL + "/";
   const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
 
   return normalizedBaseURL + cleanedImgUrl;
 };
+
 interface ItemSizes {
   sizeName: string;
   price: number;
@@ -342,6 +379,8 @@ interface MenuItem {
   sortOrder: number;
   neu: boolean;
   hasBeilagen: boolean;
+  allergeneIds: number[];
+  zusatzstoffeIds: number[];
 }
 
 const props = defineProps<{
@@ -357,6 +396,8 @@ const props = defineProps<{
   sortOrder?: number | undefined;
   neu?: boolean | undefined;
   hasBeilagen?: boolean | undefined;
+  allergeneIds?: number[] | undefined;
+  zusatzstoffeIds?: number[] | undefined;
 }>();
 
 const activeSizesCount = computed(() => {
@@ -390,6 +431,8 @@ const editItem = reactive({
   neu: props.neu,
   hasSizes: props.hasSizes,
   hasBeilagen: props.hasBeilagen,
+  allergeneIds: props.allergeneIds,
+  zusatzstoffeIds: props.zusatzstoffeIds,
 });
 
 const sizeKleinOn = ref(true);
@@ -757,6 +800,8 @@ const updateItem = async () => {
       sortOrder: editItem.sortOrder,
       neu: editItem.neu,
       hasBeilagen: editItem.hasBeilagen,
+      allergeneIds: editItem.allergeneIds,
+      zusatzstoffeIds: editItem.zusatzstoffeIds,
     };
 
     const response = await api.put(
@@ -850,6 +895,8 @@ watch(
       editItem.neu = props.item.neu;
       editItem.hasSizes = props.item.hasSizes;
       editItem.hasBeilagen = props.item.hasBeilagen;
+      editItem.allergeneIds = props.item.allergeneIds;
+      editItem.zusatzstoffeIds = props.item.zusatzstoffeIds;
 
       if (props.hasSizes && props.sizes && props.sizes.length > 0) {
         editItem.sizes = [...props.sizes];
@@ -920,6 +967,28 @@ const getCategoryNameById = async (categoryId: number): Promise<string> => {
     return "Unbekannte Kategorie";
   }
 };
+
+async function getAllergeneZusatzstoffe() {
+  try {
+    const responeAllergene = await api.get("/api/allergene");
+    const responseZusatzstoffe = await api.get("/api/zusatzstoffe");
+
+    allergene.value = responeAllergene.data;
+    zusatzstoffe.value = responseZusatzstoffe.data;
+  } catch (error) {
+    console.log("Fehler bem Laden der Allergene und Zusatzstoffe", error);
+    Notify.create({
+      type: "negative",
+      position: "top",
+      icon: "clear",
+      message: "Fehler beim Laden der Allergene & Zusatzstoffe",
+    });
+  }
+}
+
+onMounted(async () => {
+  await getAllergeneZusatzstoffe();
+});
 </script>
 
 <style scoped>

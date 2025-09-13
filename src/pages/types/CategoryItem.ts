@@ -12,4 +12,6 @@ export type CategoryItem = {
   sortOrder: number;
   neu: boolean;
   hasBeilagen: boolean;
+  allergeneIds: number[];
+  zusatzstoffeIds: number[];
 };

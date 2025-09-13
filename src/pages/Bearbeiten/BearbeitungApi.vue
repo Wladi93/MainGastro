@@ -428,6 +428,8 @@
     :sort-Order="editDialog.item?.sortOrder"
     :neu="editDialog.item?.neu"
     :has-beilagen="editDialog.item?.hasBeilagen"
+    :allergene-ids="editDialog.item?.allergeneIds"
+    :zusatzstoffe-ids="editDialog.item?.zusatzstoffeIds"
     @item-edited="editDialog.onEdited"
   />
 
@@ -448,7 +450,7 @@ import createDialogAll from "./createDialogAll.vue";
 import editDialogAll from "./editDialogAll.vue";
 import deleteDialogAll from "./deleteDialogAll.vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
 import type { Category } from "../types/Category";
 import type { CategoryItem } from "../types/CategoryItem";
 import Sortable from "sortablejs";
@@ -891,16 +893,10 @@ const getFullImageUrl = (imgUrl: string): string => {
     return imgUrl;
   }
 
-  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
-  const isLocalDevelopment = apiBaseURL.includes("localhost");
-
-  const imageBaseURL = isLocalDevelopment
-    ? "http://localhost:5008/"
-    : apiBaseURL;
-
-  const normalizedBaseURL = imageBaseURL.endsWith("/")
-    ? imageBaseURL
-    : imageBaseURL + "/";
+  const apiBaseURL = getBaseURL();
+  const normalizedBaseURL = apiBaseURL.endsWith("/")
+    ? apiBaseURL
+    : apiBaseURL + "/";
   const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
 
   return normalizedBaseURL + cleanedImgUrl;

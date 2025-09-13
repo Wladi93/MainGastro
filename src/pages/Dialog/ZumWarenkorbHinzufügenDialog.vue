@@ -135,6 +135,42 @@
             />
           </q-item-section>
         </q-item>
+        <q-item class="full-width">
+          <q-expansion-item
+            class="full-width text-grey-8"
+            expand-separator
+            label="Allergene"
+            header-class="bg-grey-3"
+            icon="list"
+          >
+            <q-list
+              class="q-mt-xs"
+              v-for="allergen in filteredAllergene"
+              :key="allergen.id"
+            >
+              <q-item-label caption>{{ allergen.name }},</q-item-label>
+            </q-list>
+          </q-expansion-item>
+        </q-item>
+
+        <q-item>
+          <q-expansion-item
+            class="full-width text-grey-8"
+            expand-separator
+            label="Zusatzstoffe"
+            header-class="bg-grey-3"
+            icon="list"
+          >
+            <q-list
+              class="q-mt-xs"
+              v-for="zusatzstoff in filteredZusatzstoffe"
+              :key="zusatzstoff.id"
+            >
+              <q-item-label caption>{{ zusatzstoff.name }}</q-item-label>
+            </q-list>
+          </q-expansion-item>
+        </q-item>
+
         <q-item>
           <q-item-section>
             <q-btn
@@ -160,17 +196,36 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import type { CategoryItem } from "../types/CategoryItem";
-import { useQuasar } from "quasar";
+import { Notify, useQuasar } from "quasar";
 import { useCartStore } from "src/store/cardStore";
 import type { BeilagenName, BeilagenPreise } from "../types/BeilagenType";
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
+import type { Allergene } from "../types/AllergeneType";
+import type { Zusatzstoffe } from "../types/ZusatzstoffeType";
 
+const allergene = ref<Allergene[]>([]);
+const zusatzstoffe = ref<Zusatzstoffe[]>([]);
 const cartStore = useCartStore();
 const anzahl = ref(1);
 
 const $q = useQuasar();
 const beilageName = ref<BeilagenName[]>([]);
 const selectedBeilagen = ref<string[]>([]);
+
+const filteredAllergene = computed(() => {
+  if (!selectedItem.value?.allergeneIds) return [];
+  return allergene.value.filter((allergen) =>
+    selectedItem.value?.allergeneIds.includes(allergen.id)
+  );
+});
+
+const filteredZusatzstoffe = computed(() => {
+  if (!selectedItem.value?.zusatzstoffeIds) return [];
+  return zusatzstoffe.value.filter((zusatzstoff) =>
+    selectedItem.value?.zusatzstoffeIds.includes(zusatzstoff.id)
+  );
+});
+
 const beilagenOptions = computed(() => {
   return beilageName.value.map((beilage) => {
     const beilagenPreis =
@@ -276,16 +331,10 @@ const getFullImageUrl = (imgUrl: string): string => {
     return imgUrl;
   }
 
-  const apiBaseURL = process.env.VITE_API_BASE_URL || "http://localhost:5008";
-  const isLocalDevelopment = apiBaseURL.includes("localhost");
-
-  const imageBaseURL = isLocalDevelopment
-    ? "http://localhost:5008/"
-    : apiBaseURL;
-
-  const normalizedBaseURL = imageBaseURL.endsWith("/")
-    ? imageBaseURL
-    : imageBaseURL + "/";
+  const apiBaseURL = getBaseURL();
+  const normalizedBaseURL = apiBaseURL.endsWith("/")
+    ? apiBaseURL
+    : apiBaseURL + "/";
   const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
 
   return normalizedBaseURL + cleanedImgUrl;
@@ -357,6 +406,8 @@ const addToCart = () => {
         beilagenMitPreis: beilagenMitPreisen,
         beilagenPreis: beilagenEinzelpreis.value,
         hasBeilagen: selectedItem.value.hasBeilagen,
+        allergeneIds: selectedItem.value.allergeneIds,
+        zusatzstoffeIds: selectedItem.value.zusatzstoffeIds,
       };
 
       cartStore.addGenericToCart(cartItem);
@@ -406,6 +457,28 @@ watch(
   },
   { immediate: true }
 );
+
+async function getAllergeneZusatzstoffe() {
+  try {
+    const responeAllergene = await api.get("/api/allergene");
+    const responseZusatzstoffe = await api.get("/api/zusatzstoffe");
+
+    allergene.value = responeAllergene.data;
+    zusatzstoffe.value = responseZusatzstoffe.data;
+  } catch (error) {
+    console.log("Fehler bem Laden der Allergene und Zusatzstoffe", error);
+    Notify.create({
+      type: "negative",
+      position: "top",
+      icon: "clear",
+      message: "Fehler beim Laden der Allergene & Zusatzstoffe",
+    });
+  }
+}
+
+onMounted(async () => {
+  await getAllergeneZusatzstoffe();
+});
 </script>
 <style scoped>
 .quantity-controls {

@@ -212,7 +212,7 @@ import type { GenericCartItem } from "src/store/cardStore";
 import { useCartStore } from "src/store/cardStore";
 import { useQuasar } from "quasar";
 import type { ItemSizes } from "../types/CategoryItemsSizes";
-import api from "src/boot/axios";
+import api, { getBaseURL } from "src/boot/axios";
 import type { BeilagenName, BeilagenPreise } from "../types/BeilagenType";
 
 const isOpen = defineModel<boolean>("isOpen", { required: true });
@@ -248,18 +248,23 @@ const itemPreis = computed(() => {
 function closeDialog() {
   isOpen.value = false;
 }
-const BASE_URL = "http://localhost:5008/";
 
 const isValid = computed(() => {
   return newQuantity.value > 0 && newQuantity.value <= 99;
 });
 
 const getFullImageUrl = (imgUrl: string): string => {
-  if (!imgUrl) return "";
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
     return imgUrl;
   }
-  return BASE_URL + imgUrl;
+
+  const apiBaseURL = getBaseURL();
+  const normalizedBaseURL = apiBaseURL.endsWith("/")
+    ? apiBaseURL
+    : apiBaseURL + "/";
+  const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
+
+  return normalizedBaseURL + cleanedImgUrl;
 };
 
 const beilagenOptions = computed(() => {

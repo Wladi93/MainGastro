@@ -21,6 +21,8 @@ export interface GenericCartItem {
   hasBeilagen?: boolean;
   beilagen?: string[] | undefined;
   beilagenPreis?: number | undefined;
+  allergeneIds?: number[] | undefined;
+  zusatzstoffeIds?: number[] | undefined;
 }
 
 export interface LiefernAbholen {
@@ -65,7 +67,9 @@ export const useCartStore = defineStore("cart", {
           cartItem.selectedSize === item.selectedSize &&
           (cartItem.anmerkung || "") === (item.anmerkung || "") &&
           cartItem.beilagen === item.beilagen &&
-          cartItem.beilagenPreis === item.beilagenPreis
+          cartItem.beilagenPreis === item.beilagenPreis &&
+          cartItem.allergeneIds === item.allergeneIds &&
+          cartItem.zusatzstoffeIds === item.zusatzstoffeIds
       );
 
       if (existingItem) {
