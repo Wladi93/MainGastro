@@ -156,6 +156,7 @@ import ZumWarenkorbHinzufügenDialog from "./Dialog/ZumWarenkorbHinzufügenDialo
 import type { Category } from "./types/Category";
 import type { CategoryItem } from "./types/CategoryItem";
 
+const scrollTimeout = ref<NodeJS.Timeout | null>(null);
 const getFullImageUrl = (imgUrl: string): string => {
   if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
     return imgUrl;
@@ -271,7 +272,7 @@ const onTabChange = () => {
 
   setTimeout(() => {
     isUserScrolling.value = false;
-  }, 1000);
+  }, 1500);
 };
 
 let observer: IntersectionObserver | null = null;
@@ -279,16 +280,23 @@ let observer: IntersectionObserver | null = null;
 const handleIntersection = (entries: IntersectionObserverEntry[]) => {
   if (isUserScrolling.value) return;
 
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      const categoryName = Object.keys(sectionRefs.value).find(
-        (key) => sectionRefs.value[key] === entry.target
-      );
-      if (categoryName) {
-        tab.value = categoryName;
+  // Debounce die Intersection Observer Updates
+  if (scrollTimeout.value) {
+    clearTimeout(scrollTimeout.value);
+  }
+
+  scrollTimeout.value = setTimeout(() => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const categoryName = Object.keys(sectionRefs.value).find(
+          (key) => sectionRefs.value[key] === entry.target
+        );
+        if (categoryName) {
+          tab.value = categoryName;
+        }
       }
-    }
-  });
+    });
+  }, 100); // 100ms Debounce
 };
 
 // Warenkorb hinzufügen
@@ -312,8 +320,8 @@ onMounted(async () => {
 
   observer = new IntersectionObserver(handleIntersection, {
     root: null,
-    rootMargin: "0px",
-    threshold: 0.5,
+    rootMargin: "-20px 0px -20px 0px", // Kleinerer Bereich für bessere Performance
+    threshold: [0.3, 0.7], // Mehrere Threshold-Werte für stabilere Erkennung
   });
 
   Object.values(sectionRefs.value).forEach((section) => {
@@ -322,6 +330,10 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  if (scrollTimeout.value) {
+    clearTimeout(scrollTimeout.value);
+  }
+
   if (observer) {
     Object.values(sectionRefs.value).forEach((section) => {
       if (section) observer?.unobserve(section);
