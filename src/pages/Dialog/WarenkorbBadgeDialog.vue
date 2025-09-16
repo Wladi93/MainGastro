@@ -6,13 +6,7 @@
           class="text-caption flex q-mt-md text-accent"
           style="justify-content: center; font-size: 14px"
         >
-          Ihr Warenkorb
-          <q-icon
-            name="shopping_cart"
-            size="xs"
-            color="accent"
-            class="q-ml-sm"
-          />
+          Bestellübersicht
         </q-item-label>
         <q-separator class="q-mt-sm" inset />
 
@@ -88,9 +82,24 @@
             />
 
             <q-item-section class="q-mr-xl full-width">
-              <q-item-label>{{ item.name }} </q-item-label>
+              <q-item-label class="q-mb-xs">{{ item.name }} </q-item-label>
 
               <q-item-label
+                caption
+                style="margin-top: -3px"
+                v-if="item.saucenIds && item.saucenIds.length > 0"
+                >Sauce:
+                <q-chip
+                  dense
+                  size="sm"
+                  color="green-1"
+                  style="font-size: 12px; margin-left: -1px"
+                  >{{ getSauceNameForItem(item) }}</q-chip
+                ></q-item-label
+              >
+
+              <q-item-label
+                style="margin-top: -2px"
                 caption
                 v-if="item.beilagen!.length > 0"
                 class="flex column"
@@ -115,7 +124,7 @@
 
               <q-item-label
                 class="flex row"
-                style="align-items: center"
+                style="align-items: center; margin-top: -2px"
                 caption
                 v-if="item.hasSizes"
                 >Größe:
@@ -266,6 +275,7 @@ import api, { getBaseURL } from "src/boot/axios";
 import { EventBus } from "src/utils/eventBus";
 import type { Fahrkosten } from "../types/FahrkostenType";
 import { useQuasar } from "quasar";
+import type { SaucenType } from "../types/SaucenType";
 
 const $q = useQuasar();
 const router = useRouter();
@@ -278,6 +288,15 @@ const showMwSt = computed(() => {
   return bestellMail.value[0]!.mwStOn === true;
 });
 const fahrkosten = ref<Fahrkosten[]>([]);
+const sauce = ref<SaucenType[]>([]);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getSauceNameForItem = (item: any) => {
+  if (!item.saucenIds || item.saucenIds.length === 0) return "";
+  const sauceId = item.saucenIds[0];
+  const foundSauce = sauce.value.find((s) => s.id === sauceId);
+  return foundSauce?.name || "";
+};
 
 const itemPreis = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -386,6 +405,15 @@ async function loadFahrkosten() {
   }
 }
 
+async function loadSaucen() {
+  try {
+    const response = await api.get("/api/saucen");
+    sauce.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Saucen", error);
+  }
+}
+
 onMounted(() => {
   void (async () => {
     await loadBestellMail();
@@ -406,6 +434,7 @@ onUnmounted(() => {
 onMounted(async () => {
   await loadFahrkosten();
   await loadBestellMail();
+  await loadSaucen();
 });
 </script>
 <style></style>

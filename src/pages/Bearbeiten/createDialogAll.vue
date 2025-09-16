@@ -114,6 +114,30 @@
             type="textarea"
             :rules="[(val) => !!val || 'Beschreibung ist erforderlich']"
           />
+
+          <q-toggle
+            class="text-caption text-grey-8"
+            label="auswählen von Saucen"
+            left-label
+            color="positive"
+            v-model="itemData.hasSaucen"
+            style="margin-bottom: -18px"
+          />
+
+          <q-item v-if="itemData.hasSaucen">
+            <q-list class="full-width">
+              <div v-for="sauce in saucenName" :key="sauce.id">
+                <q-checkbox
+                  v-model="selectedSauce"
+                  :val="sauce.id"
+                  class="text-caption"
+                />
+                <q-chip color="info" dense>{{ sauce.name }}</q-chip>
+                <q-separator inset />
+              </div>
+            </q-list>
+          </q-item>
+
           <q-toggle
             class="text-caption text-grey-8"
             label="auswählen von Beilagen"
@@ -122,6 +146,7 @@
             v-model="itemData.hasBeilagen"
             style="margin-bottom: -18px"
           />
+
           <q-toggle
             class="text-caption text-grey-8"
             v-model="hasSizesLocal"
@@ -131,7 +156,9 @@
           />
 
           <!-- Preise für Items mit Größen (Pizza) -->
-          <div v-if="hasSizesLocal" class="text-subtitle2 q-mt-md">Preise:</div>
+          <div v-if="hasSizesLocal" class="text-caption q-mt-md text-grey-7">
+            Preise:
+          </div>
 
           <template v-if="hasSizesLocal">
             <q-input
@@ -310,7 +337,10 @@ import type { ItemSizes } from "../types/CategoryItemsSizes";
 import api from "src/boot/axios";
 import type { Allergene } from "../types/AllergeneType";
 import type { Zusatzstoffe } from "../types/ZusatzstoffeType";
+import type { SaucenType } from "../types/SaucenType";
 
+const saucenName = ref<SaucenType[]>([]);
+const selectedSauce = ref<number[]>([]);
 const allergene = ref<Allergene[]>([]);
 const selectedAllergene = ref<number[]>([]);
 const selectedZusatzstoffe = ref<number[]>([]);
@@ -329,6 +359,7 @@ interface ItemData {
   neu: boolean;
   sizes?: ItemSizes;
   hasBeilagen: boolean;
+  hasSaucen: boolean;
 }
 
 interface SizeData {
@@ -418,6 +449,7 @@ const defaultItemData: ItemData = {
   sortOrder: 0,
   neu: false,
   hasBeilagen: false,
+  hasSaucen: false,
 };
 
 const itemData = reactive<ItemData>({
@@ -581,6 +613,7 @@ const closeCreateDialog = () => {
 
   selectedAllergene.value = [];
   selectedZusatzstoffe.value = [];
+  selectedSauce.value = [];
 
   emit("update:modelValue", false);
 };
@@ -700,8 +733,10 @@ const createItem = async () => {
       sortOrder: itemData.sortOrder,
       neu: itemData.neu,
       hasBeilagen: itemData.hasBeilagen,
+      hasSaucen: itemData.hasSaucen,
       allergeneIds: selectedAllergene.value,
       zusatzstoffeIds: selectedZusatzstoffe.value,
+      saucenIds: selectedSauce.value,
     });
 
     const categoryName = await getCategoryNameById(props.categoryId);
@@ -714,6 +749,7 @@ const createItem = async () => {
       img: itemData.img,
       username: currentUser,
       hasBeilagen: itemData.hasBeilagen,
+      hasSaucen: itemData.hasSaucen,
       neu: itemData.neu,
       message: `Item "${itemData.name}" wurde in Kategorie "${categoryName}" erstellt${hasSizesLocal.value ? " (mit Größen)" : ""}`,
     });
@@ -746,6 +782,15 @@ const createItem = async () => {
   }
 };
 
+async function loadSaucen() {
+  try {
+    const response = await api.get("/api/saucen");
+    saucenName.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Saucen", error);
+  }
+}
+
 const getCategoryNameById = async (categoryId: number): Promise<string> => {
   try {
     const response = await api.get(`/api/category/${categoryId}`);
@@ -776,6 +821,7 @@ async function getAllergeneZusatzstoffe() {
 
 onMounted(async () => {
   await getAllergeneZusatzstoffe();
+  await loadSaucen();
 });
 
 watch(

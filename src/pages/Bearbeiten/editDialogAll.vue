@@ -128,7 +128,29 @@
           <q-toggle
             color="positive"
             left-label
-            label="Beilagen verfügbar"
+            label="auswählen von Saucen"
+            v-model="editItem.hasSaucen"
+            class="text-caption text-grey-8"
+            style="margin-bottom: -18px"
+          />
+
+          <q-item v-if="editItem.hasSaucen" class="flex column justify-center">
+            <div v-for="sauce in saucen" :key="sauce.id">
+              <q-checkbox
+                v-model="editItem.saucenIds"
+                :val="sauce.id"
+                class="text-caption"
+              />
+
+              <q-chip dense color="info">{{ sauce.name }}</q-chip>
+              <q-separator inset />
+            </div>
+          </q-item>
+
+          <q-toggle
+            color="positive"
+            left-label
+            label="auswählen von Beilagen"
             v-model="editItem.hasBeilagen"
             class="text-caption text-grey-8"
             style="margin-bottom: -18px"
@@ -314,6 +336,8 @@ import { useAuditLogger } from "src/composables/useAuditLogger";
 import api, { getBaseURL } from "src/boot/axios";
 import type { Allergene } from "../types/AllergeneType";
 import type { Zusatzstoffe } from "../types/ZusatzstoffeType";
+import type { SaucenType } from "../types/SaucenType";
+
 const { logAudit, getCurrentUsername } = useAuditLogger();
 
 const $q = useQuasar();
@@ -325,6 +349,7 @@ const originalImageUrl = ref("");
 const newUploadedImageUrl = ref("");
 const allergene = ref<Allergene[]>([]);
 const zusatzstoffe = ref<Zusatzstoffe[]>([]);
+const saucen = ref<SaucenType[]>([]);
 
 const kleinPrice = ref("");
 const mittelPrice = ref("");
@@ -381,6 +406,8 @@ interface MenuItem {
   hasBeilagen: boolean;
   allergeneIds: number[];
   zusatzstoffeIds: number[];
+  hasSaucen: boolean;
+  saucenIds: number[];
 }
 
 const props = defineProps<{
@@ -398,6 +425,8 @@ const props = defineProps<{
   hasBeilagen?: boolean | undefined;
   allergeneIds?: number[] | undefined;
   zusatzstoffeIds?: number[] | undefined;
+  hasSaucen?: boolean | undefined;
+  saucenIds?: number[] | undefined;
 }>();
 
 const activeSizesCount = computed(() => {
@@ -431,8 +460,10 @@ const editItem = reactive({
   neu: props.neu,
   hasSizes: props.hasSizes,
   hasBeilagen: props.hasBeilagen,
-  allergeneIds: props.allergeneIds,
-  zusatzstoffeIds: props.zusatzstoffeIds,
+  allergeneIds: props.allergeneIds || [],
+  zusatzstoffeIds: props.zusatzstoffeIds || [],
+  saucenIds: props.saucenIds || [],
+  hasSaucen: props.hasSaucen,
 });
 
 const sizeKleinOn = ref(true);
@@ -789,21 +820,22 @@ const updateItem = async () => {
   isUpdating.value = true;
   try {
     const requestBody = {
-      id: editItem.id,
-      name: editItem.name,
-      img: editItem.img,
-      description: editItem.description,
-      price: editItem.price,
-      categoryId: editItem.categoryId || props.categoryId,
-      hasSizes: editItem.hasSizes,
-      ...(editItem.hasSizes ? { sizes: editItem.sizes } : { sizes: [] }),
-      sortOrder: editItem.sortOrder,
-      neu: editItem.neu,
-      hasBeilagen: editItem.hasBeilagen,
-      allergeneIds: editItem.allergeneIds,
-      zusatzstoffeIds: editItem.zusatzstoffeIds,
+      Id: editItem.id,
+      Name: editItem.name,
+      Img: editItem.img,
+      Description: editItem.description,
+      Price: editItem.price,
+      CategoryId: editItem.categoryId || props.categoryId,
+      HasSizes: editItem.hasSizes,
+      ...(editItem.hasSizes ? { Sizes: editItem.sizes } : { Sizes: [] }),
+      SortOrder: editItem.sortOrder,
+      Neu: editItem.neu,
+      HasBeilagen: editItem.hasBeilagen,
+      AllergeneIds: editItem.allergeneIds || [],
+      ZusatzstoffeIds: editItem.zusatzstoffeIds || [],
+      HasSaucen: editItem.hasSaucen,
+      SaucenIds: Array.isArray(editItem.saucenIds) ? editItem.saucenIds : [],
     };
-
     const response = await api.put(
       `api/categoryitems/${editItem.id}`,
       requestBody
@@ -822,6 +854,7 @@ const updateItem = async () => {
         neu: oldItem.neu,
         hasSizes: oldItem.hasSizes,
         hasBeilagen: oldItem.hasBeilagen,
+        hasSaucen: oldItem.hasSaucen,
       },
       newValues: {
         name: editItem.name,
@@ -832,6 +865,7 @@ const updateItem = async () => {
         neu: editItem.neu,
         hasSizes: editItem.hasSizes,
         hasBeilagen: editItem.hasBeilagen,
+        hasSaucen: editItem.hasSaucen,
       },
       message: `Item "${oldItem.name}" wurde in der Kategorie "${categoryName}" aktualisiert`,
       username: currentUser,
@@ -897,6 +931,10 @@ watch(
       editItem.hasBeilagen = props.item.hasBeilagen;
       editItem.allergeneIds = props.item.allergeneIds;
       editItem.zusatzstoffeIds = props.item.zusatzstoffeIds;
+      editItem.hasSaucen = props.item.hasSaucen;
+      editItem.saucenIds = Array.isArray(props.item.saucenIds)
+        ? [...props.item.saucenIds]
+        : [];
 
       if (props.hasSizes && props.sizes && props.sizes.length > 0) {
         editItem.sizes = [...props.sizes];
@@ -986,8 +1024,18 @@ async function getAllergeneZusatzstoffe() {
   }
 }
 
+async function loadSaucen() {
+  try {
+    const response = await api.get("/api/saucen");
+    saucen.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Saucen", error);
+  }
+}
+
 onMounted(async () => {
   await getAllergeneZusatzstoffe();
+  await loadSaucen();
 });
 </script>
 

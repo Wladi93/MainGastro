@@ -88,11 +88,25 @@
           class="q-mr-md items-center"
         />
         <q-item-section>
-          <q-item-label>{{ item.name }} </q-item-label>
+          <q-item-label class="q-mb-xs">{{ item.name }} </q-item-label>
+          <q-item-label
+            v-if="item.saucenIds!.length > 0"
+            caption
+            style="margin-top: -2px"
+            >Sauce:
+            <q-chip
+              dense
+              size="sm"
+              color="green-1"
+              style="font-size: 12px; margin-left: 18px"
+              >{{ getSauceNameForItem(item) }}</q-chip
+            ></q-item-label
+          >
           <q-item-label
             caption
             v-if="item.beilagen!.length > 0"
             class="flex column"
+            style="margin-top: -2px"
           >
             <span
               class="flex row"
@@ -130,8 +144,8 @@
               color="green-1"
               style="font-size: 12px; margin-left: 14px"
             >
-              {{ item.quantity }}</q-chip
-            >
+              {{ item.quantity }}
+            </q-chip>
           </q-item-label>
           <div class="flex row items-center" style="margin-top: -2px">
             <q-item-label caption
@@ -146,58 +160,19 @@
               >
             </q-item-label>
           </div>
-          <q-item-section
-            v-if="item.anmerkung"
-            class="flex column text-grey-4 q-pa-xs"
-            style="border: solid 1px; border-radius: 2px"
-          >
+
+          <q-item-section v-if="item.anmerkung" class="flex column text-grey-4">
             <q-item-label v-if="item.anmerkung" caption
               >Anmerkung:</q-item-label
             >
             <q-item-label
               v-if="item.anmerkung"
-              class="text-black"
+              class="text-black q-mb-xs"
               style="font-size: 12px"
               caption
               >{{ item.anmerkung }}</q-item-label
             ></q-item-section
           >
-
-          <q-item-section class="full-width">
-            <q-expansion-item
-              class="text-caption text-grey-7 expansion-left"
-              expand-separator
-              label="Allergene"
-            >
-              <q-list
-                v-for="allergen in filteredAllergene(item)"
-                :key="allergen.id"
-              >
-                <q-item-label caption>
-                  {{ allergen.name }}
-                </q-item-label>
-                <q-separator class="q-mt-xs" />
-              </q-list>
-            </q-expansion-item>
-          </q-item-section>
-
-          <q-item-section class="full-width">
-            <q-expansion-item
-              class="text-caption text-grey-7"
-              expand-separator
-              label="Zusatzstoffe"
-            >
-              <q-list
-                v-for="zusatzstoff in filteredZusatzstoffe(item)"
-                :key="zusatzstoff.id"
-              >
-                <q-item-label caption>
-                  {{ zusatzstoff.name }}
-                </q-item-label>
-                <q-separator />
-              </q-list>
-            </q-expansion-item>
-          </q-item-section>
         </q-item-section>
         <q-separator vertical class="separatorH q-mr-sm q-ml-xs" />
         <q-item-section class="full-width" style="max-width: 80px">
@@ -320,13 +295,12 @@ import { useCartStore } from "src/store/cardStore";
 import type { GenericCartItem } from "src/store/cardStore";
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Notify, useQuasar } from "quasar";
 import WarenkorbItemBearbeiten from "./Dialog/WarenkorbItemBearbeiten.vue";
 import type { BestellMail, BestellMailResponse } from "./types/BestellMailType";
 import type { Fahrkosten } from "./types/FahrkostenType";
 import api, { getBaseURL } from "src/boot/axios";
-import type { Allergene } from "./types/AllergeneType";
-import type { Zusatzstoffe } from "./types/ZusatzstoffeType";
+import type { SaucenType } from "./types/SaucenType";
+import { useQuasar } from "quasar";
 
 const router = useRouter();
 const $q = useQuasar();
@@ -334,8 +308,15 @@ const cartStore = useCartStore();
 const bestellMail = ref<BestellMail[]>([]);
 const genericCartItems = computed(() => cartStore.genericCartItems);
 const fahrkosten = ref<Fahrkosten[]>([]);
-const allergene = ref<Allergene[]>([]);
-const zusatzstoffe = ref<Zusatzstoffe[]>([]);
+const sauce = ref<SaucenType[]>([]);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getSauceNameForItem = (item: any) => {
+  if (!item.saucenIds || item.saucenIds.length === 0) return "";
+  const sauceId = item.saucenIds[0];
+  const foundSauce = sauce.value.find((s) => s.id === sauceId);
+  return foundSauce?.name || "";
+};
 
 const liefern = computed(() => cartStore.liefernAbholen.liefern);
 const abholen = computed(() => cartStore.liefernAbholen.abholen);
@@ -349,24 +330,6 @@ const itemPreis = computed(() => {
       return item.price + totalBeilagenPreis;
     }
     return item?.price || 0;
-  };
-});
-
-const filteredAllergene = computed(() => {
-  return (item: GenericCartItem) => {
-    if (!item?.allergeneIds) return [];
-    return allergene.value.filter((allergen) =>
-      item.allergeneIds!.includes(allergen.id)
-    );
-  };
-});
-
-const filteredZusatzstoffe = computed(() => {
-  return (item: GenericCartItem) => {
-    if (!item?.zusatzstoffeIds) return [];
-    return zusatzstoffe.value.filter((zusatzstoff) =>
-      item.zusatzstoffeIds!.includes(zusatzstoff.id)
-    );
   };
 });
 
@@ -483,28 +446,19 @@ async function loadFahrkosten() {
   }
 }
 
-async function getAllergeneZusatzstoffe() {
+async function loadSaucen() {
   try {
-    const responeAllergene = await api.get("/api/allergene");
-    const responseZusatzstoffe = await api.get("/api/zusatzstoffe");
-
-    allergene.value = responeAllergene.data;
-    zusatzstoffe.value = responseZusatzstoffe.data;
+    const response = await api.get("/api/saucen");
+    sauce.value = response.data;
   } catch (error) {
-    console.log("Fehler bem Laden der Allergene und Zusatzstoffe", error);
-    Notify.create({
-      type: "negative",
-      position: "top",
-      icon: "clear",
-      message: "Fehler beim Laden der Allergene & Zusatzstoffe",
-    });
+    console.error("Fehler beim Laden der Saucen", error);
   }
 }
 
 onMounted(async () => {
   await loadBestellMail();
   await loadFahrkosten();
-  await getAllergeneZusatzstoffe();
+  await loadSaucen();
 });
 </script>
 

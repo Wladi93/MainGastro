@@ -14,4 +14,6 @@ export type CategoryItem = {
   hasBeilagen: boolean;
   allergeneIds: number[];
   zusatzstoffeIds: number[];
+  saucenIds: number[];
+  hasSaucen: boolean;
 };

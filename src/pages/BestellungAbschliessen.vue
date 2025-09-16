@@ -243,7 +243,7 @@
                 push
                 label="Bestellung absenden"
                 @click="sendOrderToAPI"
-                :disable="!val"
+                :disable="!isFormValid"
               >
                 <q-icon name="send" class="icn" />
               </q-btn>
@@ -268,6 +268,7 @@ import { useRouter } from "vue-router";
 import { useCartStore } from "src/store/cardStore";
 import api from "src/boot/axios";
 import type { BestellMail, BestellMailResponse } from "./types/BestellMailType";
+import type { SaucenType } from "./types/SaucenType";
 
 const val = ref(false);
 const router = useRouter();
@@ -283,6 +284,29 @@ const email = ref("");
 const telefon = ref("");
 const anliegen = ref("");
 const dense = ref(false);
+const sauce = ref<SaucenType[]>([]);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const getSauceNameForItem = (item: any) => {
+  if (!item.saucenIds || item.saucenIds.length === 0) return "";
+  const sauceId = item.saucenIds[0];
+  const foundSauce = sauce.value.find((s) => s.id === sauceId);
+  return foundSauce?.name || "";
+};
+
+const isFormValid = computed(() => {
+  return (
+    val.value &&
+    vorname.value.trim() !== "" &&
+    nachname.value.trim() !== "" &&
+    email.value.trim() !== "" &&
+    telefon.value.trim() !== "" &&
+    strasse.value.trim() !== "" &&
+    hausnr.value.trim() !== "" &&
+    stadt.value.trim() !== "" &&
+    plz.value.trim() !== ""
+  );
+});
 
 const auswahl = computed(() => {
   if (cartStore.liefernAbholen.liefern) {
@@ -307,7 +331,100 @@ const loadBestellMail = async () => {
   }
 };
 
+const validateForm = () => {
+  if (!val.value) {
+    $q.notify({
+      message: "Bitte akzeptieren Sie die AGB's und Widerrufsbelehrung.",
+      icon: "warning",
+      color: "orange",
+      position: "top",
+      timeout: 3000,
+    });
+    return false;
+  }
+
+  const requiredFields = [
+    { value: vorname.value, name: "Vorname" },
+    { value: nachname.value, name: "Nachname" },
+    { value: email.value, name: "E-Mail" },
+    { value: telefon.value, name: "Telefon" },
+    { value: strasse.value, name: "Straße" },
+    { value: hausnr.value, name: "Hausnummer" },
+    { value: stadt.value, name: "Stadt" },
+    { value: plz.value, name: "PLZ" },
+  ];
+
+  const emptyFields = requiredFields.filter(
+    (field) => !field.value || field.value.trim() === ""
+  );
+
+  if (emptyFields.length > 0) {
+    $q.notify({
+      message: `Bitte füllen Sie folgende Felder aus: ${emptyFields.map((f) => f.name).join(", ")}`,
+      icon: "warning",
+      color: "orange",
+      position: "top",
+      timeout: 3000,
+    });
+    return false;
+  }
+
+  // E-Mail Validierung
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    $q.notify({
+      message: "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+      icon: "warning",
+      color: "orange",
+      position: "top",
+      timeout: 3000,
+    });
+    return false;
+  }
+
+  // Telefon Validierung
+  if (!/^(\+?\d+)*$/.test(telefon.value)) {
+    $q.notify({
+      message: "Bitte geben Sie eine gültige Telefonnummer ein.",
+      icon: "warning",
+      color: "orange",
+      position: "top",
+      timeout: 3000,
+    });
+    return false;
+  }
+
+  // Hausnummer Validierung
+  if (!/^\d+[a-zA-Z]*$/.test(hausnr.value)) {
+    $q.notify({
+      message: "Bitte geben Sie eine gültige Hausnummer ein.",
+      icon: "warning",
+      color: "orange",
+      position: "top",
+      timeout: 3000,
+    });
+    return false;
+  }
+
+  // PLZ Validierung
+  if (!/^\d{5}$/.test(plz.value)) {
+    $q.notify({
+      message: "Bitte geben Sie eine gültige 5-stellige PLZ ein.",
+      icon: "warning",
+      color: "orange",
+      position: "top",
+      timeout: 3000,
+    });
+    return false;
+  }
+
+  return true;
+};
+
 const sendOrderToAPI = async () => {
+  if (!validateForm()) {
+    return;
+  }
   try {
     const orderData = {
       vorname: vorname.value,
@@ -332,6 +449,7 @@ const sendOrderToAPI = async () => {
         return {
           id: item.id,
           name: item.name,
+          saucenIds: getSauceNameForItem(item),
           size: item.selectedSize,
           quantity: item.quantity,
           price: totalPrice,
@@ -376,8 +494,18 @@ const sendOrderToAPI = async () => {
   }
 };
 
+async function loadSaucen() {
+  try {
+    const response = await api.get("/api/saucen");
+    sauce.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Saucen", error);
+  }
+}
+
 onMounted(async () => {
   await loadBestellMail();
+  await loadSaucen();
 });
 </script>
 

@@ -431,6 +431,8 @@
     :allergene-ids="editDialog.item?.allergeneIds"
     :zusatzstoffe-ids="editDialog.item?.zusatzstoffeIds"
     @item-edited="editDialog.onEdited"
+    :has-saucen="editDialog.item?.hasSaucen"
+    :saucen-ids="editDialog.item?.saucenIds"
   />
 
   <deleteDialogAll

@@ -51,7 +51,17 @@
             </q-item-section>
           </q-card>
         </q-item>
-
+        <q-item class="flex column">
+          <q-item-section
+            style="border: 1px solid; border-radius: 4px"
+            class="q-pa-sm text-grey-4"
+          >
+            <q-item-label caption>Beschreibung:</q-item-label>
+            <q-item-label class="text-grey-8" style="font-size: 12px">{{
+              selectedItem.description
+            }}</q-item-label></q-item-section
+          >
+        </q-item>
         <q-item>
           <q-item-section>
             <q-input
@@ -104,6 +114,20 @@
           </q-item-section>
         </q-item>
 
+        <q-item class="flex column" v-if="selectedItem.hasSaucen">
+          <q-select
+            filled
+            v-model="selectedSauce"
+            :options="filteredSaucen"
+            label="Sauce auswählen"
+            color="accent"
+            option-label="name"
+            option-value="name"
+            emit-value
+            map-options
+          />
+        </q-item>
+
         <q-item class="flex column" v-if="selectedItem.hasBeilagen">
           <q-select
             filled
@@ -120,6 +144,7 @@
             :key="selectedSize"
           />
         </q-item>
+
         <q-item>
           <q-item-section>
             <q-input
@@ -142,6 +167,7 @@
             label="Allergene"
             header-class="bg-grey-3"
             icon="list"
+            dense
           >
             <q-list
               class="q-mt-xs"
@@ -160,6 +186,8 @@
             label="Zusatzstoffe"
             header-class="bg-grey-3"
             icon="list"
+            dense
+            style="margin-top: -10px"
           >
             <q-list
               class="q-mt-xs"
@@ -202,7 +230,10 @@ import type { BeilagenName, BeilagenPreise } from "../types/BeilagenType";
 import api, { getBaseURL } from "src/boot/axios";
 import type { Allergene } from "../types/AllergeneType";
 import type { Zusatzstoffe } from "../types/ZusatzstoffeType";
+import type { SaucenType } from "../types/SaucenType";
 
+const saucen = ref<SaucenType[]>([]);
+const selectedSauce = ref<string>("");
 const allergene = ref<Allergene[]>([]);
 const zusatzstoffe = ref<Zusatzstoffe[]>([]);
 const cartStore = useCartStore();
@@ -211,6 +242,13 @@ const anzahl = ref(1);
 const $q = useQuasar();
 const beilageName = ref<BeilagenName[]>([]);
 const selectedBeilagen = ref<string[]>([]);
+
+const filteredSaucen = computed(() => {
+  if (!selectedItem.value?.saucenIds) return [];
+  return saucen.value.filter((sauce) =>
+    selectedItem.value?.saucenIds.includes(sauce.id)
+  );
+});
 
 const filteredAllergene = computed(() => {
   if (!selectedItem.value?.allergeneIds) return [];
@@ -408,6 +446,8 @@ const addToCart = () => {
         hasBeilagen: selectedItem.value.hasBeilagen,
         allergeneIds: selectedItem.value.allergeneIds,
         zusatzstoffeIds: selectedItem.value.zusatzstoffeIds,
+        saucenIds: selectedItem.value.saucenIds,
+        hasSausen: selectedItem.value.saucenIds,
       };
 
       cartStore.addGenericToCart(cartItem);
@@ -476,8 +516,18 @@ async function getAllergeneZusatzstoffe() {
   }
 }
 
+async function loadSaucen() {
+  try {
+    const response = await api.get("/api/saucen");
+    saucen.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Saucen", error);
+  }
+}
+
 onMounted(async () => {
   await getAllergeneZusatzstoffe();
+  await loadSaucen();
 });
 </script>
 <style scoped>

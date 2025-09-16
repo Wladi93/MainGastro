@@ -42,7 +42,7 @@
 
     <q-separator class="q-my-md" />
 
-    <q-item-label class="q-mb-sm" caption>Preise:</q-item-label>
+    <q-item-label class="q-mb-sm" caption>Preise Beilagen:</q-item-label>
 
     <q-input prefix="€" filled label="Preis für Klein:" v-model="preisKlein" />
 
@@ -70,6 +70,49 @@
       v-model="preisFamilie"
     />
 
+    <q-separator inset class="q-my-md" />
+
+    <q-item-label class="q-mb-sm" caption>Saucen hinzufügen:</q-item-label>
+
+    <q-input
+      label="bitte Name eingeben"
+      filled
+      v-model="sauce"
+      @keyup.enter="postSauce()"
+    />
+    <q-btn
+      :disable="sauce.length == 0"
+      label="speichern"
+      icon="save"
+      color="secondary"
+      class="full-width q-mt-sm"
+      @click="postSauce()"
+    />
+
+    <q-expansion-item
+      class="q-mt-sm text-grey"
+      icon="list"
+      label="angelegte Saucen"
+      header-class="bg-grey-3"
+    >
+      <div class="q-mt-md">
+        <q-list v-for="sauce in saucenName" :key="sauce.id">
+          <q-chip class="q-ml-md" dense color="info">
+            {{ sauce.name }}
+            <q-btn
+              dense
+              round
+              flat
+              size="xs"
+              icon="close"
+              color="grey"
+              @click.stop="deleteSauce(sauce.id)"
+            />
+          </q-chip>
+        </q-list>
+      </div>
+    </q-expansion-item>
+
     <q-btn
       @click="updateBeilagenPreise()"
       color="secondary"
@@ -88,10 +131,13 @@ import type {
   BeilagenPreise,
 } from "src/pages/types/BeilagenType";
 import { Notify } from "quasar";
+import type { SaucenType } from "src/pages/types/SaucenType";
 
 const beilage = ref("");
 const beilageName = ref<BeilagenName[]>([]);
 const beilagenPreise = ref<BeilagenPreise[]>([]);
+const sauce = ref("");
+const saucenName = ref<SaucenType[]>([]);
 
 const preisKlein = computed({
   get() {
@@ -161,6 +207,15 @@ async function loadBeilagen() {
   }
 }
 
+async function loadSaucen() {
+  try {
+    const response = await api.get("/api/saucen");
+    saucenName.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Saucen", error);
+  }
+}
+
 const postBeilage = async () => {
   try {
     const newBeilage = { beilageName: beilage.value };
@@ -169,6 +224,7 @@ const postBeilage = async () => {
       return;
     }
     await api.post(`/api/beilagen/beilagenname`, newBeilage);
+    beilage.value = "";
     await loadBeilagen();
 
     Notify.create({
@@ -181,6 +237,27 @@ const postBeilage = async () => {
     beilage.value = "";
   } catch (error) {
     console.error("Fehler beim Aktualisieren der Kontakt-Daten", error);
+    Notify.create({
+      message: "Fehler beim Speichern der Daten!",
+      position: "top",
+      color: "negative",
+      icon: "clear",
+    });
+  }
+};
+
+const postSauce = async () => {
+  try {
+    const newSauce = { name: sauce.value };
+
+    if (sauce.value.length == 0) {
+      return;
+    }
+    await api.post("/api/saucen", newSauce);
+    sauce.value = "";
+    await loadSaucen();
+  } catch (error) {
+    console.error("Fehler beim speichern der Sauce", error);
     Notify.create({
       message: "Fehler beim Speichern der Daten!",
       position: "top",
@@ -237,7 +314,30 @@ const deleteBeilage = async (id: number) => {
   }
 };
 
+const deleteSauce = async (id: number) => {
+  try {
+    await api.delete(`/api/saucen/${id}`);
+    await loadSaucen();
+
+    Notify.create({
+      message: "Sauce erfolgreich gelöscht",
+      position: "top",
+      color: "positive",
+      icon: "check",
+    });
+  } catch (error) {
+    console.error("Fehler beim löschen der Sauce", error);
+    Notify.create({
+      message: "Fehler beim löschen der Sauce",
+      position: "top",
+      color: "negative",
+      icon: "clear",
+    });
+  }
+};
+
 onMounted(async () => {
   await loadBeilagen();
+  await loadSaucen();
 });
 </script>
