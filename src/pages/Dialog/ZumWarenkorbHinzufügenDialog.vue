@@ -334,6 +334,7 @@ const categoryName = defineModel<string>("categoryName", {
 function closeDialog() {
   isOpen.value = false;
   selectedBeilagen.value = [];
+  selectedSauce.value = "";
 }
 
 const increaseQuantity = () => {

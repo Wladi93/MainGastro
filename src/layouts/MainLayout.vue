@@ -1,6 +1,6 @@
 <template>
   <q-layout view="hHh lpr fff" v-for="firma in firmenName" :key="firma.id">
-    <q-header class="bg-primary text-white header">
+    <q-header class="text-white header gradient-header">
       <q-toolbar>
         <q-btn dense flat round icon="menu" @click="drawerLeft = !drawerLeft" />
         <q-toolbar-title
@@ -37,7 +37,7 @@
       :breakpoint="500"
       overlay
       behavior="mobile"
-      ><q-header class="bg-primary text-white">
+      ><q-header class="text-white gradient-header">
         <q-toolbar>
           <q-btn
             dense
@@ -56,7 +56,7 @@
             </q-avatar>
           </q-toolbar-title>
         </q-toolbar>
-        <q-footer reveal class="bg-primary text-white">
+        <q-footer reveal class="text-white gradient-footer">
           <q-toolbar>
             <q-toolbar-title class="absolute-center">
               <h5
@@ -286,7 +286,7 @@
       <router-view />
     </q-page-container>
 
-    <q-footer reveal class="footer bg-primary text-white">
+    <q-footer reveal class="footer text-white gradient-footer">
       <q-toolbar>
         <q-toolbar-title
           class="absolute-center column"
@@ -369,17 +369,17 @@ onMounted(async () => {
 .gradient-header {
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--q-primary) 70%, black 30%) 0%,
-    color-mix(in srgb, var(--q-primary) 85%, black 15%) 25%,
-    color-mix(in srgb, var(--q-primary) 75%, black 25%) 75%,
-    color-mix(in srgb, var(--q-primary) 60%, black 40%) 100%
+    color-mix(in srgb, var(--q-primary) 95%, white 10%) 0%,
+    color-mix(in srgb, var(--q-primary) 100%, white 10%) 25%,
+    var(--q-primary) 70%,
+
+    color-mix(in srgb, var(--q-primary) 100%, white 10%) 100%
   );
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.15),
+    0 4px 15px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
 }
 
 .gradient-header::before {
@@ -400,18 +400,18 @@ onMounted(async () => {
 
 .gradient-footer {
   background: linear-gradient(
-    45deg,
-    color-mix(in srgb, var(--q-primary) 60%, black 40%) 0%,
-    color-mix(in srgb, var(--q-primary) 80%, black 20%) 25%,
-    var(--q-primary) 50%,
-    color-mix(in srgb, var(--q-primary) 70%, white 10%) 100%
+    35deg,
+    color-mix(in srgb, var(--q-primary) 100%, white 0%) 0%,
+    color-mix(in srgb, var(--q-primary) 100%, white 4%) 5%,
+    var(--q-primary) 70%,
+
+    color-mix(in srgb, var(--q-primary) 100%, white 20%) 90%
   );
   box-shadow:
-    0 -4px 20px rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+    0 4px 15px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.05);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  position: relative;
 }
 
 .gradient-footer::before {
@@ -421,10 +421,10 @@ onMounted(async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(255, 255, 255, 0.08) 0%,
-    transparent 70%
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 20%,
+    transparent 100%
   );
   pointer-events: none;
 }
@@ -490,7 +490,7 @@ h6 {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
+    position: absolute;
     bottom: 0;
     width: 100%;
     z-index: 100;
