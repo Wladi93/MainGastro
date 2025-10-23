@@ -1,10 +1,26 @@
 <template>
   <div class="sticky-tabs">
-    <q-banner class="banner full-width text-secondary">
-      <h6 class="bannerText">
-        <q-icon class="bannerIcon" name="edit" />
-        Speisekarte bearbeiten
-      </h6>
+    <q-banner
+      class="banner full-width text-accent items-center"
+      v-for="lieferzeit in lieferzeit"
+      :key="lieferzeit.id"
+    >
+      <div class="row justify-between items-center full-width">
+        <h6 class="bannerText">
+          <q-icon class="bannerIcon" name="edit" />
+          Speisekarte bearbeiten
+        </h6>
+        <q-chip color="secondary" icon="moped" :label="anzeigeLieferzeit">
+          <q-btn
+            icon="edit"
+            dense
+            flat
+            size="sm"
+            class="q-ml-sm"
+            @click="openLieferzeitDialog"
+          />
+        </q-chip>
+      </div>
     </q-banner>
 
     <div class="above bg-white">
@@ -442,6 +458,11 @@
     @items-deleted="deleteDialog.onDeleted"
     :category-id="deleteDialog.categoryId"
   />
+
+  <LieferzeitSettings
+    v-model:lieferzeit="lieferzeit"
+    v-model:isOpen="lieferzeitOpen"
+  />
 </template>
 
 <script setup lang="ts">
@@ -456,7 +477,10 @@ import api, { getBaseURL } from "src/boot/axios";
 import type { Category } from "../types/Category";
 import type { CategoryItem } from "../types/CategoryItem";
 import Sortable from "sortablejs";
+import type { Lieferzeit } from "../types/LieferzeitType";
+import LieferzeitSettings from "src/components/LieferzeitSettings.vue";
 
+const lieferzeitOpen = ref(false);
 const uploadProgress = ref(0);
 const isUploading = ref(false);
 const { logAudit, getCurrentUsername } = useAuditLogger();
@@ -472,6 +496,32 @@ const selectAllItems = () => {
     );
   }
 };
+
+const openLieferzeitDialog = () => {
+  lieferzeitOpen.value = true;
+};
+
+const lieferzeit = ref<Lieferzeit[]>([]);
+
+async function loadLieferzeit() {
+  try {
+    const response = await api.get(`/api/lieferzeit`);
+    lieferzeit.value = response.data;
+  } catch (error) {
+    console.error("Lieferzeit konnte nicht geladen werden", error);
+  }
+}
+
+const anzeigeLieferzeit = computed(() => {
+  const teile = [];
+  if (lieferzeit.value[0]!.stunden > 0) {
+    teile.push(lieferzeit.value[0]!.stunden + "h");
+  }
+  if (lieferzeit.value[0]!.minuten > 0) {
+    teile.push(lieferzeit.value[0]!.minuten + "min");
+  }
+  return teile.length > 0 ? teile.join(" ") : "0min";
+});
 
 // Tabs sortieren
 const tabsSortableInstance = ref<Sortable | null>(null);
@@ -1065,6 +1115,7 @@ const handleIntersection = (entries: IntersectionObserverEntry[]) => {
 };
 
 onMounted(async () => {
+  await loadLieferzeit();
   await fetchCategories();
   for (const category of categories.value) {
     await fetchCategoryItems(category.name);

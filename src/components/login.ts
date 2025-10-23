@@ -7,6 +7,7 @@ import api from "src/boot/axios";
 export interface LoginData {
   username: string;
   password: string;
+  recaptchaToken: string;
 }
 
 export interface LoginResponse {
@@ -38,11 +39,20 @@ export const useLogin = () => {
     (val: string) => !!val || "Dieses Feld ist erforderlich",
   ];
 
-  const login = async (): Promise<void> => {
+  const login = async (recaptchaToken?: string): Promise<void> => {
     if (!Username.value || !Password.value) {
       $q.notify({
         type: "negative",
         message: "Bitte füllen Sie alle Felder aus",
+      });
+      return;
+    }
+
+    // reCAPTCHA Validierung hinzufügen
+    if (!recaptchaToken) {
+      $q.notify({
+        type: "negative",
+        message: "Bitte bestätigen Sie das reCAPTCHA",
       });
       return;
     }
@@ -53,6 +63,7 @@ export const useLogin = () => {
       const loginData: LoginData = {
         username: formatUsername(Username.value),
         password: Password.value,
+        recaptchaToken,
       };
 
       const response = await api.post<LoginResponse>(

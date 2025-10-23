@@ -1,10 +1,23 @@
 <template>
   <div class="sticky-tabs">
-    <q-banner class="banner full-width text-accent bg-white">
-      <h6 class="bannerText">
-        <q-icon class="bannerIcon" name="restaurant" />
-        Speisekarte
-      </h6>
+    <q-banner
+      class="banner full-width text-accent bg-white items-center"
+      v-for="lieferzeit in lieferzeit"
+      :key="lieferzeit.id"
+    >
+      <div class="row justify-between items-center full-width">
+        <h6 class="bannerText">
+          <q-icon class="bannerIcon" name="restaurant" />
+          Speisekarte
+        </h6>
+
+        <q-chip
+          v-if="anzeigeLieferzeit"
+          color="secondary"
+          icon="moped"
+          :label="anzeigeLieferzeit"
+        />
+      </div>
     </q-banner>
 
     <q-input filled v-model="search" debounce="500" placeholder="Suchen"
@@ -148,13 +161,36 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import { ref, onMounted, onBeforeUnmount, computed } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import api, { getBaseURL } from "src/boot/axios";
 import { useQuasar } from "quasar";
 import ZumWarenkorbHinzufügenDialog from "./Dialog/ZumWarenkorbHinzufügenDialog.vue";
 import type { Category } from "./types/Category";
 import type { CategoryItem } from "./types/CategoryItem";
+import type { Lieferzeit } from "./types/LieferzeitType";
+
+const lieferzeit = ref<Lieferzeit[]>([]);
+
+async function loadLieferzeit() {
+  try {
+    const response = await api.get(`/api/lieferzeit`);
+    lieferzeit.value = response.data;
+  } catch (error) {
+    console.error("Lieferzeit konnte nicht geladen werden", error);
+  }
+}
+
+const anzeigeLieferzeit = computed(() => {
+  const teile = [];
+  if (lieferzeit.value[0]!.stunden > 0) {
+    teile.push(lieferzeit.value[0]!.stunden + "h");
+  }
+  if (lieferzeit.value[0]!.minuten > 0) {
+    teile.push(lieferzeit.value[0]!.minuten + "min");
+  }
+  return teile.length > 0 ? teile.join(" ") : "";
+});
 
 const scrollTimeout = ref<NodeJS.Timeout | null>(null);
 const getFullImageUrl = (imgUrl: string): string => {
@@ -313,6 +349,7 @@ const openZumWarenkorbHinzufügen = (
 };
 
 onMounted(async () => {
+  await loadLieferzeit();
   await fetchCategories();
   for (const category of categories.value) {
     await fetchCategoryItems(category.name);

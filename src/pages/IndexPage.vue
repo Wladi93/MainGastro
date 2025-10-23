@@ -69,16 +69,45 @@
     </div>
   </div>
 
-  <div class="q-mt-md" style="display: flex; justify-content: center">
-    <q-card class="column my-card" style="max-width: 900px">
-      <div class="img-container">
+  <div
+    class="q-mt-md"
+    style="display: flex; justify-content: center; align-items: center"
+  >
+    <q-card
+      class="column my-card"
+      style="
+        max-width: 100vw;
+        background-color: transparent;
+        justify-content: center;
+      "
+      flat
+    >
+      <div
+        class="img-container flex"
+        style="justify-content: center; align-items: center"
+      >
         <q-img
           class="img"
           v-for="logos in logo.filter((item) => item.id === 2)"
           :key="logos.id"
           :src="getFullImageUrl(logos.url)"
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-direction: column;
+          "
         >
-          <div class="text text-subtitle2 text-center">
+          <div
+            class="text text-subtitle2 text-center column absolute-top inhalt-container"
+            style="
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
+              align-items: center;
+            "
+          >
             <h6 v-for="inhalte in inhalt" :key="inhalte.id" class="q-mt-md">
               {{ inhalte.inhalt1 }}
             </h6>
@@ -109,6 +138,7 @@
               "
             >
               <q-img
+                class="flex"
                 v-for="logos in logo.filter((item) => item.id === 1)"
                 :key="logos.id"
                 style="
@@ -116,6 +146,8 @@
                   width: 150px;
                   border-radius: 50%;
                   border: 2px solid var(--q-secondary);
+                  align-items: center;
+                  justify-content: center;
                 "
                 :src="getFullImageUrl(logos.url)"
               />
@@ -135,21 +167,20 @@
                 align-items: center;
               "
               class="full-width"
-            >
-              <q-card-section class="full-width">
-                <q-btn
-                  dense
-                  label="Zur Speisekarte"
-                  class="gradient-btn full-width"
-                  text-color="white"
-                  color="secondary"
-                  icon="restaurant_menu"
-                  clickable
-                  @click="onSubmit"
-                >
-                </q-btn>
-              </q-card-section>
-            </div>
+            ></div>
+            <q-card-section class="full-width">
+              <q-btn
+                dense
+                label="Zur Speisekarte"
+                class="gradient-btn full-width"
+                text-color="white"
+                color="secondary"
+                icon="restaurant_menu"
+                clickable
+                @click="onSubmit"
+              >
+              </q-btn>
+            </q-card-section>
             <div
               class="q-mt-md"
               style="display: flex; justify-content: center; gap: 20px"
@@ -319,17 +350,20 @@ onBeforeUnmount(() => {
   size: 30px;
 }
 .img {
-  max-width: 900px;
-  min-height: 1200px;
+  max-width: 80vw;
+  min-height: 80vh;
+}
+.inhalt-container {
+  background-color: var(--q-warning);
+  height: auto;
 }
 
 @media (max-width: 600px) {
-  .img {
-    max-width: 900px;
-    min-height: 650px;
-  }
   .bannerImage {
     height: 130px;
+  }
+  .inhalt-container {
+    height: auto;
   }
   .oben {
     display: flex;

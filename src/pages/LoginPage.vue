@@ -21,7 +21,11 @@
     <q-card-section>
       <div class="text-subtitle text-center">Login</div>
 
-      <q-form @submit="login" @reset="resetForm" class="q-gutter-md">
+      <q-form
+        @submit="loginCaptcha"
+        @reset="resetFormCpatcha"
+        class="q-gutter-md"
+      >
         <q-input
           class="q-mt-md"
           label="Username"
@@ -45,7 +49,7 @@
           lazy-rules
           :disable="isLoading"
           autocomplete="current-password"
-          @keyup.enter="login"
+          @keyup.enter="loginCaptcha"
         >
           <template v-slot:append>
             <q-icon
@@ -55,6 +59,17 @@
             />
           </template>
         </q-input>
+
+        <div
+          class="recaptcha-wrapper"
+          style="display: flex; justify-content: center; align-items: center"
+        >
+          <div
+            ref="recaptchaElement"
+            class="recaptcha q-mt-md justify-center items-center flex"
+          ></div>
+        </div>
+
         <div
           class="column"
           style="display: flex; justify-content: center; align-items: center"
@@ -89,6 +104,7 @@
 </template>
 
 <script setup lang="ts">
+import { nextTick, onMounted, ref } from "vue";
 import { useLogin } from "../components/login";
 
 const {
@@ -101,9 +117,95 @@ const {
   login,
   resetForm,
 } = useLogin();
+
+const recaptchaElement = ref<HTMLElement>();
+let recaptchaWidget: number | null = null;
+const recaptchaToken = ref("");
+
+onMounted(async () => {
+  await loadRecaptcha();
+  await nextTick();
+  renderRecaptcha();
+});
+
+const loadRecaptcha = (): Promise<void> => {
+  return new Promise((resolve) => {
+    if (window.grecaptcha && window.grecaptcha.render) {
+      resolve();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src =
+      "https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit";
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).onRecaptchaLoad = () => {
+      resolve();
+    };
+
+    document.head.appendChild(script);
+  });
+};
+
+const renderRecaptcha = () => {
+  if (window.grecaptcha && window.grecaptcha.render && recaptchaElement.value) {
+    try {
+      recaptchaWidget = window.grecaptcha.render(recaptchaElement.value, {
+        sitekey: "6Leua9ErAAAAABZ2GePLkIyZbJCiS_pb_8eryXZf",
+        size: "normal",
+
+        callback: (token: string) => {
+          recaptchaToken.value = token;
+        },
+        "expired-callback": () => {
+          recaptchaToken.value = "";
+        },
+      });
+    } catch (error) {
+      console.error("Fehler beim Rendern des reCAPTCHA:", error);
+    }
+  }
+};
+
+const loginCaptcha = async () => {
+  if (!recaptchaToken.value) {
+    console.error("Bitte reCAPTCHA bestätigen");
+    return;
+  }
+
+  await login(recaptchaToken.value);
+};
+
+const resetFormCpatcha = () => {
+  resetForm();
+  if (recaptchaWidget !== null && window.grecaptcha) {
+    window.grecaptcha.reset(recaptchaWidget);
+    recaptchaToken.value = "";
+  }
+};
+
+declare global {
+  interface Window {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    grecaptcha: any;
+  }
+}
 </script>
 
 <style>
+.recaptcha-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-width: 304px;
+  overflow: hidden;
+}
+
+.recaptcha {
+  width: 304px;
+  height: 78px;
+}
 .background-img {
   position: fixed;
   top: 0;
@@ -134,6 +236,9 @@ const {
 }
 
 @media (max-width: 600px) {
+  .recaptcha {
+    scale: 1;
+  }
   .my-card2 {
     padding: 0;
     margin-bottom: 0;
