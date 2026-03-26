@@ -1,35 +1,29 @@
 <template>
-  <q-dialog v-model="createDialog" persistent>
-    <q-card style="min-width: 350px; width: 1000px">
+  <q-dialog v-model="createDialog" persistent transition-show="scale" transition-hide="scale">
+    <q-card class="premium-glass-card custom-dialog-width shadow-24">
+      
       <q-card-section>
-        <div class="text-h6">{{ dialogTitle }}</div>
-      </q-card-section>
+        <div class="text-center q-mb-xl">
+          <div class="text-overline text-secondary text-weight-bold tracking-widest">NEUANLAGE</div>
+          <div class="text-h5 text-white text-weight-light uppercase">{{ dialogTitle }}</div>
+        </div>
 
-      <q-card-section class="q-pt-none">
-        <q-form @submit="createItem" class="q-gutter-md">
-          <div class="relative-position">
+        <q-form @submit="createItem" class="full-width" style="display:flex; flex-direction:column; gap:16px;">
+          
+          <div class="relative-position full-width">
             <q-input
-              filled
+              dark filled
               v-model="itemData.name"
               label="Name"
-              :rules="[(val) => !!val || 'Name ist erforderlich']"
+              class="premium-input full-width"
+              :rules="[(val: string) => !!val || 'Name ist erforderlich']"
               ref="inputRef"
             >
+              <template v-slot:prepend><q-icon name="edit" /></template>
               <template v-slot:append>
-                <div
-                  style="
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                  "
-                  class="row"
-                >
-                  <q-item-label caption>Status Neu:</q-item-label>
-                  <q-toggle
-                    checked-icon="check"
-                    color="positive"
-                    v-model="itemData.neu"
-                  />
+                <div class="row items-center no-wrap">
+                  <q-item-label caption class="text-grey-5 q-mr-sm">Neu:</q-item-label>
+                  <q-toggle checked-icon="check" color="secondary" v-model="itemData.neu" keep-color />
                 </div>
               </template>
             </q-input>
@@ -37,300 +31,161 @@
             <q-chip
               v-if="itemData.neu === true && itemData.name"
               label="Neu"
-              color="info"
-              clickable
-              @click.stop
+              color="secondary"
+              dense
               :style="chipStyle"
               class="floating-chip"
             />
           </div>
-          <div class="">
+
+          <div class="premium-glass-card-inner q-pa-md full-width">
             <q-file
-              filled
+              dark filled
               v-model="selectedFile"
               label="Bild hochladen"
               accept="image/*"
+              class="premium-input full-width"
               @update:model-value="onFileSelected"
-              hint="Wähle ein Bild für das Item"
-              :rules="[(val) => !!val || 'Bild ist erforderlich']"
+              :rules="[(val: any) => !!val || 'Bild ist erforderlich']"
             >
-              <template v-slot:prepend>
-                <q-icon name="file_upload" />
-              </template>
+              <template v-slot:prepend><q-icon name="file_upload" /></template>
             </q-file>
-            <div v-if="isUploading">
-              <h6 class="text-caption">Upload-Status:</h6>
-            </div>
 
-            <div v-if="uploadStatus" class="q-mt-sm">
+            <div v-if="uploadStatus !== 'idle'" class="q-mt-sm">
               <q-linear-progress
                 v-if="uploadStatus === 'uploading'"
                 :value="uploadProgress / 100"
-                color="positive"
-                size="16px"
-                class="q-mt-sm"
+                color="secondary"
+                size="10px"
                 rounded
-              >
-                <div class="absolute-full flex flex-center">
-                  <q-badge
-                    color="white"
-                    text-color="secondary"
-                    :label="`${uploadProgress}%`"
-                  />
-                </div>
-              </q-linear-progress>
-              <div
-                v-if="uploadStatus === 'success'"
-                class="text-green text-caption"
-              >
-                <q-icon name="check_circle" /> Bild erfolgreich hochgeladen
-              </div>
-              <div
-                v-if="uploadStatus === 'error'"
-                class="text-red text-caption"
-              >
-                <q-icon name="error" /> Fehler beim Hochladen
+                class="q-mt-md"
+              />
+              <div v-if="uploadStatus === 'success'" class="text-secondary text-caption q-mt-xs">
+                <q-icon name="check_circle" /> Bild bereit
               </div>
             </div>
 
-            <div v-if="imagePreview" class="q-mt-sm">
-              <div class="text-caption q-mb-xs">Vorschau:</div>
-              <div style="display: flex; justify-content: center">
-                <q-card style="height: 101px; width: 101px">
-                  <q-img
-                    :src="imagePreview"
-                    style="height: 100px; max-width: 100px"
-                    class="rounded-borders"
-                  />
-                </q-card>
+            <div v-if="imagePreview" class="flex justify-center q-mt-md">
+              <div class="preview-container shadow-10">
+                <q-img :src="imagePreview" class="rounded-borders full-height" />
               </div>
             </div>
           </div>
 
           <q-input
-            filled
+            dark filled
             v-model="itemData.description"
             label="Beschreibung"
             type="textarea"
-            :rules="[(val) => !!val || 'Beschreibung ist erforderlich']"
-          />
+            class="premium-input full-width"
+            :rules="[(val: string) => !!val || 'Beschreibung ist erforderlich']"
+          >
+            <template v-slot:prepend><q-icon name="description" /></template>
+          </q-input>
 
-          <q-toggle
-            class="text-caption text-grey-8"
-            label="auswählen von Saucen"
-            left-label
-            color="positive"
-            v-model="itemData.hasSaucen"
-            style="margin-bottom: -18px"
-          />
-
-          <q-item v-if="itemData.hasSaucen">
-            <q-list class="full-width">
-              <div v-for="sauce in saucenName" :key="sauce.id">
-                <q-checkbox
-                  v-model="selectedSauce"
-                  :val="sauce.id"
-                  class="text-caption"
-                />
-                <q-chip color="info" dense>{{ sauce.name }}</q-chip>
-                <q-separator inset />
+          <div class="q-gutter-y-sm full-width">
+            <div class="option-row">
+              <q-toggle dark color="secondary" v-model="itemData.hasSaucen" label="Saucen verfügbar" left-label class="full-width justify-between" />
+            </div>
+            
+            <q-slide-transition>
+              <div v-if="itemData.hasSaucen" class="q-pl-md q-pb-md border-left-accent full-width">
+                <div v-for="sauce in saucenName" :key="sauce.id" class="row items-center q-mb-xs">
+                  <q-checkbox dark v-model="selectedSauce" :val="sauce.id" color="secondary" />
+                  <span class="text-caption text-grey-4">{{ sauce.name }}</span>
+                </div>
               </div>
-            </q-list>
-          </q-item>
+            </q-slide-transition>
 
-          <q-toggle
-            class="text-caption text-grey-8"
-            label="auswählen von Beilagen"
-            left-label
-            color="positive"
-            v-model="itemData.hasBeilagen"
-            style="margin-bottom: -18px"
-          />
+            <div class="option-row">
+              <q-toggle dark color="secondary" v-model="itemData.hasBeilagen" label="Beilagen verfügbar" left-label class="full-width justify-between" />
+            </div>
 
-          <q-toggle
-            class="text-caption text-grey-8"
-            v-model="hasSizesLocal"
-            left-label
-            label="verschiedene Größen"
-            color="positive"
-          />
+            <q-slide-transition>
+              <div v-if="itemData.hasBeilagen" class="q-pl-md q-pb-md border-left-accent full-width">
+                <div v-for="beilage in beilagenName" :key="beilage.id" class="row items-center q-mb-xs">
+                  <q-checkbox dark v-model="selectedBeilagen" :val="beilage.id" color="secondary" />
+                  <span class="text-caption text-grey-4">{{ beilage.beilageName }}</span>
+                </div>
+              </div>
+            </q-slide-transition>
 
-          <!-- Preise für Items mit Größen (Pizza) -->
-          <div v-if="hasSizesLocal" class="text-caption q-mt-md text-grey-7">
-            Preise:
+            <div class="option-row">
+              <q-toggle dark color="secondary" v-model="hasSizesLocal" label="Verschiedene Größen" left-label class="full-width justify-between" />
+            </div>
           </div>
 
-          <template v-if="hasSizesLocal">
-            <q-input
-              prefix="€"
-              :key="sizeKleinOn ? 1 : 0"
-              :readonly="!sizeKleinOn"
-              filled
-              v-model="kleinPrice"
-              label="Klein:"
-              type="text"
-              step="0.01"
-              min="0"
-              :rules="[
-                (val) =>
-                  parseFloat(val) > 0 || 'Preis für Klein ist erforderlich',
-              ]"
-              @focus="handleFocus('klein')"
-              @blur="handleBlur('klein')"
-            >
-              <template v-slot:append>
-                <q-checkbox v-model="sizeKleinOn" />
-              </template>
-            </q-input>
+          <div class="price-section q-mt-md full-width">
+            <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider">Preiskonfiguration</div>
+            
+            <div v-if="hasSizesLocal" class="q-gutter-y-md">
+              <q-input dark filled prefix="€" v-model="kleinPrice" label="Klein" class="premium-input full-width" :readonly="!sizeKleinOn" @focus="handleFocus('klein')" @blur="handleBlur('klein')">
+                <template v-slot:append><q-checkbox dark v-model="sizeKleinOn" color="secondary" dense /></template>
+              </q-input>
+              <q-input dark filled prefix="€" v-model="mittelPrice" label="Mittel" class="premium-input full-width" :readonly="!sizeMittelOn" @focus="handleFocus('mittel')" @blur="handleBlur('mittel')">
+                <template v-slot:append><q-checkbox dark v-model="sizeMittelOn" color="secondary" dense /></template>
+              </q-input>
+              <q-input dark filled prefix="€" v-model="großPrice" label="Groß" class="premium-input full-width" :readonly="!sizeGrossOn" @focus="handleFocus('groß')" @blur="handleBlur('groß')">
+                <template v-slot:append><q-checkbox dark v-model="sizeGrossOn" color="secondary" dense /></template>
+              </q-input>
+              <q-input dark filled prefix="€" v-model="familiePrice" label="Familie" class="premium-input full-width" :readonly="!sizeFamilieOn" @focus="handleFocus('familie')" @blur="handleBlur('familie')">
+                <template v-slot:append><q-checkbox dark v-model="sizeFamilieOn" color="secondary" dense /></template>
+              </q-input>
+            </div>
 
-            <q-input
-              prefix="€"
-              :key="sizeMittelOn ? 1 : 0"
-              :readonly="!sizeMittelOn"
-              filled
-              v-model="mittelPrice"
-              label="Mittel:"
-              type="text"
-              step="0.01"
-              min="0"
-              :rules="[
-                (val) =>
-                  parseFloat(val) > 0 || 'Preis für Mittel ist erforderlich',
-              ]"
-              @focus="handleFocus('mittel')"
-              @blur="handleBlur('mittel')"
-            >
-              <template v-slot:append>
-                <q-checkbox v-model="sizeMittelOn" />
-              </template>
-            </q-input>
-
-            <q-input
-              prefix="€"
-              :key="sizeGrossOn ? 1 : 0"
-              :readonly="!sizeGrossOn"
-              filled
-              v-model="großPrice"
-              label="Groß:"
-              type="text"
-              step="0.01"
-              min="0"
-              :rules="[
-                (val) =>
-                  parseFloat(val) > 0 || 'Preis für Groß ist erforderlich',
-              ]"
-              @focus="handleFocus('groß')"
-              @blur="handleBlur('groß')"
-            >
-              <template v-slot:append>
-                <q-checkbox v-model="sizeGrossOn" />
-              </template>
-            </q-input>
-
-            <q-input
-              prefix="€"
-              :key="sizeFamilieOn ? 1 : 0"
-              :readonly="!sizeFamilieOn"
-              filled
-              v-model="familiePrice"
-              label="Familie:"
-              type="text"
-              step="0.01"
-              min="0"
-              :rules="[
-                (val) =>
-                  parseFloat(val) > 0 || 'Preis für Familie ist erforderlich',
-              ]"
-              @focus="handleFocus('familie')"
-              @blur="handleBlur('familie')"
-            >
-              <template v-slot:append>
-                <q-checkbox v-model="sizeFamilieOn" />
-              </template>
-            </q-input>
-          </template>
-
-          <!-- Einzelpreis für Items ohne Größen -->
-          <q-input
-            prefix="€"
-            v-else
-            filled
-            v-model="singlePrice"
-            label="Preis:"
-            type="text"
-            step="0.01"
-            min="0"
-            :rules="[(val) => parseFloat(val) > 0 || 'Preis ist erforderlich']"
-            @focus="handleSinglePriceFocus"
-            @blur="handleSinglePriceBlur"
-          />
+            <q-input v-else dark filled prefix="€" v-model="singlePrice" label="Einzelpreis" class="premium-input full-width" @focus="handleSinglePriceFocus" @blur="handleSinglePriceBlur" />
+          </div>
 
           <q-expansion-item
-            expand-separator
+            dark
+            header-class="premium-expansion-header"
             label="Allergene"
-            header-class="bg-grey-3"
-            icon="list"
+            class="premium-glass-card-inner overflow-hidden full-width"
           >
-            <q-list>
-              <div v-for="allergen in allergene" :key="allergen.id">
-                <q-checkbox
-                  v-model="selectedAllergene"
-                  :val="allergen.id"
-                  :label="allergen.name"
-                  class="text-caption"
-                />
-                <q-separator inset />
+            <div class="q-pa-md column q-gutter-y-xs">
+              <div v-for="a in allergene" :key="a.id">
+                <q-checkbox dark dense v-model="selectedAllergene" :val="a.id" :label="a.name" class="text-caption" />
+                 <q-separator dark class="q-my-md opacity-10  " />
               </div>
-            </q-list>
+              
+            </div>
           </q-expansion-item>
 
           <q-expansion-item
-            expand-separator
+            dark
+            header-class="premium-expansion-header"
             label="Zusatzstoffe"
-            header-class="bg-grey-3"
-            icon="list"
+            class="premium-glass-card-inner overflow-hidden full-width"
           >
-            <q-list>
-              <div v-for="zusatzstoff in zusatzstoffe" :key="zusatzstoff.id">
-                <q-checkbox
-                  v-model="selectedZusatzstoffe"
-                  :val="zusatzstoff.id"
-                  :label="zusatzstoff.name"
-                  class="text-caption"
-                />
-                <q-separator inset />
+            <div class="q-pa-md column q-gutter-y-xs">
+              <div v-for="z in zusatzstoffe" :key="z.id">
+                <q-checkbox dark dense v-model="selectedZusatzstoffe" :val="z.id" :label="z.name" class="text-caption" />
+                <q-separator dark class="q-my-md opacity-10  " />
               </div>
-            </q-list>
+            </div>
           </q-expansion-item>
+
         </q-form>
       </q-card-section>
-
-      <div
-        class="row"
-        style="display: flex; justify-content: center; align-items: center"
-      >
-        <q-card-actions align="right" class="text-primary">
-          <q-btn
-            color="negative"
-            flat
-            label="Abbrechen"
-            @click="closeCreateDialog"
-          />
-          <q-btn
-            :label="createButtonText"
-            @click="createItem"
-            :loading="isCreating"
-            :disable="!selectedFile || uploadStatus === 'uploading'"
-            color="secondary"
-          />
-        </q-card-actions>
-      </div>
+      
+      <q-card-actions align="center" class="q-pb-xl q-px-xl">
+        <q-btn flat label="Abbrechen" color="white" class="luxury-btn-outline q-px-lg" @click="closeCreateDialog" />
+        <q-btn 
+          :label="createButtonText" 
+          color="secondary" 
+          class="luxury-btn q-px-xl q-ml-md" 
+          @click="createItem"
+          :loading="isCreating"
+          :disable="!selectedFile || uploadStatus === 'uploading'"
+        />
+      </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup lang="ts">
 import { Notify, useQuasar } from "quasar";
+import type { QInput } from "quasar";
 import { reactive, ref, computed, watch, onMounted } from "vue";
 import { useAuditLogger } from "src/composables/useAuditLogger";
 import type { ItemSizes } from "../types/CategoryItemsSizes";
@@ -338,9 +193,12 @@ import api from "src/boot/axios";
 import type { Allergene } from "../types/AllergeneType";
 import type { Zusatzstoffe } from "../types/ZusatzstoffeType";
 import type { SaucenType } from "../types/SaucenType";
+import type { BeilagenName } from "../types/BeilagenType";
 
 const saucenName = ref<SaucenType[]>([]);
 const selectedSauce = ref<number[]>([]);
+const beilagenName = ref<BeilagenName[]>([]);
+const selectedBeilagen = ref<number[]>([]);
 const allergene = ref<Allergene[]>([]);
 const selectedAllergene = ref<number[]>([]);
 const selectedZusatzstoffe = ref<number[]>([]);
@@ -348,6 +206,7 @@ const zusatzstoffe = ref<Zusatzstoffe[]>([]);
 const { logAudit, getCurrentUsername } = useAuditLogger();
 const uploadProgress = ref(0);
 const isUploading = ref(false);
+
 interface ItemData {
   name: string;
   img: string;
@@ -385,8 +244,6 @@ const loadNextSortOrder = async () => {
   }
 };
 
-//sizes
-
 const props = defineProps<{
   modelValue: boolean;
   dialogTitle: string;
@@ -423,19 +280,40 @@ const sizeKleinOn = ref(true);
 const sizeMittelOn = ref(true);
 const sizeGrossOn = ref(true);
 const sizeFamilieOn = ref(true);
+const inputRef = ref<QInput | null>(null);
+
+const measureTextWidth = (text: string, font: string): number => {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return 0;
+  ctx.font = font;
+  return ctx.measureText(text).width;
+};
 
 const chipStyle = computed(() => {
   if (!itemData.name) return { display: "none" };
-  const textWidth = itemData.name.length * 6.6;
-  const leftPosition = Math.min(textWidth + 20, 300);
+
+  let font = "16px sans-serif";
+  if (inputRef.value) {
+    const inputEl = (inputRef.value.$el as Element)?.querySelector("input");
+    if (inputEl) {
+      const cs = window.getComputedStyle(inputEl);
+      font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    }
+  }
+
+  const textWidth = measureTextWidth(itemData.name, font);
+  const inputPaddingLeft = 64;
+  const chipHeight = 24;
+  const textLineCenter = 35;
 
   return {
     position: "absolute",
-    left: `${leftPosition}px`,
-    top: "42%",
-    transform: "translateY(-50%)",
+    left: `${inputPaddingLeft + textWidth + 4}px`,
+    top: `${textLineCenter - chipHeight / 2}px`,
     zIndex: "10",
-    pointerEvents: "auto",
+    pointerEvents: "none",
+    margin: "0",
   };
 });
 
@@ -614,6 +492,7 @@ const closeCreateDialog = () => {
   selectedAllergene.value = [];
   selectedZusatzstoffe.value = [];
   selectedSauce.value = [];
+  selectedBeilagen.value = [];
 
   emit("update:modelValue", false);
 };
@@ -737,6 +616,7 @@ const createItem = async () => {
       allergeneIds: selectedAllergene.value,
       zusatzstoffeIds: selectedZusatzstoffe.value,
       saucenIds: selectedSauce.value,
+      beilagenIds: selectedBeilagen.value,
     });
 
     const categoryName = await getCategoryNameById(props.categoryId);
@@ -791,6 +671,15 @@ async function loadSaucen() {
   }
 }
 
+async function loadBeilagen() {
+  try {
+    const response = await api.get("/api/beilagen/beilagenname");
+    beilagenName.value = response.data;
+  } catch (error) {
+    console.error("Fehler beim Laden der Beilagen", error);
+  }
+}
+
 const getCategoryNameById = async (categoryId: number): Promise<string> => {
   try {
     const response = await api.get(`/api/category/${categoryId}`);
@@ -822,6 +711,7 @@ async function getAllergeneZusatzstoffe() {
 onMounted(async () => {
   await getAllergeneZusatzstoffe();
   await loadSaucen();
+  await loadBeilagen();
 });
 
 watch(
@@ -833,11 +723,75 @@ watch(
 </script>
 
 <style scoped>
-.floating-chip {
-  transition: left 0.2s ease;
+.premium-glass-card {
+  background: rgba(15, 15, 15, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
+  color: white;
 }
 
-.relative-position {
-  position: relative;
+.custom-dialog-width {
+  width: 900px;
+  max-width: 95vw;
+}
+
+.premium-glass-card-inner {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.premium-input :deep(.q-field__control) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05) !important;
+  width: 100%;
+}
+
+.luxury-btn {
+  border-radius: 12px;
+  font-weight: bold;
+  height: 50px;
+  min-width: 200px;
+  box-shadow: 0 4px 15px rgba(var(--q-secondary), 0.3);
+}
+
+.luxury-btn-outline {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  height: 50px;
+}
+
+.preview-container {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid var(--q-secondary);
+}
+
+.option-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 15px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+}
+
+.border-left-accent {
+  border-left: 2px solid var(--q-secondary);
+  margin-left: 10px;
+}
+
+.tracking-widest { letter-spacing: 3px; }
+.uppercase { text-transform: uppercase; }
+.opacity-10 { opacity: 0.6; }
+
+.floating-chip {
+  transition: left 0.05s ease;
+  box-shadow: 0 0 10px rgba(var(--q-secondary), 0.5);
+  pointer-events: none;
 }
 </style>

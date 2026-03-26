@@ -1,468 +1,463 @@
 <template>
-  <div class="sticky-tabs">
-    <q-banner
-      class="banner full-width text-accent items-center"
-      v-for="lieferzeit in lieferzeit"
-      :key="lieferzeit.id"
-    >
-      <div class="row justify-between items-center full-width">
-        <h6 class="bannerText">
-          <q-icon class="bannerIcon" name="edit" />
-          Speisekarte bearbeiten
-        </h6>
-        <q-chip color="secondary" icon="moped" :label="anzeigeLieferzeit">
-          <q-btn
-            icon="edit"
-            dense
+  <div class="app-container">
+
+    <!-- GLASS HEADER -->
+    <div class="glass-header">
+      <div
+        v-if="lieferzeit.length"
+        class="row justify-between items-center q-px-md q-pt-md"
+      >
+        <div class="row items-center">
+          <div class="logo-dot q-mr-sm"></div>
+          <span class="text-h6 text-white text-weight-bolder">SPEISEKARTE EDIT</span>
+<q-icon name="edit" class="q-ml-sm" size="sm"/>
+        </div>
+
+        <div class="delivery-pill row items-center" v-for="Lieferzeit in lieferzeit" :key="Lieferzeit.id">
+                    <q-btn
+            icon="settings"
             flat
+            round
+            dense
             size="sm"
-            class="q-ml-sm"
+            color="grey-4"
+            class="q-mr-sm"
             @click="openLieferzeitDialog"
           />
-        </q-chip>
+          <q-icon name="moped" size="xs" class="q-mr-xs" color="secondary" />
+          {{ anzeigeLieferzeit }}
+        </div>
       </div>
-    </q-banner>
 
-    <div class="above bg-white">
-      <q-separator color="secondary" />
-      <q-card class="full-width text-center">
-        <q-card-section class="row justify-evenly q-gutter-sm">
-          <q-btn
-            label="tab erstellen"
-            outline
-            dense
-            size="md"
-            class="banner col"
-            color="secondary"
-            icon="dashboard_customize"
-            @click="showCategoryDialog = true"
-          />
+      <!-- Tab erstellen / löschen -->
+      <div class="q-px-md q-py-md row q-gutter-sm">
+        <q-btn
+          label="Tab +"
+          class="admin-btn col"
+          no-caps
+          unelevated
+          icon="dashboard_customize"
+          @click="showCategoryDialog = true"
+        />
+        <q-btn
+          label="Tab -"
+          class="admin-btn col"
+          no-caps
+          unelevated
+          color="negative"
+          icon="delete"
+          @click="showCategoryDeleteDialog = true"
+        />
+      </div>
 
-          <q-btn
-            label="tab löschen"
-            outline
-            dense
-            size="md"
-            class="banner col"
-            color="negative"
-            icon="delete"
-            @click="showCategoryDeleteDialog = true"
-          />
-        </q-card-section>
-      </q-card>
-    </div>
-
-    <q-img class="background-img" />
-    <q-card class="tabsBorder sticky-tabs">
-      <q-tabs
-        v-model="tab"
-        dense
-        class="text-grey-9"
-        active-color="secondary"
-        indicator-color="secondary"
-        align="justify"
-        narrow-indicator
-        inline-label
-        swipeable
-        infinite
-      >
-        <q-tab
+      <!-- Categories nav pills -->
+      <div class="categories-nav q-pl-md q-pb-md" id="categories-nav-sortable">
+        <div
           v-for="category in categories"
           :key="category.sortOrder"
-          @click="onTabChange"
-          :name="category.name"
-          :label="category.name"
-          :icon="category.icon"
-          class="drag-handle2"
+          class="nav-pill"
+          :class="{ 'pill-active': tab === category.name }"
+          @mousedown="onPillMouseDown"
+          @click="onPillClick(category)"
         >
-        </q-tab>
-      </q-tabs>
-    </q-card>
-  </div>
-
-  <div class="tab-panels-container">
-    <q-card class="background-img"></q-card>
-
-    <div
-      v-for="category in categories"
-      :key="category.apiEndpoint"
-      v-show="true"
-      :ref="(el: any) => setSectionRef(category.name, el)"
-    >
-      <q-card class="q-gutter-y-xl drag-tab">
-        <div class="tab-section-name">
-          <q-card-section class="card-section3 bannerHeight">
-            <q-img
-              :src="getFullImageUrl(category.bannerImage)"
-              spinner-color="white"
-              :alt="`${category.name} Banner`"
-              style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-              "
-            >
-              <div
-                class="text-white absolute-bottom text-center"
-                style="font-size: 18px"
-              >
-                <q-icon
-                  :name="category.icon"
-                  color="secondary"
-                  size="xs"
-                  class="q-mr-xs"
-                />
-                {{ category.name }}
-              </div>
-            </q-img>
-          </q-card-section>
-        </div>
-      </q-card>
-
-      <div
-        :id="`sortable-${category.id}`"
-        class="sortable-container"
-        :data-category-id="category.id"
-        :data-category-name="category.name"
-      >
-        <div
-          v-for="item in getCategoryItems(category.name)"
-          ref="el"
-          :key="item.id"
-          class="my-card"
-        >
-          <q-card>
-            <q-card-section class="card-section">
-              <div class="drag-handle">
-                <q-icon
-                  name="drag_indicator"
-                  color="grey-6"
-                  size="sm"
-                  class="q-mr-sm"
-                />
-              </div>
-              <q-img
-                class="imgGericht"
-                v-if="item.img"
-                :src="getFullImageUrl(item.img)"
-                :alt="item.name"
-              />
-              <div class="text-container">
-                <h6
-                  class="text-h6 row"
-                  style="display: flex; align-items: center"
-                >
-                  {{ item.name }}
-                  <q-chip color="info" v-if="item.neu == true" label="Neu" />
-                </h6>
-                <p class="description nowrap">{{ item.description }}</p>
-              </div>
-              <q-separator vertical class="separatorH q-mr-md" />
-              <div class="input-container">
-                <q-btn
-                  @click="() => openEditDialog(item, category.name)"
-                  class="bg-primary text-white"
-                  :size="$q.screen.lt.sm ? 'xs' : 'sm'"
-                  icon="edit"
-                  label="bearbeiten"
-                  color="secondary"
-                  square
-                />
-                <h6 class="preisText text-subtitle2 q-mt-md">
-                  Preis: {{ item.price ? item.price.toFixed(2) : "0.00" }}€
-                </h6>
-              </div>
-            </q-card-section>
-          </q-card>
+          <q-icon name="drag_indicator" size="12px" class="q-mr-xs pill-drag-icon" />
+          <q-icon :name="category.icon" size="14px" class="q-mr-xs" />
+          {{ category.name }}
         </div>
       </div>
-
-      <q-card>
-        <q-card-section>
-          <q-btn
-            icon="post_add"
-            :label="`${category.name.toLowerCase()} erstellen`"
-            class="full-width"
-            color="secondary"
-            @click="openCreateDialogAll(category.name)"
-          />
-          <q-btn
-            icon="delete"
-            :label="`${category.name.toLowerCase()} löschen`"
-            class="full-width q-mt-sm"
-            color="negative"
-            @click="openDeleteDialog(category.name)"
-          />
-        </q-card-section>
-      </q-card>
     </div>
-  </div>
 
-  <!-- Kategorie erstellen -->
-  <q-dialog v-model="showCategoryDialog" persistent>
-    <q-card style="min-width: 350px; max-width: 600px">
-      <q-card-section class="row items-center q-pb-none">
-        <div class="text-h6">Neue Kategorie erstellen</div>
-        <q-space />
-        <q-btn icon="close" flat round dense v-close-popup />
-      </q-card-section>
-
-      <q-card-section>
-        <q-form @submit="onSubmitCategory" class="q-gutter-md">
-          <q-input
-            v-model="newCategory.name"
-            label="Kategorie Name *"
-            hint="z.B. Salate, Hauptgerichte, etc."
-            :rules="[(val) => !!val || 'Name ist erforderlich']"
-            outlined
-          />
-
-          <q-select
-            v-model="newCategory.icon"
-            :options="iconOptions"
-            label="Icon auswählen"
-            outlined
-            emit-value
-            map-options
+    <!-- SCROLLABLE CONTENT -->
+    <div class="content-scrollable">
+      <div
+        v-for="category in categories"
+        :key="category.apiEndpoint"
+        v-show="true"
+        :ref="(el: any) => setSectionRef(category.name, el)"
+        class="category-block"
+      >
+        <!-- Category Hero Banner -->
+        <div class="category-hero">
+          <q-img
+            :src="getFullImageUrl(category.bannerImage)"
+            spinner-color="white"
+            :alt="`${category.name} Banner`"
+            class="hero-img"
           >
-            <template v-slot:option="scope">
-              <q-item v-bind="scope.itemProps">
-                <q-item-section avatar>
-                  <q-icon :name="scope.opt.value" />
-                </q-item-section>
-                <q-item-section>
-                  <q-item-label>{{ scope.opt.label }}</q-item-label>
-                </q-item-section>
-              </q-item>
-            </template>
-            <template v-slot:selected>
-              <div class="row items-center">
-                <q-icon :name="newCategory.icon" class="q-mr-sm" />
-                {{
-                  iconOptions.find((opt) => opt.value === newCategory.icon)
-                    ?.label
-                }}
+            <div class="hero-overlay full-width full-height flex items-end">
+              <div class="q-pa-lg full-width row justify-between items-end">
+                <div>
+                  <div class="text-overline text-secondary text-weight-bold">KATEGORIE</div>
+                  <div class="text-h4 text-white text-weight-bolder">
+                    <q-icon :name="category.icon" color="secondary" size="xs" class="q-mr-xs" />
+                    {{ category.name }}
+                  </div>
+                </div>
+                <div class="q-gutter-sm">
+                  <!-- NEU: Banner-Bild ändern Button -->
+                  <q-btn
+                    round
+                    color="primary"
+                    icon="image"
+                    size="sm"
+                    :loading="bannerEditLoadingId === category.id"
+                    @click="triggerBannerEdit(category)"
+                  >
+                    <q-tooltip>Bannerbild ändern</q-tooltip>
+                  </q-btn>
+                  <q-btn
+                    round
+                    color="secondary"
+                    icon="post_add"
+                    size="sm"
+                    @click="openCreateDialogAll(category.name)"
+                  />
+                  <q-btn
+                    round
+                    color="negative"
+                    icon="delete"
+                    size="sm"
+                    @click="openDeleteDialog(category.name)"
+                  />
+                </div>
               </div>
-            </template>
-          </q-select>
-
-          <div class="q-gutter-sm">
-            <q-file
-              label="Banner Bild hochladen"
-              outlined
-              accept="image/*"
-              :model-value="null"
-              @update:model-value="onBannerFileChange"
-              :loading="isUploading"
-            >
-              <template v-slot:prepend>
-                <q-icon name="attach_file" />
-              </template>
-            </q-file>
-            <div v-if="isUploading">
-              <h6 class="text-caption">Upload-Status:</h6>
             </div>
+          </q-img>
+        </div>
 
-            <q-linear-progress
-              v-if="isUploading"
-              :value="uploadProgress / 100"
-              color="positive"
-              size="16px"
-              class="q-mt-sm"
-              rounded
-            >
-              <div class="absolute-full flex flex-center">
-                <q-badge
-                  color="white"
-                  text-color="secondary"
-                  :label="`${uploadProgress}%`"
+        <!-- Items -->
+        <div
+          :id="`sortable-${category.id}`"
+          class="items-container q-px-md"
+          :data-category-id="category.id"
+          :data-category-name="category.name"
+        >
+          <div
+            v-for="item in getCategoryItems(category.name)"
+            :key="item.id"
+            class="premium-glass-card"
+          >
+            <div class="card-inner">
+              <div class="drag-handle flex flex-center q-pr-sm">
+                <q-icon name="drag_indicator" color="grey-7" size="sm" />
+              </div>
+
+              <div class="card-body">
+                <div class="text-subtitle1 text-white text-weight-bold flex items-center">
+                  {{ item.name }}
+                  <q-chip
+                    v-if="item.neu == true"
+                    class="bg-secondary text-white q-ml-sm"
+                    size="xs"
+                    label="Neu"
+                  />
+                </div>
+                <p class="card-desc">{{ item.description }}</p>
+                <div class="price-box">
+                  {{ item.price ? item.price.toFixed(2) : "0.00" }}
+                  <span class="currency">€</span>
+                </div>
+              </div>
+
+              <div class="card-media">
+                <q-img
+                  v-if="item.img"
+                  :src="getFullImageUrl(item.img)"
+                  :alt="item.name"
+                  class="item-img shadow-10"
+                >
+                  <template v-slot:error>
+                    <div class="absolute-full flex flex-center bg-grey-10">
+                      <q-icon name="restaurant" color="grey-8" />
+                    </div>
+                  </template>
+                </q-img>
+                <q-btn
+                  round
+                  unelevated
+                  color="secondary"
+                  icon="edit"
+                  size="sm"
+                  class="add-btn-over"
+                  @click="() => openEditDialog(item, category.name)"
                 />
               </div>
-            </q-linear-progress>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-            <div v-if="bannerPreview" class="q-mt-md">
-              <q-img
-                :src="bannerPreview"
-                style="height: 100px; max-width: 200px"
-                class="rounded-borders"
+    <!-- Versteckter File-Input für Banner-Edit -->
+    <input
+      ref="bannerEditInput"
+      type="file"
+      accept="image/*"
+      style="display: none"
+      @change="onEditBannerFileChange"
+    />
+
+    <!-- DIALOG: Kategorie erstellen -->
+    <q-dialog v-model="showCategoryDialog" persistent>
+      <q-card style="min-width: 350px; max-width: 600px">
+        <q-card-section class="row items-center q-pb-none">
+          <div class="text-h6">Neue Kategorie erstellen</div>
+          <q-space />
+          <q-btn icon="close" flat round dense v-close-popup />
+        </q-card-section>
+
+        <q-card-section>
+          <q-form @submit="onSubmitCategory" class="q-gutter-md">
+            <q-input
+              v-model="newCategory.name"
+              label="Kategorie Name *"
+              hint="z.B. Salate, Hauptgerichte, etc."
+              :rules="[(val) => !!val || 'Name ist erforderlich']"
+              outlined
+            />
+
+            <q-select
+              v-model="newCategory.icon"
+              :options="iconOptions"
+              label="Icon auswählen"
+              outlined
+              emit-value
+              map-options
+            >
+              <template v-slot:option="scope">
+                <q-item v-bind="scope.itemProps">
+                  <q-item-section avatar>
+                    <q-icon :name="scope.opt.value" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>{{ scope.opt.label }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </template>
+              <template v-slot:selected>
+                <div class="row items-center">
+                  <q-icon :name="newCategory.icon" class="q-mr-sm" />
+                  {{
+                    iconOptions.find((opt) => opt.value === newCategory.icon)
+                      ?.label
+                  }}
+                </div>
+              </template>
+            </q-select>
+
+            <div class="q-gutter-sm">
+              <q-file
+                label="Banner Bild hochladen"
+                outlined
+                accept="image/*"
+                :model-value="null"
+                @update:model-value="onBannerFileChange"
+                :loading="isUploading"
+              >
+                <template v-slot:prepend>
+                  <q-icon name="attach_file" />
+                </template>
+              </q-file>
+              <div v-if="isUploading">
+                <h6 class="text-caption">Upload-Status:</h6>
+              </div>
+
+              <q-linear-progress
+                v-if="isUploading"
+                :value="uploadProgress / 100"
+                color="positive"
+                size="16px"
+                class="q-mt-sm"
+                rounded
+              >
+                <div class="absolute-full flex flex-center">
+                  <q-badge
+                    color="white"
+                    text-color="secondary"
+                    :label="`${uploadProgress}%`"
+                  />
+                </div>
+              </q-linear-progress>
+
+              <div v-if="bannerPreview" class="q-mt-md">
+                <q-img
+                  :src="bannerPreview"
+                  style="height: 100px; max-width: 200px"
+                  class="rounded-borders"
+                />
+              </div>
+            </div>
+
+            <div class="row justify-end q-gutter-sm q-mt-xl">
+              <q-btn label="Abbrechen" color="negative" flat v-close-popup />
+              <q-btn
+                label="Kategorie erstellen"
+                color="secondary"
+                type="submit"
+                :loading="categoryLoading"
+                :disable="!isCategoryFormValid"
+              />
+            </div>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
+
+    <!-- DIALOG: Kategorie löschen -->
+    <q-dialog v-model="showCategoryDeleteDialog" persistent>
+      <q-card style="min-width: 350px; width: 800px">
+        <q-card-section class="text-center">
+          <div class="text-h6 text-negative">
+            <q-icon name="delete" class="q-mr-sm" />
+            Kategorien löschen
+          </div>
+          <div class="text-caption q-mb-md">
+            Wählen Sie die Kategorien, die Sie löschen möchten:
+          </div>
+
+          <div v-if="categories.length === 0" class="text-center text-grey-6">
+            Keine Kategorien verfügbar
+          </div>
+
+          <div
+            v-else
+            class="q-gutter-sm"
+            style="max-height: 300px; overflow-y: auto"
+          >
+            <div class="q-mb-md">
+              <q-btn
+                size="sm"
+                color="secondary"
+                @click="selectAllItems"
+                :label="
+                  selectedCategoriesForDeletion.length === categories.length
+                    ? 'Alle abwählen'
+                    : 'Alle auswählen'
+                "
               />
             </div>
           </div>
+        </q-card-section>
 
-          <div class="row justify-end q-gutter-sm q-mt-xl">
-            <q-btn label="Abbrechen" color="negative" flat v-close-popup />
-            <q-btn
-              label="Kategorie erstellen"
-              color="secondary"
-              type="submit"
-              :loading="categoryLoading"
-              :disable="!isCategoryFormValid"
-            />
-          </div>
-        </q-form>
-      </q-card-section>
-    </q-card>
-  </q-dialog>
-
-  <!-- Kategorie löschen -->
-  <q-dialog v-model="showCategoryDeleteDialog" persistent>
-    <q-card style="min-width: 350px; width: 800px">
-      <q-card-section class="text-center">
-        <div class="text-h6 text-negative">
-          <q-icon name="delete" class="q-mr-sm" />
-          Kategorien löschen
-        </div>
-        <div class="text-caption q-mb-md">
-          Wählen Sie die Kategorien , die Sie löschen möchten:
-        </div>
-
-        <div v-if="categories.length === 0" class="text-center text-grey-6">
-          Keine Kategorien verfügbar
-        </div>
-
-        <div
-          v-else
-          class="q-gutter-sm"
-          style="max-height: 300px; overflow-y: auto"
-        >
-          <div class="q-mb-md">
-            <q-btn
-              size="sm"
-              color="secondary"
-              @click="selectAllItems"
-              :label="
-                selectedCategoriesForDeletion.length === categories.length
-                  ? 'Alle abwählen'
-                  : 'Alle auswählen'
-              "
-            />
-          </div>
-        </div>
-      </q-card-section>
-
-      <q-card-section class="q-pt-none">
-        <q-card
-          v-for="category in categories"
-          :key="category.id"
-          class="item-delete-item q-mt-sm"
-          :class="{
-            'selected-for-deletion': selectedCategoriesForDeletion.includes(
-              category.id
-            ),
-          }"
-        >
-          <q-card-section class="row items-center no-wrap" style="gap: 5px">
-            <q-card style="height: 80px; width: 600px">
-              <q-img
-                v-if="category.bannerImage"
-                :src="getFullImageUrl(category.bannerImage)"
-                :alt="category.name"
-                style="
-                  position: absolute;
-                  top: 0;
-                  left: 0;
-                  right: 0;
-                  bottom: 0;
-                  width: 100%;
-                  height: 100%;
-                  object-fit: cover;
-                "
-                class="rounded-borders q-mr-md"
-              >
-                <div
-                  class="text-white absolute-bottom text-center"
-                  style="font-size: 18px"
+        <q-card-section class="q-pt-none">
+          <q-card
+            v-for="category in categories"
+            :key="category.id"
+            class="item-delete-item q-mt-sm"
+            :class="{
+              'selected-for-deletion': selectedCategoriesForDeletion.includes(
+                category.id
+              ),
+            }"
+          >
+            <q-card-section class="row items-center no-wrap" style="gap: 5px">
+              <q-card style="height: 80px; width: 600px">
+                <q-img
+                  v-if="category.bannerImage"
+                  :src="getFullImageUrl(category.bannerImage)"
+                  :alt="category.name"
+                  style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                  "
+                  class="rounded-borders q-mr-md"
                 >
-                  <q-icon
-                    :name="category.icon"
-                    color="secondary"
-                    size="xs"
-                    class="q-mr-xs"
-                  />
-                  {{ category.name }}
-                </div>
-              </q-img>
-            </q-card>
+                  <div
+                    class="text-white absolute-bottom text-center"
+                    style="font-size: 18px"
+                  >
+                    <q-icon
+                      :name="category.icon"
+                      color="secondary"
+                      size="xs"
+                      class="q-mr-xs"
+                    />
+                    {{ category.name }}
+                  </div>
+                </q-img>
+              </q-card>
 
-            <q-checkbox
-              v-model="selectedCategoriesForDeletion"
-              :val="category.id"
-              color="negative"
-              class="q-mr-md"
-            />
-          </q-card-section>
-        </q-card>
+              <q-checkbox
+                v-model="selectedCategoriesForDeletion"
+                :val="category.id"
+                color="negative"
+                class="q-mr-md"
+              />
+            </q-card-section>
+          </q-card>
 
-        <div
-          v-if="selectedCategoriesForDeletion.length > 0"
-          class="q-mt-md text-negative"
-        >
-          <q-icon name="warning" class="q-mr-xs" />
-          {{ selectedCategoriesForDeletion.length }} Kategorien werden gelöscht.
-          Diese Aktion kann nicht rückgängig gemacht werden!
-        </div>
-      </q-card-section>
+          <div
+            v-if="selectedCategoriesForDeletion.length > 0"
+            class="q-mt-md text-negative"
+          >
+            <q-icon name="warning" class="q-mr-xs" />
+            {{ selectedCategoriesForDeletion.length }} Kategorien werden gelöscht.
+            Diese Aktion kann nicht rückgängig gemacht werden!
+          </div>
+        </q-card-section>
 
-      <q-card-actions align="right" class="text-primary">
-        <q-btn label="Abbrechen" color="grey" flat v-close-popup />
-        <q-btn
-          label="Löschen"
-          color="negative"
-          :disable="selectedCategoriesForDeletion.length === 0"
-          :loading="isDeleting"
-          @click="deleteCategory"
-        />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+        <q-card-actions align="right" class="text-primary">
+          <q-btn label="Abbrechen" color="grey" flat v-close-popup />
+          <q-btn
+            label="Löschen"
+            color="negative"
+            :disable="selectedCategoriesForDeletion.length === 0"
+            :loading="isDeleting"
+            @click="deleteCategory"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
-  <createDialogAll
-    v-model="createDialog.show"
-    :dialog-title="createDialog.title"
-    :create-button-text="createDialog.buttonText"
-    :category-id="createDialog.categoryId"
-    upload-endpoint="http://localhost:5008/api/uploads/images"
-    :image-url-hint="createDialog.imageHint"
-    @item-created="createDialog.onCreated"
-  />
+    <createDialogAll
+      v-model="createDialog.show"
+      :dialog-title="createDialog.title"
+      :create-button-text="createDialog.buttonText"
+      :category-id="createDialog.categoryId"
+      upload-endpoint="http://localhost:5008/api/uploads/images"
+      :image-url-hint="createDialog.imageHint"
+      @item-created="createDialog.onCreated"
+    />
 
-  <editDialogAll
-    v-model="editDialog.show"
-    :item="editDialog.item"
-    :has-sizes="editDialog.item?.hasSizes"
-    :sizes="editDialog.item?.sizes"
-    :category-id="editDialog.item?.categoryId"
-    :dialog-title="editDialog.title"
-    :api-endpoint="editDialog.apiEndpoint"
-    upload-endpoint="http://localhost:5008/api/uploads/images"
-    :image-url-hint="editDialog.imageHint"
-    :sort-Order="editDialog.item?.sortOrder"
-    :neu="editDialog.item?.neu"
-    :has-beilagen="editDialog.item?.hasBeilagen"
-    :allergene-ids="editDialog.item?.allergeneIds"
-    :zusatzstoffe-ids="editDialog.item?.zusatzstoffeIds"
-    @item-edited="editDialog.onEdited"
-    :has-saucen="editDialog.item?.hasSaucen"
-    :saucen-ids="editDialog.item?.saucenIds"
-  />
+    <editDialogAll
+      v-model="editDialog.show"
+      :item="editDialog.item"
+      :has-sizes="editDialog.item?.hasSizes"
+      :sizes="editDialog.item?.sizes"
+      :category-id="editDialog.item?.categoryId"
+      :dialog-title="editDialog.title"
+      :api-endpoint="editDialog.apiEndpoint"
+      upload-endpoint="http://localhost:5008/api/uploads/images"
+      :image-url-hint="editDialog.imageHint"
+      :sort-Order="editDialog.item?.sortOrder"
+      :neu="editDialog.item?.neu"
+      :has-beilagen="editDialog.item?.hasBeilagen"
+      :allergene-ids="editDialog.item?.allergeneIds"
+      :zusatzstoffe-ids="editDialog.item?.zusatzstoffeIds"
+      @item-edited="editDialog.onEdited"
+      :has-saucen="editDialog.item?.hasSaucen"
+      :saucen-ids="editDialog.item?.saucenIds"
+    />
 
-  <deleteDialogAll
-    v-model="deleteDialog.show"
-    :dialog-title="deleteDialog.title"
-    :api-endpoint="deleteDialog.apiEndpoint"
-    @items-deleted="deleteDialog.onDeleted"
-    :category-id="deleteDialog.categoryId"
-  />
+    <deleteDialogAll
+      v-model="deleteDialog.show"
+      :dialog-title="deleteDialog.title"
+      :api-endpoint="deleteDialog.apiEndpoint"
+      @items-deleted="deleteDialog.onDeleted"
+      :category-id="deleteDialog.categoryId"
+    />
 
-  <LieferzeitSettings
-    v-model:lieferzeit="lieferzeit"
-    v-model:isOpen="lieferzeitOpen"
-  />
+    <LieferzeitSettings
+      v-model:lieferzeit="lieferzeit"
+      v-model:isOpen="lieferzeitOpen"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -476,7 +471,7 @@ import { useAuditLogger } from "src/composables/useAuditLogger";
 import api, { getBaseURL } from "src/boot/axios";
 import type { Category } from "../types/Category";
 import type { CategoryItem } from "../types/CategoryItem";
-import Sortable from "sortablejs";
+import Sortable, { type SortableEvent } from "sortablejs";
 import type { Lieferzeit } from "../types/LieferzeitType";
 import LieferzeitSettings from "src/components/LieferzeitSettings.vue";
 
@@ -523,32 +518,30 @@ const anzeigeLieferzeit = computed(() => {
   return teile.length > 0 ? teile.join(" ") : "0min";
 });
 
-// Tabs sortieren
+// ─── Tabs sortieren ────────────────────────────────────────────────────────
+
 const tabsSortableInstance = ref<Sortable | null>(null);
 
 const initializeTabsSortable = () => {
-  const tabsContainer = document.querySelector(
-    ".q-tabs__content"
+  const tabsContainer = document.getElementById(
+    "categories-nav-sortable"
   ) as HTMLElement;
   if (tabsContainer && !tabsSortableInstance.value) {
     tabsSortableInstance.value = new Sortable(tabsContainer, {
       animation: 150,
-      handle: ".q-tab",
+      handle: ".nav-pill",
       fallbackOnBody: true,
       ghostClass: "sortable-ghost",
       chosenClass: "sortable-chosen",
       dragClass: "sortable-drag",
-
       forceFallback: false,
       fallbackTolerance: 3,
       touchStartThreshold: 5,
       delay: 100,
-
       delayOnTouchOnly: true,
-
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onEnd: (evt: any) => {
-        if (evt.oldIndex !== evt.newIndex) {
+      onEnd: (evt: SortableEvent) => {
+        pillDragged.value = true;
+        if (evt.oldIndex !== undefined && evt.newIndex !== undefined && evt.oldIndex !== evt.newIndex) {
           void updateCategoryOrder(evt.oldIndex, evt.newIndex);
         }
       },
@@ -589,7 +582,8 @@ const updateCategoryOrder = async (oldIndex: number, newIndex: number) => {
   }
 };
 
-// Items sortieren
+// ─── Items sortieren ───────────────────────────────────────────────────────
+
 const sortableInstances = ref<Record<string, Sortable>>({});
 const initializeSortable = () => {
   categories.value.forEach((category) => {
@@ -602,17 +596,13 @@ const initializeSortable = () => {
         ghostClass: "sortable-ghost",
         chosenClass: "sortable-chosen",
         dragClass: "sortable-drag",
-
         forceFallback: false,
         fallbackTolerance: 3,
         touchStartThreshold: 5,
         delay: 100,
-
         delayOnTouchOnly: true,
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onEnd: (evt: any) => {
-          if (evt.oldIndex !== evt.newIndex) {
+        onEnd: (evt: SortableEvent) => {
+          if (evt.oldIndex !== undefined && evt.newIndex !== undefined && evt.oldIndex !== evt.newIndex) {
             void updateItemOrder(
               category.id,
               category.name,
@@ -670,12 +660,73 @@ const bannerFile = ref<File | null>(null);
 const bannerPreview = ref<string>("");
 
 const uploadBannerImage = async (file: File): Promise<string> => {
-  const formData = new FormData();
-  formData.append("image", file, file.name);
+  // Bild clientseitig komprimieren
+  const compressImage = (f: File, maxSizeMB = 4.5): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(f);
+
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+
+        const MAX_DIM = 1920;
+        let { width, height } = img;
+
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIM) / width);
+            width = MAX_DIM;
+          } else {
+            width = Math.round((width * MAX_DIM) / height);
+            height = MAX_DIM;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let quality = 0.9;
+        const tryCompress = () => {
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) return reject(new Error("Canvas toBlob fehlgeschlagen"));
+
+              if (blob.size <= maxSizeMB * 1024 * 1024 || quality <= 0.3) {
+                resolve(
+                  new File([blob], f.name.replace(/\.[^.]+$/, ".jpg"), {
+                    type: "image/jpeg",
+                    lastModified: Date.now(),
+                  })
+                );
+              } else {
+                quality = Math.max(quality - 0.1, 0.3);
+                tryCompress();
+              }
+            },
+            "image/jpeg",
+            quality
+          );
+        };
+
+        tryCompress();
+      };
+
+      img.onerror = () => reject(new Error("Bild konnte nicht geladen werden"));
+      img.src = url;
+    });
+  };
 
   try {
     isUploading.value = true;
     uploadProgress.value = 0;
+
+    const fileToUpload = await compressImage(file);
+
+    const formData = new FormData();
+    formData.append("image", fileToUpload, fileToUpload.name);
 
     const response = await api.post("/api/uploads/images", formData, {
       headers: {
@@ -752,6 +803,7 @@ const isCategoryFormValid = computed(() => {
     !isUploading.value
   );
 });
+
 const onBannerFileChange = async (file: File | null) => {
   if (!file) {
     bannerPreview.value = "";
@@ -772,7 +824,6 @@ const onBannerFileChange = async (file: File | null) => {
     $q.notify({
       type: "positive",
       position: "top",
-
       message: "Bannerbild erfolgreich hochgeladen",
     });
   } catch (error) {
@@ -786,6 +837,94 @@ const onBannerFileChange = async (file: File | null) => {
     bannerPreview.value = "";
   }
 };
+
+// ─── NEU: Banner-Bild einer bestehenden Kategorie ändern ───────────────────
+
+/** Ref auf den versteckten <input type="file"> */
+const bannerEditInput = ref<HTMLInputElement | null>(null);
+
+/** Die Kategorie, deren Banner gerade geändert wird */
+const editingCategory = ref<Category | null>(null);
+
+/** ID der Kategorie, für die gerade ein Upload läuft (für Loading-State am Button) */
+const bannerEditLoadingId = ref<number | null>(null);
+
+/**
+ * Öffnet den Datei-Dialog für das Banner-Edit der übergebenen Kategorie.
+ */
+const triggerBannerEdit = (category: Category) => {
+  editingCategory.value = category;
+  bannerEditInput.value?.click();
+};
+
+/**
+ * Wird aufgerufen, sobald der User eine Datei im versteckten Input ausgewählt hat.
+ * Lädt das Bild hoch und aktualisiert die Kategorie via PUT.
+ */
+const onEditBannerFileChange = async (event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+
+  if (!file || !editingCategory.value) return;
+
+  const targetCategory = editingCategory.value;
+  bannerEditLoadingId.value = targetCategory.id;
+
+  try {
+    // 1. Bild hochladen
+    const newBannerUrl = await uploadBannerImage(file);
+
+    // 2. Kategorie per PUT aktualisieren
+    await api.put(`/api/category/${targetCategory.id}`, {
+      ...targetCategory,
+      bannerImage: newBannerUrl,
+    });
+
+    // 3. Altes Bild auf dem Server löschen (best-effort, Fehler werden nur geloggt)
+    if (targetCategory.bannerImage) {
+      const oldFileName = targetCategory.bannerImage.split("/").pop();
+      if (oldFileName) {
+        try {
+          await api.delete(`/api/uploads/images/${oldFileName}`);
+        } catch (imgError) {
+          console.warn("Altes Bannerbild konnte nicht gelöscht werden:", imgError);
+        }
+      }
+    }
+
+    // 4. Lokalen State aktualisieren
+    const cat = categories.value.find((c) => c.id === targetCategory.id);
+    if (cat) cat.bannerImage = newBannerUrl;
+
+    // 5. Audit-Log
+    await logAudit("update", "category", targetCategory.id, {
+      name: targetCategory.name,
+      username: currentUser,
+      bannerImage: newBannerUrl,
+      message: `Bannerbild der Kategorie "${targetCategory.name}" wurde geändert.`,
+    });
+
+    $q.notify({
+      type: "positive",
+      position: "top",
+      message: `Bannerbild für "${targetCategory.name}" erfolgreich aktualisiert`,
+    });
+  } catch (error) {
+    console.error("Fehler beim Aktualisieren des Bannerbildes:", error);
+    $q.notify({
+      type: "negative",
+      position: "top",
+      message: "Fehler beim Aktualisieren des Bannerbildes",
+    });
+  } finally {
+    bannerEditLoadingId.value = null;
+    editingCategory.value = null;
+    // Input zurücksetzen, damit dieselbe Datei erneut gewählt werden kann
+    input.value = "";
+  }
+};
+
+// ───────────────────────────────────────────────────────────────────────────
 
 const categoryItems = ref<Record<string, CategoryItem[]>>({});
 
@@ -1067,6 +1206,21 @@ const tab = ref("");
 const isUserScrolling = ref(false);
 const sectionRefs = ref<Record<string, HTMLElement>>({});
 
+// Verhindert dass ein Drag-Vorgang als Klick gewertet wird
+const pillDragged = ref(false);
+
+const onPillMouseDown = () => {
+  pillDragged.value = false;
+};
+
+const onPillClick = (category: Category) => {
+  if (pillDragged.value) {
+    pillDragged.value = false;
+    return;
+  }
+  onTabChange(category);
+};
+
 const setSectionRef = (
   categoryName: string,
   el: Element | ComponentPublicInstance | null
@@ -1076,7 +1230,8 @@ const setSectionRef = (
   }
 };
 
-const onTabChange = () => {
+const onTabChange = (category: Category) => {
+  tab.value = category.name;
   isUserScrolling.value = true;
 
   const headerOffset = 160;
@@ -1124,6 +1279,7 @@ onMounted(async () => {
 
   initializeSortable();
   initializeTabsSortable();
+
   observer = new IntersectionObserver(handleIntersection, {
     root: null,
     rootMargin: "0px",
@@ -1141,264 +1297,209 @@ onBeforeUnmount(() => {
       if (section) observer?.unobserve(section);
     });
   }
+  // Sortable-Instanzen aufräumen
+  if (tabsSortableInstance.value) {
+    tabsSortableInstance.value.destroy();
+    tabsSortableInstance.value = null;
+  }
+  Object.values(sortableInstances.value).forEach((instance) => {
+    instance.destroy();
+  });
+  sortableInstances.value = {};
 });
 </script>
 
 <style scoped>
-.q-tab {
-  cursor: grab;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
+  padding-top: 60px;
 }
 
-.q-tab:active {
-  cursor: grabbing;
+/* --- GLASS HEADER --- */
+.glass-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.sortable-ghost {
-  opacity: 0.5;
-  background-color: #f0f0f0;
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--q-secondary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--q-secondary);
 }
 
-.sortable-chosen {
-  transform: scale(1.02);
+.delivery-pill {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 12px;
+  color: white;
 }
 
-.sortable-drag {
-  transform: rotate(0deg);
-  opacity: 0.8;
+.admin-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 12px;
 }
-.drag-handle {
-  cursor: grab;
+
+/* --- NAV PILLS --- */
+.categories-nav {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  scrollbar-width: none;
+}
+.categories-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.nav-pill {
   display: flex;
   align-items: center;
-  margin-left: -10px;
-  margin-right: 10px;
-  touch-action: none;
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  color: #777;
+  font-weight: 600;
+  cursor: grab;
+  transition: 0.3s;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  font-size: 13px;
   user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  padding: 8px;
-  margin: -8px 2px -8px -18px;
+}
+.nav-pill:active {
+  cursor: grabbing;
+}
+.pill-drag-icon {
+  opacity: 0.3;
+  color: #aaa;
+}
+.pill-active {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: var(--q-secondary);
 }
 
+/* --- SCROLLABLE CONTENT --- */
+.content-scrollable {
+  padding-bottom: 60px;
+}
+
+/* --- CATEGORY HERO --- */
+.category-block {
+  margin-bottom: 50px;
+}
+
+.category-hero {
+  height: 220px;
+  margin-bottom: -40px;
+  border-radius: 0 0 40px 40px;
+  overflow: hidden;
+}
+.hero-img {
+  height: 100%;
+  width: 100%;
+}
+.hero-overlay {
+  background: linear-gradient(to bottom, transparent 20%, #050505 100%);
+}
+
+/* --- PREMIUM GLASS CARDS --- */
+.items-container {
+  padding-top: 50px;
+}
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 24px;
+  margin-bottom: 16px;
+  transition: transform 0.3s;
+}
+
+.card-inner {
+  display: flex;
+  padding: 16px;
+  gap: 12px;
+}
+
+.drag-handle {
+  cursor: grab;
+  opacity: 0.5;
+}
 .drag-handle:active {
   cursor: grabbing;
 }
 
-.drag-handle2 {
-  cursor: grab;
-  display: flex;
-  margin-left: -0.5px;
-  margin-right: 0.5px;
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
-
-.drag-handle2:active {
-  cursor: grabbing;
-}
-
-.sortable-container {
-  min-height: 50px;
-  touch-action: pan-y;
-}
-
-.sortable-item {
-  transition: transform 0.2s ease;
-  touch-action: none;
-}
-
-.bannerHeight {
-  height: 180px;
-}
-
-.tabsBorder {
-  position: sticky;
-  top: 0;
-  border: 1px ridge #ebebeb;
-}
-
-.sticky-tabs {
-  position: sticky;
-  top: 52px;
-  z-index: 5;
-  background-color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-.my-card {
-  background-color: rgb(230, 230, 230);
-  max-width: 100%;
-  padding: 0.5%;
-  text-align: center;
-  box-shadow: 1px 4px 0.2rem rgb(105, 105, 105);
-  border: 1px solid rgb(88, 88, 88);
-  overflow: hidden;
-  height: auto;
-}
-
-.card-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.card-section3 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  box-shadow: 2px 2px 0.4rem rgb(78, 78, 85);
-  background-color: rgb(255, 255, 255);
-  border: 1px solid rgb(119, 119, 119);
-}
-.imgGericht {
-  border-radius: 6px;
-  aspect-ratio: 1;
-  max-width: 80px;
-  width: 80px;
-  min-width: 80px;
-  height: auto;
-  box-shadow: 2px 3px 0.2rem rgb(56, 56, 56);
-  border: 1px solid rgb(204, 204, 204);
-}
-
-.text-container {
-  flex-grow: 1;
-  padding-left: 20px;
-  text-align: left;
+.card-body {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
-  width: 100%;
-  flex-shrink: 1;
-  min-height: 50px;
 }
-
-.description {
-  font-size: 0.9em;
-  color: #666;
-  margin-top: 10px;
-  text-overflow: ellipsis;
+.card-desc {
+  color: #888;
+  font-size: 13px;
+  line-height: 1.4;
+  margin: 6px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.input-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  float: right;
-  justify-content: space-between;
+.price-box {
+  margin-top: auto;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--q-secondary);
+}
+.currency {
+  font-size: 12px;
+  opacity: 0.6;
 }
 
-.background-img {
-  position: absolute;
-  top: 0;
-  left: 0;
+.card-media {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  flex-shrink: 0;
+}
+.item-img {
   width: 100%;
   height: 100%;
-  background-size: cover;
-  background-position: center;
-  filter: blur(8px);
-  opacity: 0.5;
-  z-index: -1;
-}
-.tab-section-name {
-  border: 1px solid;
-  box-shadow: 2px 2px 0.4rem rgb(0, 0, 0);
+  border-radius: 20px;
 }
 
-.selected-for-deletion {
-  border-color: #f44336 !important;
-  background-color: #ffebee !important;
-}
-.above {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: white;
+.add-btn-over {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  border: 4px solid #0a0a0a;
 }
 
-@media (max-width: 600px) {
-  .q-tab {
-    min-width: 80px;
-    padding: 8px 12px;
-  }
-  .drag-handle {
-    padding: 12px;
-    margin: -12px 2px -12px -22px;
-  }
+.sortable-ghost {
+  opacity: 0.3;
+  background: var(--q-secondary) !important;
+}
 
-  .drag-handle .q-icon {
-    font-size: 24px !important;
-  }
-  .bannerHeight {
-    height: 120px;
-  }
-  .text-container h6 {
-    font-size: 14px;
-    display: flex;
-    flex-direction: row;
-    margin: 0;
-    padding: 0;
-  }
-  .description {
-    font-size: 12px;
-    width: 98%;
-    text-overflow: ellipsis;
-    overflow: hidden;
-  }
-  .nowrap {
-    white-space: nowrap;
-  }
-  .my-card {
-    height: auto;
-  }
-  .imgGericht {
-    min-width: 60px;
-    margin-left: -10px;
-  }
-  .card-section {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    height: auto;
-    top: 0;
-  }
-  .card-section3 {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .preisText {
-    font-size: 12px;
-  }
-
-  .above {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: ROW;
-    height: 45px;
-  }
-
-  .banner {
-    max-height: 10px;
-  }
-  .bannerText {
-    font-size: 12px;
-  }
-  .bannerIcon {
-    font-size: 20px;
+@media (min-width: 800px) {
+  .items-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
   }
 }
 </style>

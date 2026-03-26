@@ -1,253 +1,249 @@
 <template>
-  <q-banner class="banner full-width text-accent">
-    <h6 class="bannerText">
-      <q-icon name="contacts" class="bannerIcon" />
-      Kontakt
-    </h6>
-  </q-banner>
-  <div class="above bg-white">
-    <q-separator color="accent" />
-    <h2 class="textOben text-h5 text-weight-thin text-center">
-      Ihr Anliegen...
-    </h2>
-    <q-separator class="separatorOben" size="15px" color="grey-6" />
-  </div>
-  <q-img class="background-img" />
-  <div class="row items-start">
-    <q-card bordered aquare class="my-card align-center q-mt-md">
-      <div class="q-gutter-y-md">
-        <q-card-section>
-          <h2 class="text-overline">Bitte füllen Sie das Formular aus</h2>
-          <q-separator class="q-mb-md" />
-          <q-input
-            class="q-mb-sm"
-            filled
-            v-model="vorname"
-            label="Vorname *"
-            stack-label
-            label-color="secondary"
-            placeholder="bitte den Namen eingeben..."
-            :dense="dense"
-            :rules="[(val) => !!val || 'Bitte Ausfüllen']"
-          >
-            <template v-slot:prepend>
-              <q-icon name="badge" />
-            </template>
-          </q-input>
-          <q-input
-            class="q-mb-sm"
-            filled
-            v-model="nachname"
-            label="Nachname *"
-            stack-label
-            label-color="secondary"
-            placeholder="bitte den Namen eingeben..."
-            :dense="dense"
-            :rules="[(val) => !!val || 'Bitte Ausfüllen']"
-          >
-            <template v-slot:prepend>
-              <q-icon name="badge" />
-            </template>
-          </q-input>
-          <q-input
-            label-slot
-            class="q-mb-sm"
-            filled
-            v-model="email"
-            label="E-Mail *"
-            stack-label
-            label-color="secondary"
-            placeholder="bitte die E-Mail-Adresse eingeben..."
-            :dense="dense"
-            :rules="[
-              (val) =>
-                (val && val.includes('@')) ||
-                'bitte eine gültige E-Mail-Adresse angeben.',
-            ]"
-          >
-            <template v-slot:prepend>
-              <q-icon name="email" />
-            </template>
-          </q-input>
-          <q-input
-            class="q-mb-sm"
-            filled
-            v-model="telefon"
-            label="Telefon/Handynr."
-            label-color="secondary"
-            stack-label
-            placeholder="bitte die Nummer eingeben..."
-            :dense="dense"
-            :rules="[
-              (val) =>
-                /^(\+?\d+)*$/.test(val) || 'Bitte eine gültige Nummer angeben',
-            ]"
-          >
-            <template v-slot:prepend>
-              <q-icon name="phone" />
-            </template>
-          </q-input>
-          <q-input
-            class="q-mb-sm"
-            filled
-            v-model="anliegen"
-            label="Anliegen"
-            label-color="secondary"
-            stack-label
-            placeholder="bitte schreiben Sie ihr Anliegen rein..."
-            :dense="dense"
-            type="textarea"
-            :rules="[(val) => !!val || 'Bitte Ausfüllen']"
-          >
-            <template v-slot:prepend>
-              <q-icon name="description" />
-            </template>
-          </q-input>
-          <q-btn
-            :size="$q.screen.lt.sm ? 'sm' : 'md'"
-            class="full-width"
-            ripple
-            square
-            color="secondary"
-            label="Absenden"
-            @click="sendKontaktToApi"
-          >
-            <q-icon name="email" class="icn" />
-          </q-btn>
-        </q-card-section>
+  <div class="app-container flex" style="justify-content: center;">
+    <!--
+    <div class="glass-header full-width fixed-top" style="z-index: 1;">
+      <div class="row justify-between items-center q-px-md q-py-md">
+        <div class="row items-center full-width">
+          <div class="logo-dot q-mr-sm"></div>
+          <span class="text-h6 text-white text-weight-bolder uppercase">KONTAKT</span>
+        </div>
       </div>
-    </q-card>
+    </div>
+    -->
+
+    <div class="content-wrapper q-px-md">
+      <div class="premium-glass-card q-mb-xl shadow-24">
+        <div class="card-inner">
+          
+          <div class="text-center q-mb-xl">
+            <div class="text-overline text-secondary text-weight-bold">IHR ANLIEGEN</div>
+            <div class="text-h4 text-white text-weight-bolder">Schreiben Sie uns</div>
+          </div>
+
+          <div class="q-gutter-y-sm">
+            <div class="row q-col-gutter-sm">
+              <div class="col-12 col-sm-6">
+                <q-input
+                  v-model="vorname"
+                  dark
+                  filled
+                  label="Vorname *"
+                  color="secondary"
+                  class="premium-input"
+                  :rules="[(val) => !!val || 'Pflichtfeld']"
+                >
+                  <template v-slot:prepend><q-icon name="badge" /></template>
+                </q-input>
+              </div>
+              <div class="col-12 col-sm-6">
+                <q-input
+                  v-model="nachname"
+                  dark
+                  filled
+                  label="Nachname *"
+                  color="secondary"
+                  class="premium-input"
+                  :rules="[(val) => !!val || 'Pflichtfeld']"
+                >
+                  <template v-slot:prepend><q-icon name="badge" /></template>
+                </q-input>
+              </div>
+            </div>
+
+            <q-input
+              v-model="email"
+              dark
+              filled
+              label="E-Mail-Adresse *"
+              color="secondary"
+              class="premium-input"
+              :rules="[(val) => (val && val.includes('@')) || 'Gültige E-Mail erforderlich']"
+            >
+              <template v-slot:prepend><q-icon name="email" /></template>
+            </q-input>
+
+            <q-input
+              v-model="telefon"
+              dark
+              filled
+              label="Telefonnummer"
+              color="secondary"
+              class="premium-input"
+              :rules="[(val) => !val || /^(\+?\d+)*$/.test(val) || 'Ungültiges Format']"
+            >
+              <template v-slot:prepend><q-icon name="phone" /></template>
+            </q-input>
+
+            <q-input
+              v-model="anliegen"
+              dark
+              filled
+              type="textarea"
+              label="Ihre Nachricht *"
+              color="secondary"
+              class="premium-input"
+              :rules="[(val) => !!val || 'Bitte formulieren Sie Ihr Anliegen']"
+            >
+              <template v-slot:prepend><q-icon name="description" /></template>
+            </q-input>
+
+            <q-btn
+              class="full-width q-mt-md send-button"
+              color="secondary"
+              label="Nachricht Absenden"
+              no-caps
+              size="lg"
+              @click="sendKontaktToApi"
+            >
+              <q-icon name="send" class="q-ml-sm" size="xs" />
+            </q-btn>
+          </div>
+
+          <q-separator dark class="q-mt-xl q-mb-sm full-width opacity-2" />
+          
+          <div class="text-overline text-grey-5 text-center">
+            Wir antworten Ihnen in der Regel innerhalb von 24h.
+          </div>
+        </div>
+      </div>
+
+      <div class="text-caption text-center q-mb-xl text-grey-5">
+        Unsere Auswahl entdecken? Zur 
+        <RouterLink class="text-secondary text-weight-bold no-decoration" to="/speisekarte">
+          Speisekarte
+        </RouterLink>
+      </div>
+    </div>
   </div>
-  <h5 class="text-caption text-center color-secondary">
-    Unsere Auswahl entdecken? zur
-    <RouterLink class="text-accent" to="/speisekarte">Speisekarte</RouterLink>
-  </h5>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
-import axios from "axios";
 import api from "src/boot/axios";
 
 const router = useRouter();
-
 const $q = useQuasar();
+
 const vorname = ref("");
 const nachname = ref("");
 const email = ref("");
 const telefon = ref("");
 const anliegen = ref("");
-const dense = ref(false);
 
 const sendKontaktToApi = async () => {
+  $q.loading.show();
   try {
     const kontaktData = {
       vorname: vorname.value,
       nachname: nachname.value,
       email: email.value,
-      telefon: telefon?.value,
+      telefon: telefon.value,
       anliegen: anliegen.value,
     };
 
-    const response = await api.post("/api/kontaktmail", kontaktData, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+    await api.post("/api/kontaktmail", kontaktData);
 
     $q.notify({
       message: "Nachricht erfolgreich gesendet!",
       icon: "check",
       color: "green",
       position: "top",
-      timeout: 400,
+      timeout: 2000,
     });
-
-    console.log(response.data);
+    
+    await router.push("/");
   } catch (error) {
     console.error("Fehler:", error);
-
-    let message = "Fehler beim Senden der Nachricht.";
-
-    if (axios.isAxiosError(error)) {
-      message =
-        error.response?.data?.message ||
-        `Fehler: ${error.response?.status} - ${error.message}`;
-    } else if (error instanceof Error) {
-      message = error.message;
-    }
-
     $q.notify({
-      message,
+      message: "Fehler beim Senden.",
       icon: "cancel",
       color: "red",
       position: "top",
-      timeout: 400,
     });
   } finally {
-    await router.push("/");
     $q.loading.hide();
   }
 };
 </script>
 
 <style scoped>
-.my-card {
-  min-width: 1200px;
-  max-width: 1200px;
-  box-shadow: 1px 1px 0.8rem rgb(53, 53, 53);
-  padding: 0.5%;
-  text-align: center;
-}
-.background-img {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* --- BASIS DESIGN (WIE CODE 1) --- */
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
   width: 100%;
-  height: 100%;
-  background-image: url("./images/kontakt.jpg");
-  background-size: cover;
-  background-position: center;
-  filter: blur(6px);
-  opacity: 0.5;
-  z-index: -1;
 }
-.icn {
-  font-size: 30px;
-  margin-left: 1%;
+
+.glass-header {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  top: 53px;
 }
-.bannerIcon {
-  size: 30px;
+
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--q-secondary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--q-secondary);
 }
+
+.content-wrapper {
+  width: 100%;
+  max-width: 600px; /* Einheitliche Breite */
+  padding-top: 80px;
+}
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+.card-inner {
+  padding: 40px 30px;
+}
+
+/* --- FORMULAR DESIGN --- */
+.premium-input :deep(.q-field__control) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.send-button {
+  border-radius: 12px;
+  font-weight: bold;
+  height: 55px;
+  box-shadow: 0 4px 15px rgba(var(--q-secondary), 0.3);
+}
+
+.no-decoration {
+  text-decoration: none;
+}
+
+.opacity-2 {
+  opacity: 0.1;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+/* --- MOBILE OPTIMIERUNG --- */
 @media (max-width: 600px) {
-  .above {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    height: 45px;
+  .card-inner {
+    padding: 30px 20px;
   }
-  .textOben {
-    font-size: 12px;
-  }
-  .separatorOben {
-    display: flex;
-    flex-direction: row;
-    top: 0;
-    max-height: 8px;
-  }
-  .banner {
-    max-height: 10px;
-  }
-  .bannerText {
-    font-size: 12px;
-  }
-  .bannerIcon {
-    font-size: 20px;
-  }
-  .my-card {
-    min-width: 95%;
+  .text-h4 {
+    font-size: 1.8rem;
   }
 }
 </style>

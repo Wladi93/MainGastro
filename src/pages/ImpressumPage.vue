@@ -1,100 +1,98 @@
 <template>
-  <q-banner class="banner full-width text-accent">
-    <h6 class="bannerText">
-      <q-icon class="bannerIcon" name="article" />
-      Impressum
-    </h6>
-  </q-banner>
-  <div class="above bg-white">
-    <q-separator color="accent" />
-
-    <h2 class="textOben text-h5 text-weight-thin text-center">
-      Unsere Daten...
-    </h2>
-
-    <q-separator class="separatorOben" size="15px" color="grey-6" />
-  </div>
-  <q-img class="background-img" />
-
-  <q-card class="my-card q-mt-lg" v-for="firma in firmenName" :key="firma.id">
-    <q-img
-      v-for="logos in logo.filter((item) => item.id === 5)"
-      :key="logos.id"
-      class="img"
-      :src="getFullImageUrl(logos.url)"
-    >
-      <div class="text text-subtitle2 absolute-top text-center">
-        <h6>Impressum</h6>
-        <q-separator inset class="q-mb-lg bg-grey-8" size="2px" />
-        <h6 class="text-body2 text-weight-bolder">Geschäftsführer</h6>
-        <h6 class="text-caption text-weight-medium">
-          {{ firma.geschaeftsführerName }}
-        </h6>
-        <h6 class="text-caption">{{ firma.strasse }} {{ firma.hausnummer }}</h6>
-        <h6 class="text-caption">{{ firma.plz }} {{ firma.ort }}</h6>
-        <h6 class="text-caption">Deutschland</h6>
-        <h6 class="text-caption text-weight-medium">
-          Telefon:
-          <a class="text-secondary" :href="'tel:' + firma.telefonnummer">
-            {{ firma.telefonnummer }}
-          </a>
-        </h6>
-
-        <h6 class="text-caption text-weight-medium">
-          E-Mail:
-          <a class="text-secondary" :href="'mailto:' + firma.email">{{
-            firma.email
-          }}</a>
-        </h6>
-        <q-separator
-          inset
-          class="separator bg-white q-mb-md q-mt-md"
-          width="10px"
-        />
-        <h6 class="text-caption">Kleingewerbe gemäß § 19 UStG.</h6>
-        <h6 class="text-caption">
-          Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:
-        </h6>
-        <h6 class="text-caption text-weight-medium">
-          {{ firma.geschaeftsführerName }}
-        </h6>
-        <h6 class="text-caption">{{ firma.strasse }} {{ firma.hausnummer }}</h6>
-        <h6 class="text-caption">{{ firma.plz }} {{ firma.ort }}</h6>
-        <h6 class="text-caption">Deutschland</h6>
-        <q-separator inset class="q-mt-lg q-mb-sm bg-grey-8" size="2px" />
-        <h6 class="text-overline">
-          Bei Fragen, bitte an den Geschäftsführer wenden.
-          <p></p>
-        </h6>
+  <div class="app-container flex" style="justify-content: center;">
+    <!--
+     <div class="glass-header full-width fixed-top" style="z-index: 1;">
+      <div class="row justify-between items-center q-px-md q-py-md">
+        <div class="row items-center full-width">
+          <div class="logo-dot q-mr-sm"></div>
+          <span class="text-h6 text-white text-weight-bolder">IMPRESSUM</span>
+        </div>
       </div>
-    </q-img>
-  </q-card>
+    </div>
+    -->
 
-  <div
-    style="
-      display: flex;
-      justify-content: center;
-      justify-items: center;
-      font-size: 16px;
-    "
-    class="text-caption q-mt-md"
-  >
-    <h5 class="text-caption text-center color-secondary">
-      Unsere Auswahl entdecken? zur
-      <RouterLink class="text-accent" to="/speisekarte">Speisekarte</RouterLink
-      >.
-    </h5>
+    <div class="content-wrapper q-px-md">
+      <div 
+        v-for="firma in firmenName" 
+        :key="firma.id" 
+        class="premium-glass-card q-mb-xl shadow-24"
+      >
+        <div class="card-inner column items-center">
+          
+          <div class="text-center q-mb-lg">
+            <div class="text-overline text-secondary text-weight-bold">RECHTLICHES</div>
+            <div class="text-h4 text-white text-weight-bolder">Unsere Daten</div>
+          </div>
+
+  
+
+          <div class="text-white text-center full-width q-gutter-y-sm">
+            <div class="text-h6 text-secondary text-weight-bold q-mt-md">Geschäftsführer</div>
+            <div class="text-body1">{{ firma.geschaeftsführerName }}</div>
+            
+            <q-separator dark class="q-my-sm opacity-2" />
+            
+            <div class="text-body2">
+              {{ firma.strasse }} {{ firma.hausnummer }}<br>
+              {{ firma.plz }} {{ firma.ort }}<br>
+              Deutschland
+            </div>
+
+            <q-separator dark class="q-my-sm opacity-2" />
+
+            <div class="row justify-center q-gutter-x-md">
+              <div class="column">
+                <span class="text-caption text-grey-5">Telefon</span>
+                <a class="text-secondary text-weight-bold no-decoration" :href="'tel:' + firma.telefonnummer">
+                  {{ firma.telefonnummer }}
+                </a>
+              </div>
+              <div class="column">
+                <span class="text-caption text-grey-5">E-Mail</span>
+                <a class="text-secondary text-weight-bold no-decoration" :href="'mailto:' + firma.email">
+                  {{ firma.email }}
+                </a>
+              </div>
+            </div>
+
+            <q-separator dark class="q-my-md opacity-2" />
+
+            <div class="text-caption text-grey-4 italic">
+              Kleingewerbe gemäß § 19 UStG.
+            </div>
+            
+            <div class="text-caption q-mt-md">
+              <span class="text-grey-5">Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:</span><br>
+              <span class="text-weight-bold">{{ firma.geschaeftsführerName }}</span>
+            </div>
+          </div>
+
+          <q-separator dark class="q-mt-xl q-mb-sm full-width opacity-2" />
+          
+          <div class="text-overline text-grey-5 text-center">
+            Bei Fragen, bitte an den Geschäftsführer wenden.
+          </div>
+        </div>
+      </div>
+
+      <div class="text-caption text-center q-mb-xl text-grey-5">
+        Unsere Auswahl entdecken? Zur 
+        <RouterLink class="text-secondary text-weight-bold no-decoration" to="/speisekarte">
+          Speisekarte
+        </RouterLink>
+      </div>
+    </div>
   </div>
+  <div class="background-overlay"></div>
 </template>
 
 <script setup lang="ts">
 import type { Firmenname } from "./types/SettingsFirmenNameType";
 import { onMounted, ref } from "vue";
 import api from "src/boot/axios";
-import { useLogo } from "../composables/LogoLoad";
 
 const firmenName = ref<Firmenname[]>([]);
-const { loadLogo, getFullImageUrl, logo } = useLogo();
+
 
 const loadFirmenName = async () => {
   try {
@@ -107,79 +105,75 @@ const loadFirmenName = async () => {
 
 onMounted(async () => {
   await loadFirmenName();
-  await loadLogo();
+
 });
 </script>
 
 <style scoped>
-.my-card {
-  box-shadow: 1px 1px 0.8rem rgb(53, 53, 53);
-  text-align: center;
-  width: 94%;
-}
-.background-img {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* --- BASIS DESIGN (IDENTISCH ZU CODE 1) --- */
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
   width: 100%;
-  height: 100%;
-  background-image: url("./images/impressum.jpg");
-  background-size: cover;
-  background-position: center;
-  filter: blur(8px);
-  opacity: 0.5;
-  z-index: -1;
 }
 
-.img {
-  max-width: 900px;
-  height: 1000px;
+.glass-header {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  top: 53px;
 }
 
-.text {
-  display: grid;
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--q-secondary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--q-secondary);
 }
-.separator {
-  margin-left: auto;
-  margin-right: auto;
+
+.content-wrapper {
+  width: 100%;
+  max-width: 600px; /* Etwas breiter für Textinhalte */
+  padding-top: 80px;
 }
-.abstand {
-  margin-bottom: 20px;
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
+  overflow: hidden;
 }
-.bannerIcon {
-  size: 30px;
+
+.card-inner {
+  padding: 40px 30px;
 }
+
+.no-decoration {
+  text-decoration: none;
+}
+
+.opacity-2 {
+  opacity: 0.1;
+}
+
+.italic {
+  font-style: italic;
+}
+
+
+
+/* --- MOBILE OPTIMIERUNG --- */
 @media (max-width: 600px) {
-  .above {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    height: 45px;
+  .card-inner {
+    padding: 30px 20px;
   }
-  .textOben {
-    font-size: 12px;
-  }
-  .separatorOben {
-    display: flex;
-    flex-direction: row;
-    top: 0;
-    max-height: 8px;
-  }
-  .banner {
-    max-height: 10px;
-  }
-  .bannerText {
-    font-size: 12px;
-  }
-  .bannerIcon {
-    font-size: 20px;
-  }
-  .my-card {
-    height: auto;
-  }
-  .img {
-    max-width: 900px;
-    height: 600px;
+  .text-h4 {
+    font-size: 1.8rem;
   }
 }
 </style>

@@ -1,109 +1,112 @@
 <template>
-  <div class="sticky-tabs">
-    <q-banner class="banner full-width text-accent">
-      <h6 class="bannerText">
-        <q-icon class="bannerIcon" name="login" />
-        Login
-      </h6>
-    </q-banner>
+  <div class="app-container flex" style="justify-content: center;">
+    <!--
+    <div class="glass-header full-width fixed-top" style="z-index: 1;">
+      <div class="row justify-between items-center q-px-md q-py-md">
+        <div class="row items-center full-width">
+          <div class="logo-dot q-mr-sm"></div>
+          <span class="text-h6 text-white text-weight-bolder">LOGIN</span>
+        </div>
+      </div>
+    </div>
+    -->
 
-    <div class="bg-white">
-      <q-separator color="accent" />
-      <h2 class="textOben text-h5 text-weight-thin text-center">
-        Login Daten...
-      </h2>
-      <q-separator size="15px" color="grey-6" class="separatorOben" />
+    <div class="content-wrapper q-px-md">
+      <div class="premium-glass-card login-card shadow-24">
+        <div class="card-inner column">
+          
+          <div class="text-center q-mb-lg">
+            <div class="text-overline text-secondary text-weight-bold">WILLKOMMEN ZURÜCK</div>
+            <div class="text-h4 text-white text-weight-bolder">Anmelden</div>
+          </div>
+
+          <q-form
+            @submit="loginCaptcha"
+            @reset="resetFormCpatcha"
+            class="q-gutter-y-md"
+          >
+            <q-input
+              v-model="Username"
+              label="Username"
+              class="search-glass custom-input"
+              dark
+              borderless
+              :rules="usernameRules"
+              lazy-rules
+              :disable="isLoading"
+              autocomplete="username"
+            >
+              <template v-slot:prepend>
+                <q-icon name="person" color="secondary" />
+              </template>
+            </q-input>
+
+            <q-input
+              v-model="Password"
+              label="Passwort"
+              class="search-glass custom-input"
+              dark
+              borderless
+              :type="isPwd ? 'password' : 'text'"
+              :rules="passwordRules"
+              lazy-rules
+              :disable="isLoading"
+              autocomplete="current-password"
+              @keyup.enter="loginCaptcha"
+            >
+              <template v-slot:prepend>
+                <q-icon name="lock" color="secondary" />
+              </template>
+              <template v-slot:append>
+                <q-icon
+                  :name="isPwd ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  color="grey-5"
+                  @click="isPwd = !isPwd"
+                />
+              </template>
+            </q-input>
+
+            <div class="recaptcha-wrapper q-mt-md">
+              <div ref="recaptchaElement" class="recaptcha"></div>
+            </div>
+
+            <div class="column q-gutter-y-sm q-mt-md">
+              <q-btn
+                type="submit"
+                label="Login"
+                color="secondary"
+                unelevated
+                class="premium-btn text-weight-bold"
+                :loading="isLoading"
+                :disable="isLoading"
+              />
+
+              <q-btn
+                type="reset"
+                label="zurücksetzen"
+                flat
+                color="grey-5"
+                class="text-weight-bold"
+                :disable="isLoading"
+              />
+            </div>
+          </q-form>
+
+          <div class="text-caption text-center q-mt-xl text-grey-5">
+            Noch keinen Account? 
+            <RouterLink class="text-secondary text-weight-bold no-decoration" to="/register">
+              Registrieren
+            </RouterLink>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-
-  <q-card class="background-img"></q-card>
-  <q-card class="my-card2">
-    <q-card-section>
-      <div class="text-subtitle text-center">Login</div>
-
-      <q-form
-        @submit="loginCaptcha"
-        @reset="resetFormCpatcha"
-        class="q-gutter-md"
-      >
-        <q-input
-          class="q-mt-md"
-          label="Username"
-          filled
-          v-model="Username"
-          hint="Bitte geben Sie Ihren Nutzernamen an."
-          :rules="usernameRules"
-          lazy-rules
-          :disable="isLoading"
-          autocomplete="username"
-        />
-
-        <q-input
-          class="q-mt-md"
-          v-model="Password"
-          filled
-          label="Passwort"
-          :type="isPwd ? 'password' : 'text'"
-          hint="Bitte geben Sie ihr Passwort ein."
-          :rules="passwordRules"
-          lazy-rules
-          :disable="isLoading"
-          autocomplete="current-password"
-          @keyup.enter="loginCaptcha"
-        >
-          <template v-slot:append>
-            <q-icon
-              :name="isPwd ? 'visibility_off' : 'visibility'"
-              class="cursor-pointer"
-              @click="isPwd = !isPwd"
-            />
-          </template>
-        </q-input>
-
-        <div
-          class="recaptcha-wrapper"
-          style="display: flex; justify-content: center; align-items: center"
-        >
-          <div
-            ref="recaptchaElement"
-            class="recaptcha q-mt-md justify-center items-center flex"
-          ></div>
-        </div>
-
-        <div
-          class="column"
-          style="display: flex; justify-content: center; align-items: center"
-        >
-          <q-btn
-            type="submit"
-            label="Login"
-            icon="login"
-            color="secondary"
-            class="q-mt-md full-width"
-            :loading="isLoading"
-            :disable="isLoading"
-          />
-
-          <q-btn
-            type="reset"
-            label="Zurücksetzen"
-            color="primary"
-            flat
-            class="full-width"
-            :disable="isLoading"
-          />
-        </div>
-      </q-form>
-
-      <div class="text-caption text-center q-mt-sm text-grey-6">
-        Noch keinen Account? Hier
-        <RouterLink class="text-accent" to="/register">Registrieren</RouterLink>
-      </div>
-    </q-card-section>
-  </q-card>
 </template>
 
 <script setup lang="ts">
+// ... (Script bleibt identisch zu deinem Code 2)
 import { nextTick, onMounted, ref } from "vue";
 import { useLogin } from "../components/login";
 
@@ -130,20 +133,13 @@ onMounted(async () => {
 
 const loadRecaptcha = (): Promise<void> => {
   return new Promise((resolve) => {
-    if (window.grecaptcha && window.grecaptcha.render) {
+    if (window.grecaptcha) {
       resolve();
       return;
     }
-
     const script = document.createElement("script");
-    script.src =
-      "https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit";
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).onRecaptchaLoad = () => {
-      resolve();
-    };
-
+    script.src = "https://www.google.com/recaptcha/api.js?onload=onRecaptchaLoad&render=explicit";
+    (window as unknown as { onRecaptchaLoad: () => void }).onRecaptchaLoad = () => { resolve(); };
     document.head.appendChild(script);
   });
 };
@@ -154,13 +150,9 @@ const renderRecaptcha = () => {
       recaptchaWidget = window.grecaptcha.render(recaptchaElement.value, {
         sitekey: "6Leua9ErAAAAABZ2GePLkIyZbJCiS_pb_8eryXZf",
         size: "normal",
-
-        callback: (token: string) => {
-          recaptchaToken.value = token;
-        },
-        "expired-callback": () => {
-          recaptchaToken.value = "";
-        },
+        theme: "dark", // Passend zum neuen Design
+        callback: (token: string) => { recaptchaToken.value = token; },
+        "expired-callback": () => { recaptchaToken.value = ""; },
       });
     } catch (error) {
       console.error("Fehler beim Rendern des reCAPTCHA:", error);
@@ -169,11 +161,7 @@ const renderRecaptcha = () => {
 };
 
 const loginCaptcha = async () => {
-  if (!recaptchaToken.value) {
-    console.error("Bitte reCAPTCHA bestätigen");
-    return;
-  }
-
+  if (!recaptchaToken.value) return;
   await login(recaptchaToken.value);
 };
 
@@ -186,85 +174,110 @@ const resetFormCpatcha = () => {
 };
 
 declare global {
-  interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    grecaptcha: any;
+  interface Window { 
+    grecaptcha: {
+      render: (element: HTMLElement, options: {
+        sitekey: string;
+        size: string;
+        theme: string;
+        callback: (token: string) => void;
+        'expired-callback': () => void;
+      }) => number;
+      reset: (widgetId: number) => void;
+    };
   }
 }
 </script>
 
-<style>
-.recaptcha-wrapper {
-  display: flex;
-  justify-content: center;
+<style scoped>
+/* --- BASIS DESIGN AUS CODE 1 --- */
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
   width: 100%;
-  min-width: 304px;
+  
+}
+
+
+.glass-header {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: none;
+  top: 53px;
+}
+
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--q-secondary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--q-secondary);
+}
+
+/* --- LOGIN CARD STYLING --- */
+.content-wrapper {
+  width: 100%;
+  max-width: 600px;
+  padding-top: 80px;
+  
+}
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
   overflow: hidden;
 }
 
-.recaptcha {
-  width: 304px;
-  height: 78px;
-}
-.background-img {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-image: url("./images/uhr.jpg");
-  background-size: cover;
-  background-position: center;
-  filter: blur(8px);
-  opacity: 0.5;
-  z-index: -1;
-}
-.my-card2 {
-  margin-top: 1.7%;
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 900px;
-  width: 98%;
-  box-shadow: 1px 1px 0.6rem rgb(0, 0, 0);
-  border: 2px solid;
-  border-color: #6e6e6e;
-  max-height: auto;
-  margin-bottom: 40px;
-}
-.bannerIcon {
-  size: 30px;
+.card-inner {
+  padding: 40px 30px;
 }
 
+/* --- INPUT STYLING --- */
+.search-glass {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 15px !important;
+  padding: 5px 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.search-glass:focus-within {
+  border-color: var(--q-secondary);
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.premium-btn {
+  height: 55px;
+  border-radius: 15px;
+  font-size: 16px;
+  box-shadow: 0 4px 15px rgba(var(--q-secondary), 0.3);
+}
+
+/* --- RECAPTCHA --- */
+.recaptcha-wrapper {
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.no-decoration {
+  text-decoration: none;
+}
+
+/* --- MOBILE OPTIMIERUNG --- */
 @media (max-width: 600px) {
-  .recaptcha {
-    scale: 1;
+  .card-inner {
+    padding: 30px 20px;
   }
-  .my-card2 {
-    padding: 0;
-    margin-bottom: 0;
-  }
-  .banner {
-    max-height: 10px;
-  }
-  .bannerText {
-    font-size: 12px;
-  }
-  .bannerIcon {
-    font-size: 20px;
-  }
-  .above {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-  }
-  .textOben {
-    font-size: 12px;
-  }
-  .separatorOben {
-    display: flex;
-    flex-direction: row;
-    top: 0;
-    max-height: 8px;
+  .text-h4 {
+    font-size: 1.8rem;
   }
 }
 </style>

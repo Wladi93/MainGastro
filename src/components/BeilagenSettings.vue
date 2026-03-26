@@ -1,126 +1,146 @@
 <template>
-  <q-list>
-    <q-item-label class="q-mb-sm" caption>Beilagen hinzufügen:</q-item-label>
-    <q-input
-      label="bitte Name eingeben"
-      filled
-      v-model="beilage"
-      @keyup.enter="postBeilage()"
-    />
-    <q-btn
-      :disable="beilage.length == 0"
-      label="speichern"
-      icon="save"
-      color="secondary"
-      class="full-width q-mt-sm"
-      @click="postBeilage()"
-    />
+  <div class="app-container flex justify-center">
+    <div class="content-wrapper q-px-md">
+      <div class="premium-glass-card shadow-24 q-mb-xl">
+        <div class="card-inner">
+          
+          <div class="text-center q-mb-xl">
+            <div class="text-overline text-secondary text-weight-bold tracking-widest">KÜCHE</div>
+            <div class="text-h5 text-white text-weight-light uppercase">Beilagen & Saucen</div>
+          </div>
 
-    <q-expansion-item
-      class="q-mt-sm text-grey"
-      icon="list"
-      label="angelegte Beilagen"
-      header-class="bg-grey-3"
-    >
-      <div class="q-mt-md">
-        <q-list v-for="beilageName in beilageName" :key="beilageName.id">
-          <q-chip class="q-ml-md" dense color="info">
-            {{ beilageName.beilageName }}
-            <q-btn
-              dense
-              round
-              flat
-              size="xs"
-              icon="close"
-              color="grey"
-              @click.stop="deleteBeilage(beilageName.id)"
+          <q-list>
+            <q-item-label class="q-mb-sm text-grey-5 uppercase tracking-wider" caption>Beilagen hinzufügen:</q-item-label>
+            <q-input
+              label="bitte Name eingeben"
+              dark filled
+              v-model="beilage"
+              class="premium-input"
+              @keyup.enter="postBeilage()"
             />
-          </q-chip>
-        </q-list>
-      </div>
-    </q-expansion-item>
-
-    <q-separator class="q-my-md" />
-
-    <q-item-label class="q-mb-sm" caption>Preise Beilagen:</q-item-label>
-
-    <q-input prefix="€" filled label="Preis für Klein:" v-model="preisKlein" />
-
-    <q-input
-      class="q-mt-sm"
-      filled
-      label="Preis für Mittel:"
-      v-model="preisMittel"
-      prefix="€"
-    />
-
-    <q-input
-      prefix="€"
-      class="q-mt-sm"
-      filled
-      label="Preis für Groß:"
-      v-model="preisGross"
-    />
-
-    <q-input
-      prefix="€"
-      class="q-mt-sm"
-      filled
-      label="Preis für Familie:"
-      v-model="preisFamilie"
-    />
-
-    <q-separator inset class="q-my-md" />
-
-    <q-item-label class="q-mb-sm" caption>Saucen hinzufügen:</q-item-label>
-
-    <q-input
-      label="bitte Name eingeben"
-      filled
-      v-model="sauce"
-      @keyup.enter="postSauce()"
-    />
-    <q-btn
-      :disable="sauce.length == 0"
-      label="speichern"
-      icon="save"
-      color="secondary"
-      class="full-width q-mt-sm"
-      @click="postSauce()"
-    />
-
-    <q-expansion-item
-      class="q-mt-sm text-grey"
-      icon="list"
-      label="angelegte Saucen"
-      header-class="bg-grey-3"
-    >
-      <div class="q-mt-md">
-        <q-list v-for="sauce in saucenName" :key="sauce.id">
-          <q-chip class="q-ml-md" dense color="info">
-            {{ sauce.name }}
             <q-btn
-              dense
-              round
-              flat
-              size="xs"
-              icon="close"
-              color="grey"
-              @click.stop="deleteSauce(sauce.id)"
+              :disable="beilage.length == 0"
+              label="speichern"
+              icon="save"
+              color="secondary"
+              class="luxury-btn full-width q-mt-sm"
+              @click="postBeilage()"
             />
-          </q-chip>
-        </q-list>
-      </div>
-    </q-expansion-item>
 
-    <q-btn
-      @click="updateBeilagenPreise()"
-      color="secondary"
-      label="speichern"
-      icon="save"
-      class="full-width q-mt-sm"
-    />
-  </q-list>
+            <q-expansion-item
+              class="q-mt-sm premium-expansion"
+              icon="list"
+              label="angelegte Beilagen"
+              header-class="text-white"
+            >
+              <div class="q-mt-md q-pa-sm">
+                <q-list v-for="beilageNamen in beilageName" :key="beilageNamen.id">
+                  <q-chip class="q-ml-md premium-chip" dense outline color="secondary">
+                    {{ beilageNamen.beilageName }}
+                    <q-btn
+                      dense
+                      round
+                      flat
+                      size="xs"
+                      icon="close"
+                      color="grey"
+                      @click.stop="deleteBeilage(beilageNamen.id)"
+                    />
+                  </q-chip>
+                </q-list>
+              </div>
+            </q-expansion-item>
+
+            <q-separator dark class="q-my-md opacity-10" />
+
+            <q-item-label class="q-mb-sm text-grey-5 uppercase tracking-wider" caption>Saucen hinzufügen:</q-item-label>
+
+            <q-input
+              label="bitte Name eingeben"
+              dark filled
+              v-model="sauce"
+              class="premium-input"
+              @keyup.enter="postSauce()"
+            />
+            <q-btn
+              :disable="sauce.length == 0"
+              label="speichern"
+              icon="save"
+              color="secondary"
+              class="luxury-btn full-width q-mt-sm"
+              @click="postSauce()"
+            />
+
+            <q-expansion-item
+              class="q-mt-sm premium-expansion"
+              icon="list"
+              label="angelegte Saucen"
+              header-class="text-white"
+            >
+              <div class="q-mt-md q-pa-sm">
+                <q-list v-for="sauce in saucenName" :key="sauce.id">
+                  <q-chip class="q-ml-md premium-chip" dense outline>
+                    {{ sauce.name }}
+                    <q-btn
+                      dense
+                      round
+                      flat
+                      size="xs"
+                      icon="close"
+                      color="grey"
+                      @click.stop="deleteSauce(sauce.id)"
+                    />
+                  </q-chip>
+                </q-list>
+              </div>
+            </q-expansion-item>
+
+        
+          </q-list>
+
+                <q-separator dark class="q-my-md opacity-10" />
+
+            <q-item-label class="q-mb-sm text-grey-5 uppercase tracking-wider" caption>Preise Beilagen:</q-item-label>
+
+            <q-input prefix="€" dark filled label="Preis für Klein:" v-model="preisKlein" class="premium-input" />
+
+            <q-input
+              class="q-mt-sm premium-input"
+              dark filled
+              label="Preis für Mittel:"
+              v-model="preisMittel"
+              prefix="€"
+            />
+
+            <q-input
+              prefix="€"
+              class="q-mt-sm premium-input"
+              dark filled
+              label="Preis für Groß:"
+              v-model="preisGross"
+            />
+
+            <q-input
+              prefix="€"
+              class="q-mt-sm premium-input"
+              dark filled
+              label="Preis für Familie:"
+              v-model="preisFamilie"
+            />
+
+          <q-btn
+              @click="updateBeilagenPreise()"
+              color="secondary"
+              label="speichern"
+              icon="save"
+              class="luxury-btn full-width q-mt-md"
+            />
+
+            
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -199,7 +219,6 @@ async function loadBeilagen() {
   try {
     const response = await api.get("/api/beilagen/beilagenname");
     beilageName.value = response.data;
-
     const responsePreise = await api.get("/api/beilagen/beilagenpreise");
     beilagenPreise.value = responsePreise.data;
   } catch (error) {
@@ -219,22 +238,16 @@ async function loadSaucen() {
 const postBeilage = async () => {
   try {
     const newBeilage = { beilageName: beilage.value };
-
-    if (beilage.value.length == 0) {
-      return;
-    }
+    if (beilage.value.length == 0) return;
     await api.post(`/api/beilagen/beilagenname`, newBeilage);
     beilage.value = "";
     await loadBeilagen();
-
     Notify.create({
       message: "Daten erfolgreich gespeichert...",
       position: "top",
       color: "positive",
       icon: "check",
     });
-
-    beilage.value = "";
   } catch (error) {
     console.error("Fehler beim Aktualisieren der Kontakt-Daten", error);
     Notify.create({
@@ -249,10 +262,7 @@ const postBeilage = async () => {
 const postSauce = async () => {
   try {
     const newSauce = { name: sauce.value };
-
-    if (sauce.value.length == 0) {
-      return;
-    }
+    if (sauce.value.length == 0) return;
     await api.post("/api/saucen", newSauce);
     sauce.value = "";
     await loadSaucen();
@@ -276,11 +286,7 @@ const updateBeilagenPreise = async () => {
     familiepreis: beilagenPreise.value[0]!.familiepreis,
   };
   try {
-    await api.put(
-      `/api/beilagen/beilagenpreise/${beilagenPreis.id}`,
-      beilagenPreis
-    );
-
+    await api.put(`/api/beilagen/beilagenpreise/${beilagenPreis.id}`, beilagenPreis);
     Notify.create({
       message: "Daten erfolgreich gespeichert...",
       position: "top",
@@ -302,7 +308,6 @@ const deleteBeilage = async (id: number) => {
   try {
     await api.delete(`/api/beilagen/beilagenname/${id}`);
     await loadBeilagen();
-
     Notify.create({
       message: "Beilage erfolgreich gelöscht",
       position: "top",
@@ -318,7 +323,6 @@ const deleteSauce = async (id: number) => {
   try {
     await api.delete(`/api/saucen/${id}`);
     await loadSaucen();
-
     Notify.create({
       message: "Sauce erfolgreich gelöscht",
       position: "top",
@@ -341,3 +345,65 @@ onMounted(async () => {
   await loadSaucen();
 });
 </script>
+
+<style scoped>
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
+  width: 100%;
+  margin-top: -70px;
+}
+
+.content-wrapper {
+  width: 100%;
+  max-width: 800px;
+  padding-top: 40px;
+  padding-bottom: 60px;
+}
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+.card-inner {
+  padding: 40px 30px;
+}
+
+.premium-input :deep(.q-field__control) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.luxury-btn {
+  border-radius: 12px;
+  font-weight: bold;
+  height: 55px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.premium-expansion {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+}
+
+.premium-chip {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.534);
+  color: white !important;
+}
+
+.tracking-widest { letter-spacing: 3px; }
+.tracking-wider { letter-spacing: 1.5px; }
+.uppercase { text-transform: uppercase; }
+.opacity-10 { opacity: 0.6; }
+
+@media (max-width: 600px) {
+  .card-inner { padding: 30px 20px; }
+}
+</style>

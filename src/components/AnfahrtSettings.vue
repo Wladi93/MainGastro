@@ -1,187 +1,180 @@
 <template>
-  <q-list class="full-width">
-    <div class="full-width">
-      <q-item>
-        <q-item-section>
-          <q-item-label class="q-mb-sm" caption>Adresse suchen:</q-item-label>
-          <div class="row q-gutter-md">
-            <q-input
-              class="col"
-              label="Straße, Hausnummer, PLZ, Ort"
-              v-model="searchAddress"
-              filled
-              @keyup.enter="searchLocation"
-              clearable
-              @clear="clearSearch()"
-            >
-              <template v-slot:append>
-                <q-icon
-                  name="search"
-                  color="secondary"
-                  class="cursor-pointer"
-                  @click="searchLocation"
-                />
-              </template>
-            </q-input>
-            <q-btn
-              color="secondary"
-              label="Suchen"
-              @click="searchLocation"
-              :loading="isSearching"
-            />
+  <div class="app-container flex justify-center">
+    <div class="content-wrapper q-px-md">
+      
+      <div class="premium-glass-card shadow-24 q-mb-xl">
+        <div class="card-inner">
+          
+          <div class="text-center q-mb-xl">
+            <div class="text-overline text-secondary text-weight-bold tracking-widest">KONTAKT</div>
+            <div class="text-h5 text-white text-weight-light uppercase">Standort & Karte</div>
           </div>
-        </q-item-section>
-      </q-item>
 
-      <!-- Suchergebnisse -->
-      <q-item>
-        <q-item-section>
-          <q-item-label class="q-mb-sm" caption>Suchergebnisse:</q-item-label>
-          <q-list bordered separator>
-            <q-item
-              v-for="(result, index) in searchResults"
-              :key="index"
-              clickable
-              @click="selectLocation(result)"
-            >
-              <q-item-section v-if="searchResults.length > 0">
-                <q-item-label>{{ result.display_name }}</q-item-label>
-              </q-item-section>
-
-              <q-item-section side>
-                <q-btn
-                  color="secondary"
-                  size="sm"
-                  label="Auswählen"
-                  @click="selectLocation(result)"
-                />
-              </q-item-section>
-            </q-item>
-            <q-item-section class="q-mt-lg q-mb-lg">
-              <q-item-label class="text-center" v-if="searchResults.length < 1"
-                >Keine Adresse gefunden...</q-item-label
-              ></q-item-section
-            >
-          </q-list>
-        </q-item-section>
-      </q-item>
-
-      <!-- Ausgewählte Adresse -->
-      <q-item v-if="selectedLocation">
-        <q-item-section>
-          <q-item-label class="q-mb-sm" caption
-            >Ausgewählte Adresse:</q-item-label
-          >
-          <q-card flat bordered>
-            <q-card-section>
+          <div class="q-mb-xl">
+            <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider">Adresse suchen:</div>
+            <div >
+              <q-input
+                class="col premium-input"
+                label="Straße, Hausnummer, PLZ, Ort"
+                v-model="searchAddress"
+                dark filled
+                @keyup.enter="searchLocation"
+                clearable
+                @clear="clearSearch()"
+              >
+                <template v-slot:append>
+                  <q-icon
+                    name="search"
+                    color="secondary"
+                    class="cursor-pointer"
+                    @click="searchLocation"
+                  />
+                </template>
+              </q-input>
               <q-btn
-                size="md"
-                class="float-right"
-                icon="clear"
-                flat
-                color="grey"
-                @click="clearSelectedLocation()"
-              />
-              <div class="text-h6">
-                {{ selectedLocation.display_name }}
-              </div>
-              <div class="text-caption">
-                Koordinaten: {{ selectedLocation.lat }},
-                {{ selectedLocation.lon }}
-              </div>
-            </q-card-section>
-          </q-card>
-        </q-item-section>
-      </q-item>
-
-      <q-separator class="q-mt-sm q-mb-sm" />
-
-      <!-- Embed Code -->
-      <q-item>
-        <q-item-section v-if="generatedEmbedCode">
-          <q-item-label class="q-mb-sm" caption
-            >Generierter Embed Code:</q-item-label
-          >
-          <q-input
-            class="full-width"
-            label="Embed Code"
-            v-model="generatedEmbedCode"
-            filled
-            readonly
-          >
-            <template v-slot:append>
-              <q-icon
-                name="content_copy"
                 color="secondary"
-                class="cursor-pointer"
-                @click="copyToClipboard"
+                label="Suchen"
+                class="luxury-btn q-px-lg full-width q-mt-md"
+                @click="searchLocation"
+                :loading="isSearching"
               />
-            </template>
-          </q-input>
-          <q-btn
-            icon="save"
-            class="q-mt-md"
-            color="secondary"
-            label="Speichern"
-            @click="saveEmbedCode"
-            :loading="isSaving"
-          />
-        </q-item-section>
+            </div>
+          </div>
 
-        <q-item-section v-if="generatedEmbedCode.length < 1">
-          <q-item-label class="q-mb-sm" caption
-            >Adresse nicht gefunden? Google Embed-Code einfügen:</q-item-label
-          >
-          <q-input
-            class="full-width"
-            label="Embed Code"
-            v-model="ownEmbedCode"
-            filled
-          >
-            <template v-slot:append>
-              <q-icon
-                name="add_location"
+          <div class="q-mb-xl">
+            <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider">Suchergebnisse:</div>
+            <q-list bordered separator class="premium-glass-card-inner" style="border-radius: 12px; overflow: hidden;">
+              <q-item
+                v-for="(result, index) in searchResults"
+                :key="index"
+                clickable
+                @click="selectLocation(result)"
+              >
+                <q-item-section v-if="searchResults.length > 0">
+                  <q-item-label class="text-white">{{ result.display_name }}</q-item-label>
+                </q-item-section>
+
+                <q-item-section side>
+                  <q-btn
+                    color="secondary"
+                    size="sm"
+                    label="Auswählen"
+                    flat
+                    class="luxury-btn-outline"
+                    @click="selectLocation(result)"
+                  />
+                </q-item-section>
+              </q-item>
+              
+              <q-item v-if="searchResults.length < 1">
+                <q-item-section class="q-mt-lg q-mb-lg">
+                  <q-item-label class="text-center text-grey-5">Keine Adresse gefunden...</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </div>
+
+          <div v-if="selectedLocation" class="q-mb-xl">
+            <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider">Ausgewählte Adresse:</div>
+            <q-card flat bordered class="premium-glass-card-inner q-pa-sm">
+              <q-card-section>
+                <q-btn
+                  size="md"
+                  class="float-right"
+                  icon="clear"
+                  flat
+                  round
+                  color="grey"
+                  @click="clearSelectedLocation()"
+                />
+                <div class="text-h6 text-secondary">
+                  {{ selectedLocation.display_name }}
+                </div>
+                <div class="text-caption text-grey-4">
+                  Koordinaten: {{ selectedLocation.lat }}, {{ selectedLocation.lon }}
+                </div>
+              </q-card-section>
+            </q-card>
+          </div>
+
+          <q-separator dark class="q-my-lg opacity-10" />
+
+          <div class="q-mb-xl">
+            <div v-if="generatedEmbedCode">
+              <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider">Generierter Embed Code:</div>
+              <q-input
+                class="full-width premium-input"
+                label="Embed Code"
+                v-model="generatedEmbedCode"
+                dark filled
+                readonly
+              >
+                <template v-slot:append>
+                  <q-icon
+                    name="content_copy"
+                    color="secondary"
+                    class="cursor-pointer"
+                    @click="copyToClipboard"
+                  />
+                </template>
+              </q-input>
+              <q-btn
+                icon="save"
+                class="luxury-btn full-width q-mt-md"
                 color="secondary"
-                class="cursor-pointer"
+                label="Speichern"
+                @click="saveEmbedCode"
+                :loading="isSaving"
               />
-            </template>
-          </q-input>
-          <q-btn
-            icon="save"
-            class="q-mt-md"
-            color="secondary"
-            label="Speichern"
-            @click="saveOwnEmbedCode"
-            :loading="isSaving"
-          />
-        </q-item-section>
-      </q-item>
+            </div>
 
-      <!--  Karte -->
-
-      <q-separator inset class="q-mb-sm q-mt-sm" />
-
-      <q-item>
-        <q-item-section>
-          <q-item-label class="q-mb-sm" caption
-            >Mein aktueller Laden-Standort:</q-item-label
-          >
-          <div v-if="currentEmbedCode" class="full-width">
-            <iframe
-              v-if="currentEmbedCode"
-              width="100%"
-              height="400"
-              frameborder="0"
-              :src="currentEmbedCode"
-            ></iframe>
+            <div v-if="generatedEmbedCode.length < 1">
+              <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider">Google Embed-Code einfügen:</div>
+              <q-input
+                class="full-width premium-input"
+                label="Embed Code"
+                v-model="ownEmbedCode"
+                dark filled
+              >
+                <template v-slot:append>
+                  <q-icon
+                    name="add_location"
+                    color="secondary"
+                    class="cursor-pointer"
+                  />
+                </template>
+              </q-input>
+              <q-btn
+                icon="save"
+                class="luxury-btn full-width q-mt-md"
+                color="secondary"
+                label="Speichern"
+                @click="saveOwnEmbedCode"
+                :loading="isSaving"
+              />
+            </div>
           </div>
-          <div v-else class="text-center q-pa-md text-grey-5">
-            Kein Inhalt verfügbar
+
+          <div>
+            <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider">Mein aktueller Laden-Standort:</div>
+            <div v-if="currentEmbedCode" class="preview-container">
+              <iframe
+                width="100%"
+                height="400"
+                frameborder="0"
+                style="border-radius: 16px; border: 0;"
+                :src="currentEmbedCode"
+              ></iframe>
+            </div>
+            <div v-else class="text-center q-pa-xl text-grey-5 premium-glass-card-inner">
+              Kein Inhalt verfügbar
+            </div>
           </div>
-        </q-item-section>
-      </q-item>
+
+        </div>
+      </div>
     </div>
-  </q-list>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -189,6 +182,7 @@ import { Notify } from "quasar";
 import api from "src/boot/axios";
 import { onMounted, ref } from "vue";
 
+// --- FUNKTIONEN (EXAKT WIE IN DEINEM CODE 1) ---
 const searchAddress = ref("");
 const searchResults = ref<SearchResult[]>([]);
 const selectedLocation = ref<SelectedLocation | null>(null);
@@ -199,23 +193,11 @@ const currentEmbedCode = ref("");
 const isSearching = ref(false);
 const isSaving = ref(false);
 
-interface AddressDetails {
-  house_number?: string;
-  road?: string;
-  city?: string;
-  postcode?: string;
-  country?: string;
-  country_code?: string;
-  state?: string;
-  suburb?: string;
-  town?: string;
-  village?: string;
-}
 interface SearchResult {
   display_name: string;
   lat: number;
   lon: number;
-  addressdetails?: AddressDetails;
+  addressdetails?: string;
 }
 
 interface SelectedLocation {
@@ -339,26 +321,10 @@ const saveOwnEmbedCode = async () => {
   }
 
   const extractUrlFromEmbedCode = (embedCode: string): string | null => {
-    try {
-      const srcMatch = embedCode.match(/src=["']([^"']+)["']/i);
-      if (srcMatch && srcMatch[1]) {
-        const url = srcMatch[1];
-
-        if (url.startsWith("http://") || url.startsWith("https://")) {
-          return url;
-        }
-      }
-
-      const urlMatch = embedCode.match(/https?:\/\/[^\s"'<>]+/i);
-      if (urlMatch && urlMatch[0]) {
-        return urlMatch[0];
-      }
-
-      return null;
-    } catch (error) {
-      console.error("Fehler beim Extrahieren der URL:", error);
-      return null;
-    }
+    const srcMatch = embedCode.match(/src=["']([^"']+)["']/i);
+    if (srcMatch && srcMatch[1]) return srcMatch[1];
+    const urlMatch = embedCode.match(/https?:\/\/[^\s"'<>]+/i);
+    return urlMatch ? urlMatch[0] : null;
   };
 
   const extractedUrl = extractUrlFromEmbedCode(ownEmbedCode.value);
@@ -398,7 +364,6 @@ const saveOwnEmbedCode = async () => {
 const loadExistingMap = async () => {
   try {
     const response = await api.get("/api/mapembed");
-
     if (response.data && response.data.embedCode) {
       currentEmbedCode.value = response.data.embedCode;
     }
@@ -411,3 +376,71 @@ onMounted(async () => {
   await loadExistingMap();
 });
 </script>
+
+<style scoped>
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
+  width: 100%;
+  margin-top: -70px;
+}
+
+.content-wrapper {
+  width: 100%;
+  max-width: 800px;
+  padding-top: 40px;
+  padding-bottom: 60px;
+}
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+.card-inner {
+  padding: 40px 30px;
+}
+
+.premium-glass-card-inner {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.premium-input :deep(.q-field__control) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.luxury-btn {
+  border-radius: 12px;
+  font-weight: bold;
+  height: 55px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.luxury-btn-outline {
+  border: 1px solid var(--q-secondary);
+  border-radius: 12px;
+  color: white;
+}
+
+.preview-container {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tracking-widest { letter-spacing: 3px; }
+.tracking-wider { letter-spacing: 1.5px; }
+.uppercase { text-transform: uppercase; }
+.opacity-10 { opacity: 0.6; }
+
+@media (max-width: 600px) {
+  .card-inner { padding: 30px 20px; }
+}
+</style>

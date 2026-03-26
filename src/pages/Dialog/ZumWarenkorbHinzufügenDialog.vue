@@ -1,222 +1,156 @@
 <template>
-  <q-dialog v-model="isOpen">
-    <q-card class="full-width">
-      <q-list v-if="selectedItem">
-        <q-item>
-          <q-item-section class="flex items-center">
-            <q-item-label caption> Artikel</q-item-label>
-          </q-item-section>
-          <q-separator></q-separator>
-        </q-item>
-        <q-item class="full-width">
-          <q-card class="full-width flex row q-pa-sm">
-            <q-img
-              spinner-color="white"
-              :src="getFullImageUrl(selectedItem.img)"
-              :alt="selectedItem.name"
-              style="
-                border-radius: 6px;
-                aspect-ratio: 1;
-                max-width: 80px;
-                width: 80px;
-                min-width: 80px;
-                height: auto;
-                box-shadow: 2px 3px 0.2rem rgb(56, 56, 56);
-                border: 1px solid;
-                border-color: rgb(204, 204, 204);
-              "
-              class="q-mr-md"
-            />
-            <q-item-section>
-              <q-item-label> {{ selectedItem.name }}</q-item-label>
+  <q-dialog v-model="isOpen" backdrop-filter="blur(10px)" persistent>
+    <q-card class="premium-glass-card shadow-24 flex column no-wrap" style="min-width: 90vw; max-height: 85vh; border-radius: 28px;">
+      
+      <q-card-section class="text-center q-pb-none">
+        <q-item-label class="text-overline text-secondary text-weight-bold tracking-widest">
+          Artikel Details
+        </q-item-label>
+        <q-separator dark inset class="q-mt-sm opacity-2" />
+      </q-card-section>
 
-              <q-item-label caption v-if="hasSizes && selectedSize">
-                Größe: {{ selectedSize }}
-              </q-item-label>
-            </q-item-section>
-            <q-separator inset vertical class="q-mr-md" />
-            <q-item-section>
-              <div class="flex row items-center q-mb-sm">
-                <q-item-label caption>Preis:</q-item-label>
-                <q-chip color="info"
-                  >{{
-                    (
-                      currentPrice +
-                      selectedBeilagen.length * beilagenEinzelpreis
-                    ).toFixed(2)
-                  }}€</q-chip
-                >
-              </div>
-              <q-item-label caption>Anzahl: {{ anzahl }}</q-item-label>
-            </q-item-section>
-          </q-card>
-        </q-item>
-        <q-item class="flex column">
-          <q-item-section
-            style="border: 1px solid; border-radius: 4px"
-            class="q-pa-sm text-grey-4"
-          >
-            <q-item-label caption>Beschreibung:</q-item-label>
-            <q-item-label class="text-grey-8" style="font-size: 12px">{{
-              selectedItem.description
-            }}</q-item-label></q-item-section
-          >
-        </q-item>
-        <q-item>
-          <q-item-section>
-            <q-input
-              style="margin-bottom: -20px"
-              filled
-              v-model.number="anzahl"
-              label="Anzahl"
-              label-color="secondary"
-              stack-label
-              type="number"
-              :rules="[(val) => val > 0 || 'Anzahl muss mindestens 1 sein']"
-            >
-              <template v-slot:append>
-                <div class="quantity-controls">
-                  <q-btn
-                    flat
-                    dense
-                    icon="add"
-                    size="sm"
-                    @click="increaseQuantity"
-                    :disable="anzahl >= 99"
-                  />
-                  <q-btn
-                    flat
-                    dense
-                    icon="remove"
-                    size="sm"
-                    @click="decreaseQuantity"
-                    :disable="anzahl <= 1"
-                  />
+      <q-card-section class="col scroll q-pa-md">
+        <q-list v-if="selectedItem" class="q-gutter-y-md">
+          
+          <q-item class="q-pa-none">
+            <q-card class="item-glass-card full-width flex row q-pa-sm items-center" flat>
+              <q-img
+                spinner-color="white"
+                :src="getFullImageUrl(selectedItem.img)"
+                class="item-image q-mr-md"
+              />
+              <q-item-section>
+                <q-item-label class="text-white text-weight-bold text-subtitle1"> {{ selectedItem.name }}</q-item-label>
+                <q-item-label caption class="text-secondary" v-if="hasSizes && selectedSize">
+                  Auswahl: {{ selectedSize }}
+                </q-item-label>
+              </q-item-section>
+              <q-item-section side class="text-right">
+                <div class="text-subtitle1 text-secondary text-weight-bolder">
+                  {{ (currentPrice + selectedBeilagen.length * beilagenEinzelpreis).toFixed(2) }}€
                 </div>
-              </template>
-            </q-input>
-          </q-item-section>
-        </q-item>
+              </q-item-section>
+            </q-card>
+          </q-item>
 
-        <q-item v-if="hasSizes">
-          <q-item-section>
-            <q-select
-              filled
-              v-model="selectedSize"
-              :options="sizeOptions"
-              label="bitte Größe auswählen"
-              color="secondary"
-              option-label="label"
-              option-value="value"
-              emit-value
-              map-options
-            />
-          </q-item-section>
-        </q-item>
+          <div class="summary-box q-pa-md full-width">
+            <q-item-label caption class="text-secondary q-mb-xs">Beschreibung</q-item-label>
+            <q-item-label class="text-grey-4" style="font-size: 13px; line-height: 1.4;">
+              {{ selectedItem.description }}
+            </q-item-label>
+          </div>
 
-        <q-item class="flex column" v-if="selectedItem.hasSaucen">
+          <q-input
+            filled dark color="secondary" label-color="secondary" stack-label
+            v-model.number="anzahl"
+            label="Anzahl"
+            type="number"
+            class="custom-input full-width"
+          >
+            <template v-slot:append>
+              <div class="quantity-controls">
+                <q-btn flat dense icon="add" size="sm" color="secondary" @click="increaseQuantity" :disable="anzahl >= 99" />
+                <q-btn flat dense icon="remove" size="sm" color="secondary" @click="decreaseQuantity" :disable="anzahl <= 1" />
+              </div>
+            </template>
+          </q-input>
+
           <q-select
-            filled
+            v-if="hasSizes"
+            filled dark color="secondary" emit-value map-options
+            v-model="selectedSize"
+            :options="sizeOptions"
+            label="Größe auswählen"
+            class="custom-input full-width"
+            popup-content-class="premium-dropdown-menu"
+          />
+
+          <q-select
+            v-if="selectedItem.hasSaucen"
+            filled dark color="secondary"
             v-model="selectedSauce"
             :options="filteredSaucen"
             label="Sauce auswählen"
-            color="accent"
             option-label="name"
-            option-value="name"
-            emit-value
+            option-value="id"
             map-options
-          />
-        </q-item>
+            emit-value
+            class="custom-input full-width"
+            popup-content-class="premium-dropdown-menu"
+          >
+            <template v-slot:selected-item="scope">
+              <q-chip v-if="scope.opt" dense color="secondary" outline text-color="secondary">
+                {{ scope.opt.name || scope.opt }}
+              </q-chip>
+            </template>
+          </q-select>
 
-        <q-item class="flex column" v-if="selectedItem.hasBeilagen">
           <q-select
-            filled
+            v-if="selectedItem?.hasBeilagen"
+            filled dark multiple use-chips emit-value map-options
             v-model="selectedBeilagen"
             :options="beilagenOptions"
             label="Beilagen auswählen"
-            color="accent"
-            option-label="label"
-            option-value="value"
-            multiple
-            use-chips
-            emit-value
-            map-options
-            :key="selectedSize"
+            color="secondary" 
+            class="custom-input full-width"
+            popup-content-class="premium-dropdown-menu"
+          >
+            <template v-slot:selected-item="scope">
+              <q-chip
+                removable dense
+                @remove="scope.removeAtIndex(scope.index)"
+                :tabindex="scope.tabindex"
+                color="secondary" outline text-color="secondary"
+                class="q-ma-xs"
+              >
+                {{ scope.opt.label || scope.opt }}
+              </q-chip>
+            </template>
+          </q-select>
+
+          <q-input
+            filled dark color="secondary" label-color="secondary" stack-label
+            v-model="anmerkung"
+            label="Anmerkung / Wünsche"
+            type="textarea" rows="2"
+            class="custom-input full-width"
           />
-        </q-item>
 
-        <q-item>
-          <q-item-section>
-            <q-input
-              class="q-mb-sm"
-              filled
-              v-model="anmerkung"
-              label="Anmerkuung"
-              label-color="secondary"
-              stack-label
-              placeholder="hier kann eine Nachricht bzgl. der Bestellung hinterlassen werden..."
-              type="textarea"
-              :rules="[() => true]"
-            />
-          </q-item-section>
-        </q-item>
-        <q-item class="full-width">
-          <q-expansion-item
-            class="full-width text-grey-8"
-            expand-separator
-            label="Allergene"
-            header-class="bg-grey-3"
-            icon="list"
-            dense
-          >
-            <q-list
-              class="q-mt-xs"
-              v-for="allergen in filteredAllergene"
-              :key="allergen.id"
-            >
-              <q-item-label caption>{{ allergen.name }},</q-item-label>
-            </q-list>
-          </q-expansion-item>
-        </q-item>
+          <div class="q-gutter-y-sm">
+            <q-expansion-item class="item-glass-card text-grey-4 overflow-hidden full-width" label="Allergene" icon="info" dense dark>
+              <q-card class="bg-transparent">
+                <q-card-section class="row wrap q-gutter-xs">
+                  <q-chip  v-for="allergen in filteredAllergene" :key="allergen.id" dense size="md" outline color="secondary">
+                    <span class="text-white">{{ allergen.name }}</span>
+                  </q-chip>
+                </q-card-section>
+              </q-card>
+            </q-expansion-item>
 
-        <q-item>
-          <q-expansion-item
-            class="full-width text-grey-8"
-            expand-separator
-            label="Zusatzstoffe"
-            header-class="bg-grey-3"
-            icon="list"
-            dense
-            style="margin-top: -10px"
-          >
-            <q-list
-              class="q-mt-xs"
-              v-for="zusatzstoff in filteredZusatzstoffe"
-              :key="zusatzstoff.id"
-            >
-              <q-item-label caption>{{ zusatzstoff.name }}</q-item-label>
-            </q-list>
-          </q-expansion-item>
-        </q-item>
+            <q-expansion-item class="item-glass-card text-grey-4 overflow-hidden full-width" label="Zusatzstoffe" icon="list" dense dark>
+              <q-card class="bg-transparent">
+                <q-card-section class="row wrap q-gutter-xs">
+                  <q-chip v-for="zusatzstoff in filteredZusatzstoffe" :key="zusatzstoff.id" dense size="md" outline color="secondary">
+                    <span class="text-white">{{ zusatzstoff.name }}</span>
+                  </q-chip>
+                </q-card-section>
+              </q-card>
+            </q-expansion-item>
+          </div>
+        </q-list>
+      </q-card-section>
 
-        <q-item>
-          <q-item-section>
-            <q-btn
-              icon="shopping_cart_checkout"
-              color="secondary"
-              label="in den Warenkorb"
-              @click="addToCart"
-            />
-            <q-btn
-              class="q-mt-xs"
-              flat
-              color="negative"
-              label="abbrechen"
-              @click="closeDialog"
-            />
-          </q-item-section>
-        </q-item>
-      </q-list>
+      <q-separator dark class="opacity-2" />
+      <q-card-actions class="q-pa-md column q-gutter-y-sm dialog-footer">
+        <q-btn
+          color="secondary" text-color="dark"
+          class="full-width premium-btn"
+          label="In den Warenkorb"
+          icon="shopping_cart_checkout"
+          @click="addToCart"
+        />
+        <q-btn flat class="full-width text-grey-6 q-mb-xs" label="Abbrechen" @click="closeDialog" no-caps />
+      </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
@@ -531,10 +465,56 @@ onMounted(async () => {
   await loadSaucen();
 });
 </script>
-<style scoped>
-.quantity-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+<style>
+.premium-dropdown-menu {
+  border-radius: 16px !important;
+  background: rgba(30, 30, 30, 0.98) !important;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white !important;
 }
+</style>
+
+<style scoped>
+.premium-glass-card {
+  background: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.item-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.summary-box {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.item-image { width: 60px; height: 60px; border-radius: 12px; }
+
+.custom-input :deep(.q-field__control) {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  min-height: 56px;
+}
+
+.premium-btn {
+  border-radius: 16px;
+  font-weight: 900;
+  height: 54px;
+}
+
+.dialog-footer {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  background: rgba(18, 18, 18, 0.98);
+}
+
+.quantity-controls { display: flex; flex-direction: column; justify-content: center; }
+.tracking-widest { letter-spacing: 0.15em; }
+.opacity-2 { opacity: 0.2; }
+.wrap { flex-wrap: wrap !important; }
 </style>

@@ -1,336 +1,251 @@
 <template>
-  <q-list separator class="q-mt-md">
-    <q-item-label> Farben:</q-item-label>
-    <div
-      class="flex column full-width"
-      style="align-items: flex-start; justify-content: flex-start"
-    >
-      <q-item class="column full-width">
-        <div class="row items-center no-wrap" style="width: 100%">
-          <div class="text-caption text-grey-7" style="min-width: 50px">
-            Layout:
+  <div class="app-container flex justify-center">
+    <div class="content-wrapper q-px-md">
+      
+      <div class="premium-glass-card shadow-24 q-mb-xl">
+        <div class="card-inner">
+          
+          <div class="text-center q-mb-xl">
+            <div class="text-overline text-secondary text-weight-bold tracking-widest ">EINSTELLUNGEN</div>
+            <div class="text-h5 text-white text-weight-light uppercase">Firmendaten & Design</div>
           </div>
-          <q-icon color="primary" name="lens" size="sm" class="q-ml-sm" />
-        </div>
 
-        <q-item-section>
-          <q-btn
-            icon="opacity"
-            @click="openDialogHauptfarbe"
-            label="ändern"
-            color="secondary"
-            class="full-width q-mt-sm"
-          />
-        </q-item-section>
-        <q-separator class="q-mt-md" />
-      </q-item>
-
-      <q-item class="full-width column">
-        <div class="row items-center no-wrap" style="width: 100%">
-          <div class="text-caption text-grey-7" style="min-width: 50px">
-            Buttons:
+          <div class="q-mb-sm">
+            <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider ">Farbeinstellungen</div>
+            <div class="premium-glass-card-inner q-pa-md" style="background: rgba(255,255,255,0.03); border-radius: 16px;">
+              <div class="row items-center justify-between no-wrap">
+                <div class="row items-center">
+                  <div class="text-subtitle2 text-white q-mr-md">Button-Farbe:</div>
+                  <q-icon color="secondary" name="lens" size="sm" />
+                </div>
+                <q-btn
+                  icon="opacity"
+                  @click="openDialogZweitfarbe"
+                  label="ändern"
+                  color="secondary"
+                  class="luxury-btn-outline q-px-md"
+                  flat
+                />
+              </div>
+            </div>
           </div>
-          <q-icon color="secondary" name="lens" size="sm" class="q-ml-sm" />
-        </div>
+          
+          <q-separator dark class="q-my-md opacity-10  " />
 
-        <q-item-section>
-          <q-btn
-            icon="opacity"
-            @click="openDialogZweitfarbe"
-            label="ändern"
-            color="secondary"
-            class="full-width q-mt-sm"
-        /></q-item-section>
-        <q-separator class="q-mt-md" />
-      </q-item>
+            <div class="text-caption text-grey-5 q-mb-xl uppercase tracking-wider">Firmendaten</div>
 
-      <q-item class="column full-width">
-        <div class="row items-center no-wrap" style="width: 100%">
-          <div class="text-caption text-grey-7" style="min-width: 50px">
-            Chips:
-          </div>
-          <q-icon color="info" name="lens" size="sm" class="q-ml-sm" />
-        </div>
+          <div v-for="firma in firmenName" :key="firma.id" class="q-gutter-y-lg ">
+            
+   
+              <div  >
+                <q-input
+                  label="Firmenname"
+                  dark filled
+                  v-model="firma.firmenName"
+                  class="premium-input "
+                >
+                  <template v-slot:prepend><q-icon name="business" /></template>
+                </q-input>
+              </div>
+              <div >
+                <q-input
+                  label="USt-IdNr."
+                  dark filled
+                  v-model="firma.ustIdNr"
+                  class="premium-input"
+                >
+                  <template v-slot:prepend><q-icon name="pin" /></template>
+                </q-input>
+              </div>
 
-        <q-item-section>
-          <q-btn
-            icon="opacity"
-            @click="openDialogChipfarbe"
-            label="ändern"
-            color="secondary"
-            class="full-width q-mt-sm"
-        /></q-item-section>
-      </q-item>
-    </div>
-    <q-separator class="q-mt-md q-mb-md" />
-    <q-item-label>Firmenname:</q-item-label>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <div></div>
-        <q-item-label caption>Name:</q-item-label>
+              <q-separator dark class="q-my-md opacity-10 q-mt-xl" />
 
-        <q-input
-          label="bitte neuen Namen eingeben"
-          filled
-          v-model="firma.firmenName"
-        >
-          <template v-slot:append>
-            <q-icon
-              name="business"
-              color="secondary"
-              class="cursor-pointer"
-            ></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
+            <div class="text-caption text-grey-5 q-mt-lg q-mb-none uppercase tracking-wider">Anschrift & Kontakt</div>
+            
+            <q-input dark filled v-model="firma.geschaeftsführerName" label="Geschäftsführer" class="premium-input">
+              <template v-slot:prepend><q-icon name="person" /></template>
+            </q-input>
 
-    <q-separator class="q-mt-xs q-mb-md" />
+            <div class="row q-col-gutter-md">
+              <div class="col-8">
+                <q-input dark filled v-model="firma.strasse" label="Straße" class="premium-input">
+                  <template v-slot:prepend><q-icon name="signpost" /></template>
+                </q-input>
+              </div>
+              <div class="col-4">
+                <q-input dark filled v-model="firma.hausnummer" label="Nr." class="premium-input">
+                  <template v-slot:prepend><q-icon name="house" /></template>
+                </q-input>
+              </div>
+            </div>
 
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <div></div>
-        <q-item-label caption>USt-IdNr.:</q-item-label>
+            <div class="row q-col-gutter-md">
+              <div class="col-4">
+                <q-input dark filled v-model="firma.plz" label="PLZ" class="premium-input">
+                  <template v-slot:prepend><q-icon name="123" /></template>
+                </q-input>
+              </div>
+              <div class="col-8">
+                <q-input dark filled v-model="firma.ort" label="Ort" class="premium-input">
+                  <template v-slot:prepend><q-icon name="apartment" /></template>
+                </q-input>
+              </div>
+            </div>
 
-        <q-input
-          label="bitte neuen Namen eingeben"
-          filled
-          v-model="firma.ustIdNr"
-        >
-          <template v-slot:append>
-            <q-icon name="pin" color="secondary" class="cursor-pointer"></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
+            <q-input dark filled v-model="firma.email" label="E-Mail" class="premium-input">
+              <template v-slot:prepend><q-icon name="mail" /></template>
+            </q-input>
 
-    <q-separator class="q-mt-sm q-mb-sm" />
-    <q-item-label>Anschrift:</q-item-label>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>Geschäftsführer:</q-item-label>
+            <q-input
+              dark filled
+              v-model="firma.telefonnummer"
+              label="Telefonnummer"
+              class="premium-input"
+              @update:model-value="
 
-        <q-input filled type="text" v-model="firma.geschaeftsführerName">
-          <template v-slot:append>
-            <q-icon
-              name="person"
-              color="secondary"
-              class="cursor-pointer"
-            ></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>Straße:</q-item-label>
-
-        <q-input filled type="text" v-model="firma.strasse">
-          <template v-slot:append>
-            <q-icon
-              name="signpost"
-              color="secondary"
-              class="cursor-pointer"
-            ></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>Hausnummer:</q-item-label>
-
-        <q-input filled type="text" v-model="firma.hausnummer">
-          <template v-slot:append>
-            <q-icon
-              name="house"
-              color="secondary"
-              class="cursor-pointer"
-            ></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>Ort:</q-item-label>
-
-        <q-input filled type="text" v-model="firma.ort">
-          <template v-slot:append>
-            <q-icon
-              name="apartment"
-              color="secondary"
-              class="cursor-pointer"
-            ></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>PLZ:</q-item-label>
-
-        <q-input filled type="text" v-model="firma.plz">
-          <template v-slot:append>
-            <q-icon name="123" color="secondary" class="cursor-pointer"></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>E-Mail:</q-item-label>
-
-        <q-input filled type="text" v-model="firma.email">
-          <template v-slot:append>
-            <q-icon
-              name="mail"
-              color="secondary"
-              class="cursor-pointer"
-            ></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>Telefonnummer:</q-item-label>
-        <q-input
-          filled
-          type="text"
-          v-model="firma.telefonnummer"
-          placeholder="Telefonnummer"
-          @update:model-value="
             (val: string | number | null) => {
+
               if (val && typeof val === 'string' && !val.startsWith('+49')) {
+
                 if (val.startsWith('0')) {
+
                   firma.telefonnummer = '+49' + val.substring(1);
+
                 } else {
+
                   firma.telefonnummer = '+49' + val;
+
                 }
+
               }
+
             }
+
           "
-        >
-          <template v-slot:append>
-            <q-icon
-              name="phone_iphone"
+              
+            >
+              <template v-slot:prepend><q-icon name="phone_iphone" /></template>
+            </q-input>
+
+<q-separator dark class="q-my-md opacity-10 q-mt-xl" />
+
+            <div class="text-caption text-grey-5 q-mt-lg q-mb-none uppercase tracking-wider">Online-Präsenz</div>
+            
+            <q-input dark filled v-model="firma.lieferando" label="Lieferando-Link" class="premium-input">
+              <template v-slot:prepend><q-icon name="takeout_dining" /></template>
+            </q-input>
+
+  
+              <div class="col-12 col-sm-6">
+                <q-input dark filled v-model="firma.instagram" label="Instagram" class="premium-input">
+                  <template v-slot:prepend><q-icon name="photo_camera" /></template>
+                </q-input>
+              </div>
+              <div class="col-12 col-sm-6">
+                <q-input dark filled v-model="firma.facebook" label="Facebook" class="premium-input">
+                  <template v-slot:prepend><q-icon name="facebook" /></template>
+                </q-input>
+              </div>
+         
+
+            <q-btn
+              icon="save"
+              label="Änderungen speichern"
               color="secondary"
-              class="cursor-pointer"
-            ></q-icon>
-          </template>
-        </q-input>
-      </q-item-section>
-    </q-item>
+              class="luxury-btn full-width q-mt-xl"
+              @click="updateFirmenName(firma)"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
 
-    <q-separator class="q-mt-sm q-mb-sm" />
-
-    <q-item-label>Lieferando:</q-item-label>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>Lieferando-Link:</q-item-label>
-
-        <q-input filled type="text" v-model="firma.lieferando">
-          <template v-slot:append>
-            <q-icon
-              name="takeout_dining"
-              color="secondary"
-              class="cursor-pointer"
-            ></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
-
-    <q-separator class="q-mt-sm q-mb-sm" />
-
-    <q-item-label>Socialmedia:</q-item-label>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>Instagram:</q-item-label>
-
-        <q-input filled type="text" v-model="firma.instagram">
-          <template v-slot:append>
-            <q-icon
-              name="photo_camera"
-              color="secondary"
-              class="cursor-pointer"
-            ></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
-    <q-item v-for="firma in firmenName" :key="firma.id">
-      <q-item-section>
-        <q-item-label caption>Facebook:</q-item-label>
-
-        <q-input filled type="text" v-model="firma.facebook">
-          <template v-slot:append>
-            <q-icon
-              name="facebook"
-              color="secondary"
-              class="cursor-pointer"
-            ></q-icon
-          ></template>
-        </q-input>
-      </q-item-section>
-    </q-item>
-    <q-btn
-      icon="save"
-      class="full-width q-mt-md q-mb-sm"
-      color="secondary"
-      label="Speichern"
-      v-for="firma in firmenName"
-      :key="firma.id"
-      @click="() => updateFirmenName(firma)"
+    <SettingsFarbeButtons
+      v-model:colorButtons="colorButtons"
+      v-model:isOpen="isOpenButtons"
+      @change:colorButtons="colorButtons = $event"
     />
-  </q-list>
-
-  <SettingsFarbeHaupt
-    v-model:color1="colorLayout"
-    v-model:isOpen="isOpenLayout"
-    @change:color1="colorLayout = $event"
-  />
-  <SettingsFarbeButtons
-    v-model:colorButtons="colorButtons"
-    v-model:isOpen="isOpenButtons"
-    @change:colorButtons="colorButtons = $event"
-  />
-  <SettingsFarbeChips
-    v-model:colorChips="colorChips"
-    v-model:isOpen="isOpenChips"
-    @change:colorChips="colorChips"
-  />
+  </div>
 </template>
 
 <script setup lang="ts">
 import { useFirmenName } from "src/composables/Firmenname";
 import { onMounted, ref } from "vue";
-import SettingsFarbeHaupt from "src/components/SettingsFarbeHaupt.vue";
 import SettingsFarbeButtons from "src/components/SettingsFarbeButtons.vue";
-import SettingsFarbeChips from "src/components/SettingsFarbeChips.vue";
 
-const colorLayout = ref("");
 const colorButtons = ref("");
-const colorChips = ref("");
-const isOpenLayout = ref(false);
 const isOpenButtons = ref(false);
-const isOpenChips = ref(false);
 
 const { firmenName, loadFirmenName, updateFirmenName } = useFirmenName();
 
-function openDialogHauptfarbe() {
-  isOpenLayout.value = true;
-}
 function openDialogZweitfarbe() {
   isOpenButtons.value = true;
 }
 
-function openDialogChipfarbe() {
-  isOpenChips.value = true;
-}
 
 onMounted(async () => {
   await loadFirmenName();
 });
 </script>
+
+<style scoped>
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
+  width: 100%;
+  margin-top: -70px;
+}
+
+.content-wrapper {
+  width: 100%;
+  max-width: 800px;
+  padding-top: 40px;
+  padding-bottom: 60px;
+}
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+.card-inner {
+  padding: 40px 30px;
+}
+
+.premium-input :deep(.q-field__control) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.premium-input :deep(.q-field__label) {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.luxury-btn {
+  border-radius: 12px;
+  font-weight: bold;
+  height: 55px;
+  box-shadow: 0 4px 15px rgba(var(--q-secondary), 0.3);
+}
+
+.luxury-btn-outline {
+  border: 1px solid var(--q-secondary);
+  border-radius: 12px;
+  color: white;
+}
+
+.tracking-widest { letter-spacing: 3px; }
+.tracking-wider { letter-spacing: 1.5px; }
+.uppercase { text-transform: uppercase; }
+.opacity-10 { opacity: 0.6; }
+
+@media (max-width: 600px) {
+  .card-inner { padding: 30px 20px; }
+  .content-wrapper { padding-top: 20px;  }
+}
+</style>

@@ -1,268 +1,136 @@
 <template>
-  <q-dialog v-model="isOpen">
-    <q-card class="full-width" style="min-width: 90vw">
-      <q-list>
-        <q-item-label
-          class="text-caption flex q-mt-md text-accent"
-          style="justify-content: center; font-size: 14px"
-        >
+  <q-dialog v-model="isOpen" backdrop-filter="blur(10px)">
+    <q-card class="premium-glass-card shadow-24 flex column no-wrap" style="min-width: 90vw; max-height: 85vh; border-radius: 28px;">
+      
+      <q-card-section class="text-center q-pb-none">
+        <q-item-label class="text-overline text-secondary text-weight-bold tracking-widest">
           Bestellübersicht
         </q-item-label>
-        <q-separator class="q-mt-sm" inset />
+        <q-separator dark inset class="q-mt-sm opacity-2" />
+      </q-card-section>
 
-        <q-item
-          class="flex row"
-          style="justify-content: center; align-items: center"
-        >
+      <q-card-section class="q-pt-md">
+        <div class="row justify-center items-center selector-container">
           <q-btn
             v-if="bestellMail[0]?.liefernOn"
-            icon="moped"
-            dense
-            flat
-            :color="liefern ? 'accent' : 'grey-6'"
+            icon="moped" flat no-caps
+            class="col btn-choice"
+            :class="{ 'choice-active': liefern }"
             label="Liefern"
             @click="onLiefern"
           />
-          <q-item-label class="text-subtitle1 text-grey-6 q-mx-sm"
-            >/</q-item-label
-          >
           <q-btn
             v-if="bestellMail[0]?.abholenOn"
-            icon="storefront"
-            dense
-            flat
-            :color="abholen ? 'accent' : 'grey-6'"
-            label="abholen"
+            icon="storefront" flat no-caps
+            class="col btn-choice"
+            :class="{ 'choice-active': abholen }"
+            label="Abholen"
             @click="onAbholen"
           />
-        </q-item>
+        </div>
+      </q-card-section>
 
-        <q-separator inset class="q-mb-md" />
-
-        <q-item
-          style="justify-content: center; align-items: center"
-          v-if="genericCartItems.length === 0"
-          class="full-width column flex"
-        >
-          <q-item-label caption>
-            Es befinden sich keine Artikel in Ihrem Warenkorb...
+      <q-card-section class="col scroll q-pa-md">
+        <div v-if="genericCartItems.length === 0" class="text-center q-pa-xl">
+          <q-icon name="shopping_basket" size="64px" color="grey-7" class="q-mb-md opacity-4" />
+          <q-item-label caption class="text-grey-5">
+            Warenkorb ist leer...
           </q-item-label>
-        </q-item>
+        </div>
 
-        <q-list
-          :key="cartKey"
-          separator
-          v-else
-          class="column flex"
-          style="margin-left: 16px; margin-right: 16px"
-        >
+        <q-list v-else :key="cartKey" class="q-gutter-y-sm">
           <q-card
-            class="row flex full-width q-mb-xs q-pa-xs"
             v-for="item in genericCartItems"
             :key="`${item.id}_${item.categoryName}_${item.selectedSize || 'no-size'}_${item.anmerkung || 'no-note'}`"
+            class="item-glass-card row no-wrap q-pa-sm items-center"
+            flat
           >
-            <q-img
-              spinner-color="white"
-              :src="getFullImageUrl(item.img)"
-              :alt="item.name"
-              style="
-                border-radius: 6px;
-                aspect-ratio: 1;
-                max-width: 50px;
-                width: 50px;
-                min-width: 50px;
-                min-height: 50px;
-                max-height: 50px;
-                height: 50px;
-                box-shadow: 2px 3px 0.2rem rgb(56, 56, 56);
-                border: 1px solid;
-                border-color: rgb(204, 204, 204);
-              "
-              class="q-mr-md"
-            />
+            <q-img spinner-color="white" :src="getFullImageUrl(item.img)" class="item-image q-mr-md" />
 
-            <q-item-section class="q-mr-xl full-width">
-              <q-item-label class="q-mb-xs">{{ item.name }} </q-item-label>
-
-              <q-item-label
-                caption
-                style="margin-top: -3px"
-                v-if="item.saucenIds && item.saucenIds.length > 0"
-                >Sauce:
-                <q-chip
-                  dense
-                  size="sm"
-                  color="green-1"
-                  style="font-size: 12px; margin-left: -1px"
-                  >{{ getSauceNameForItem(item) }}</q-chip
-                ></q-item-label
-              >
-
-              <q-item-label
-                style="margin-top: -2px"
-                caption
-                v-if="item.beilagen!.length > 0"
-                class="flex column"
-              >
-                Beilagen:
-
-                <span
-                  class="text-caption"
-                  v-for="(beilage, index) in item.beilagen"
-                  :key="index"
-                >
-                  <q-chip
-                    dense
-                    size="sm"
-                    style="font-size: 12px; margin-left: -1px"
-                    color="green-1"
-                  >
-                    {{ beilage }} {{ (item.beilagenPreis ?? 0).toFixed(2) }}€
-                  </q-chip>
-                </span>
-              </q-item-label>
-
-              <q-item-label
-                class="flex row"
-                style="align-items: center; margin-top: -2px"
-                caption
-                v-if="item.hasSizes"
-                >Größe:
-                <q-chip
-                  color="green-1"
-                  dense
-                  size="sm"
-                  style="font-size: 12px"
-                  caption
-                >
-                  {{ item.selectedSize }}</q-chip
-                >
-              </q-item-label>
-
-              <q-item-section
-                v-if="item.anmerkung"
-                class="flex column text-grey-4"
-              >
-                <q-item-label v-if="item.anmerkung" caption
-                  >Anmerkung:</q-item-label
-                >
-                <q-item-label
-                  v-if="item.anmerkung"
-                  class="text-black"
-                  style="font-size: 12px"
-                  caption
-                  >{{ item.anmerkung }}</q-item-label
-                ></q-item-section
-              >
-            </q-item-section>
-            <q-separator vertical />
-            <q-item-section>
-              <div class="flex row items-center q-mb-xs q-ml-md">
-                <q-item-label caption>Preis: </q-item-label>
-                <q-chip dense color="info">
-                  {{ (itemPreis(item) * item.quantity).toFixed(2) }}€</q-chip
-                >
-              </div>
-              <div class="flex row items-center q-ml-md">
-                <q-item-label caption>Anzahl:</q-item-label>
-                <q-chip color="green-1" dense>
-                  {{ item.quantity }}
+            <q-item-section class="col">
+              <q-item-label class="text-white text-weight-bold text-subtitle1">{{ item.name }}</q-item-label>
+              <div class="row q-gutter-xs q-mt-xs">
+                <q-chip v-if="item.saucenIds?.length" dense size="12px" outline color="secondary" text-color="dark">
+                  {{ getSauceNameForItem(item) }}
                 </q-chip>
+                <q-chip v-for="(beilage, idx) in item.beilagen" :key="idx" outline dense size="12px" color="secondary" text-color="dark">
+                  + {{ beilage }}
+                </q-chip>
+                <q-chip v-if="item.hasSizes" dense size="12px" outline color="secondary" text-color="dark">
+                  {{ item.selectedSize }}
+                </q-chip>
+              </div>
+              <div v-if="item.anmerkung" class="text-caption text-italic text-grey-5 q-mt-xs">
+                "{{ item.anmerkung }}"
+              </div>
+            </q-item-section>
+
+            <q-item-section side class="text-right">
+              <div class="text-caption text-grey-6">x{{ item.quantity }}</div>
+              <div class="text-subtitle2 text-secondary text-weight-bolder">
+                {{ (itemPreis(item) * item.quantity).toFixed(2) }}€
               </div>
             </q-item-section>
           </q-card>
         </q-list>
-      </q-list>
-      <q-separator class="q-mb-sm q-mt-md" inset />
 
-      <q-item-section
-        style="
-          background-color: #f8f9fa;
-          padding: 16px;
-          border-radius: 4px;
-          border: 1px solid #e9ecef;
-        "
-        v-if="genericCartItems.length > 0"
-        class="flex column items-center"
-      >
-        <template v-if="showMwSt">
-          <q-item-label
-            v-if="liefern && fahrkosten[0]?.fahrkostenOn"
-            class="text-accent"
-          >
-            Gesammtsumme inkl. MwSt:
-            {{ totalFahrkosten.toFixed(2) }}€
-            <q-separator class="q-my-xs" />
-          </q-item-label>
+<div v-if="genericCartItems.length > 0" class="summary-box q-pa-md q-mt-md">
+  <template v-if="showMwSt">
+    <div class="row justify-between items-center text-subtitle1 text-white text-weight-bold">
+      <span>Gesamtsumme (Brutto):</span>
+      <span class="text-secondary">
+        {{ (liefern && fahrkosten[0]?.fahrkostenOn ? totalFahrkosten : totalAmount).toFixed(2) }}€
+      </span>
+    </div>
+    
+    <q-separator dark class="q-my-sm opacity-1" />
+    
+    <div v-if="liefern && fahrkosten[0]?.fahrkostenOn" class="row justify-between text-caption text-grey-5">
+      <span>Fahrkosten:</span>
+      <span>{{ fahrkosten[0]?.fahrkosten.toFixed(2) }}€</span>
+    </div>
 
-          <q-item-label
-            v-if="abholen || !fahrkosten[0]?.fahrkostenOn"
-            class="text-accent"
-          >
-            Gesammtsumme inkl. MwSt:
-            {{ totalAmount.toFixed(2) }}€
-            <q-separator class="q-my-xs" />
-          </q-item-label>
+    <div class="row justify-between text-caption text-grey-6 q-mt-xs">
+      <span>darin enthaltene MwSt. ({{ bestellMail[0]?.mwSt }}%):</span>
+      <span>{{ MwSt.toFixed(2) }}€</span>
+    </div>
 
-          <q-item-label v-if="liefern && fahrkosten[0]?.fahrkostenOn" caption
-            >+<q-icon name="moped" class="q-mr-xs q-ml-xs" />Fahrkosten:
-            {{ fahrkosten[0]?.fahrkosten.toFixed(2) }}€</q-item-label
-          >
+    <div class="row justify-between text-caption text-grey-6">
+      <span>Netto-Betrag:</span>
+      <span>{{ bruttoPreis.toFixed(2) }}€</span>
+    </div>
+  </template>
 
-          <q-item-label v-if="liefern" caption
-            >Gesammtsumme: {{ totalAmount.toFixed(2) }}€</q-item-label
-          >
+  <template v-else>
+    <div class="row justify-between items-center text-h6 text-white text-weight-bolder">
+      <span>Gesamtsumme:</span>
+      <span class="text-secondary">
+        {{ (liefern && fahrkosten[0]?.fahrkostenOn ? totalFahrkosten : totalAmount).toFixed(2) }}€
+      </span>
+    </div>
+    <div v-if="liefern && fahrkosten[0]?.fahrkostenOn" class="row justify-between text-caption text-grey-5 q-mt-xs">
+      <span>Inkl. Fahrkosten:</span>
+      <span>{{ fahrkosten[0]?.fahrkosten.toFixed(2) }}€</span>
+    </div>
+  </template>
+</div>
+      </q-card-section>
 
-          <q-item-label caption>
-            davon MwSt.({{ bestellMail[0]?.mwSt }}%): {{ MwSt.toFixed(2) }}€
-          </q-item-label>
-          <q-item-label caption>
-            Gesamtsumme ohne MwSt.: {{ bruttoPreis.toFixed(2) }}€
-          </q-item-label>
-        </template>
-
-        <template v-else>
-          <q-item-label
-            v-if="liefern && fahrkosten[0]?.fahrkostenOn"
-            class="text-accent"
-          >
-            Gesammtsumme: {{ totalFahrkosten.toFixed(2) }}€
-            <q-separator class="q-my-xs" />
-          </q-item-label>
-          <q-item-label v-if="liefern && fahrkosten[0]!.fahrkostenOn" caption
-            >+<q-icon name="moped" class="q-mr-xs q-ml-xs" />Fahrkosten:
-            {{ fahrkosten[0]?.fahrkosten.toFixed(2) }}€</q-item-label
-          >
-          <q-item-label v-if="liefern && fahrkosten[0]?.fahrkostenOn" caption
-            >Gesammtsumme Artikel: {{ totalAmount.toFixed(2) }}€</q-item-label
-          >
-
-          <q-item-label
-            v-if="abholen || !fahrkosten[0]?.fahrkostenOn"
-            class="text-accent"
-          >
-            Gesammtsumme: {{ totalAmount.toFixed(2) }}€
-            <q-separator class="q-my-xs" />
-          </q-item-label>
-        </template>
-      </q-item-section>
-
-      <q-separator class="q-mt-sm q-mb-sm" inset />
-
-      <q-item class="full-width">
-        <q-item-section>
-          <q-btn
-            color="secondary"
-            label="zum Warenkorb"
-            icon="login"
-            @click="zumWarenkorb"
-          />
-          <q-btn @click="closeDialog" flat color="negative" label="Abbrechen" />
-        </q-item-section>
-      </q-item>
+      <q-separator dark class="opacity-2" />
+      <q-card-actions class="q-pa-md column q-gutter-y-sm dialog-footer">
+        <q-btn
+          color="secondary" text-color="dark"
+          class="full-width premium-btn"
+          label="Zum Warenkorb"
+          icon="shopping_basket"
+          @click="zumWarenkorb"
+        />
+        <q-btn flat class="full-width text-grey-6 q-mb-xs" label="Abbrechen" @click="closeDialog" no-caps />
+      </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
+
 <script setup lang="ts">
 import { useCartStore } from "src/store/cardStore";
 import { computed, onMounted, onUnmounted, ref } from "vue";
@@ -437,4 +305,68 @@ onMounted(async () => {
   await loadSaucen();
 });
 </script>
-<style></style>
+<style scoped>
+/* WICHTIG: Die Card darf nicht wachsen, der Inhalt muss scrollen */
+.premium-glass-card {
+  background: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog-footer {
+  /* Berücksichtigt den Balken unten beim iPhone */
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  background: rgba(18, 18, 18, 0.98);
+}
+
+.selector-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.btn-choice {
+  color: #888;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.choice-active {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--q-secondary) !important;
+  font-weight: bold;
+}
+
+.item-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.item-image {
+  width: 55px; height: 55px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.summary-box {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.premium-btn {
+  border-radius: 16px;
+  font-weight: 900;
+  height: 54px;
+}
+
+.tracking-widest { letter-spacing: 0.15em; }
+.opacity-1 { opacity: 0.1; }
+.opacity-2 { opacity: 0.2; }
+.opacity-4 { opacity: 0.4; }
+</style>

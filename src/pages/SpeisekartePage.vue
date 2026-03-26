@@ -164,6 +164,10 @@ const fetchCategories = async () => {
   try {
     const response = await api.get("/api/category");
     categories.value = response.data;
+    // WICHTIG: Kategorien nach sortOrder sortieren, wie in Code 1
+    categories.value.sort((a, b) => {
+      return a.sortOrder >= b.sortOrder ? 1 : -1;
+    });
     if (categories.value.length > 0) tab.value = categories.value[0]!.name;
   } catch (e) { console.error(e); }
 };
@@ -195,7 +199,7 @@ const onTabChange = (categoryName: string) => {
   isUserScrolling.value = true;
   const element = sectionRefs.value[categoryName];
   if (element) {
-    const offset = 230; 
+    const offset = 180; 
     window.scrollTo({ top: element.offsetTop - offset, behavior: "smooth" });
   }
   setTimeout(() => { isUserScrolling.value = false; }, 1000);
@@ -235,6 +239,8 @@ onBeforeUnmount(() => { observer?.disconnect(); });
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
   color: white;
+  padding-top: 60px;
+  
 }
 
 /* --- GLASS HEADER --- */

@@ -1,537 +1,245 @@
 <template>
-  <div class="sticky-tabs">
-    <q-banner class="banner full-width text-accent">
-      <h6 class="bannerText">
-        <q-icon class="bannerIcon" name="admin_panel_settings" />
-        Benutzerverwaltung
-      </h6>
-    </q-banner>
-
-    <div class="above bg-white">
-      <q-separator color="accent" />
-      <h2 class="textOben text-h5 text-weight-thin text-center">
-        Alle Benutzer verwalten...
-      </h2>
-      <q-separator size="15px" color="grey-6" class="separatorOben" />
-    </div>
-  </div>
-
-  <q-card class="background-img q-mb-md"></q-card>
-  <q-card class="my-card2 q-mt-md">
-    <q-card-section>
-      <div v-if="loading" class="text-center">
-        <q-spinner-dots color="primary" size="2em" />
-        <p class="q-mt-md">Lade Benutzerdaten...</p>
-      </div>
-
-      <div v-else-if="error" class="text-center">
-        <q-icon name="error" color="negative" size="3em" />
-        <p class="text-negative q-mt-md">{{ error }}</p>
-        <q-btn
-          color="secondary"
-          label="Erneut versuchen"
-          @click="fetchAllUsers"
-          class="q-mt-md"
-        />
-      </div>
-
-      <div v-else class="users-management">
-        <div
-          class="text-subtitle text-secondary text-center q-mb-lg row items-center justify-center"
-        >
-          <q-icon name="people" color="secondary" size="xs" class="q-mr-sm" />
-          <span>{{ filteredUsers.length }} Benutzer gefunden</span>
+  <div class="app-container flex justify-center">
+    <!-- <div class="glass-header full-width fixed-top" style="z-index: 10;">
+      <div class="row justify-between items-center q-px-md q-py-md">
+        <div class="row items-center full-width">
+          <div class="logo-dot q-mr-sm"></div>
+          <span class="text-h6 text-white text-weight-bolder uppercase">Benutzerverwaltung</span>
         </div>
-
-        <q-input
-          v-model="searchQuery"
-          label="Benutzer suchen..."
-          filled
-          class="q-mb-md"
-          clearable
-        >
-          <template v-slot:prepend>
-            <q-icon name="search" />
-          </template>
-        </q-input>
-
-        <q-table
-          rows-per-page-label="Benutzer pro Seite"
-          :rows="filteredUsers"
-          :columns="columns"
-          row-key="id"
-          v-model:pagination="pagination"
-          :rows-per-page-options="[10, 20, 30, 40, 50, 0]"
-          class="users-table"
-          flat
-          bordered
-          :grid="$q.screen.lt.md"
-        >
-          <template #body-cell-username="props">
-            <q-td :props="props">
-              <q-chip
-                class="text-white"
-                :color="props.row.username === 'admin' ? 'red-12' : 'blue-12'"
-              >
-                {{ props.row.username }}</q-chip
-              >
-            </q-td>
-          </template>
-          <!-- Mobile ansicht -->
-          <template v-slot:item="props">
-            <q-card class="q-ma-sm q-pa-sm full-width">
-              <q-card-section>
-                <div class="text-subtitle1 text-bold row q-gutter-xs">
-                  <q-chip
-                    class="text-white"
-                    :color="
-                      props.row.username === 'admin' ? 'red-12' : 'blue-12'
-                    "
-                  >
-                    {{ props.row.username }}</q-chip
-                  >
-                </div>
-                <div class="text-caption">Id: {{ props.row.id }}</div>
-                <div
-                  class="text-caption"
-                  v-if="props.row.firstName || props.row.lastName"
-                >
-                  Name: {{ props.row.firstName }} {{ props.row.lastName }}
-                </div>
-                <div class="text-caption">E-Mail: {{ props.row.email }}</div>
-                <div class="text-caption">
-                  Telefon: {{ props.row.telephone }}
-                </div>
-                <div class="text-caption">
-                  Rolle:
-                  <q-badge
-                    :color="props.row.role === 1 ? 'negative' : 'accent'"
-                    :label="props.row.role === 1 ? 'Admin' : 'User'"
-                  />
-                </div>
-              </q-card-section>
-
-              <q-separator spaced />
-
-              <q-card-actions vertical align="center" class="q-gutter-sm">
-                <q-btn
-                  class="full-width"
-                  icon="edit"
-                  label="Bearbeiten"
-                  color="secondary"
-                  @click="editUser(props.row)"
-                />
-
-                <q-btn
-                  class="full-width"
-                  icon="password"
-                  label="Passwort ändern"
-                  color="secondary"
-                  @click="changeUserPassword(props.row)"
-                />
-
-                <q-btn
-                  class="full-width"
-                  icon="delete"
-                  label="Löschen"
-                  color="negative"
-                  @click="deleteUser(props.row)"
-                  v-if="props.row.id != 1"
-                />
-              </q-card-actions>
-            </q-card>
-          </template>
-
-          <template v-slot:body-cell-role="props">
-            <q-td :props="props">
-              <q-badge
-                :color="props.row.role === 1 ? 'negative' : 'primary'"
-                :label="props.row.role"
-              />
-            </q-td>
-          </template>
-
-          <template v-slot:body-cell-actions="props">
-            <q-td :props="props">
-              <q-btn
-                icon="edit"
-                color="secondary"
-                size="md"
-                flat
-                round
-                @click="editUser(props.row)"
-                class="q-mr-xs"
-              >
-                <q-tooltip>Bearbeiten</q-tooltip>
-              </q-btn>
-              <q-btn
-                icon="password"
-                color="secondary"
-                size="md"
-                flat
-                round
-                @click="changeUserPassword(props.row)"
-                class="q-mr-xs"
-              >
-                <q-tooltip>Passwort ändern</q-tooltip>
-              </q-btn>
-              <q-btn
-                icon="delete"
-                color="negative"
-                size="md"
-                flat
-                round
-                @click="deleteUser(props.row)"
-              >
-                <q-tooltip>
-                  {{
-                    props.row.role === "Admin"
-                      ? "Admin kann nicht gelöscht werden"
-                      : "Löschen"
-                  }}
-                </q-tooltip>
-              </q-btn>
-            </q-td>
-          </template>
-        </q-table>
       </div>
-    </q-card-section>
-    <div style="display: flex; justify-content: center; align-items: center">
-      <q-btn
-        label="Benutzer hinzufügen"
-        icon="person_add"
-        class="q-mb-md q-mt-md"
-        color="positive"
-        @click="addUserDialog()"
-      />
-    </div>
-  </q-card>
+    </div> -->
 
-  <!-- Benutzer hinzufügen Dialog -->
-  <q-dialog v-model="showUserAdd" persistent>
-    <q-card class="my-card2 q-pa-md" style="max-width: 900px">
-      <q-card-section>
-        <div class="text-subtitle text-center q-mt-md">Benutzer hinzufügen</div>
+    <div class="content-wrapper q-px-md">
+      <div class="premium-glass-card shadow-24 q-mb-xl">
+        <div class="card-inner">
+          
+          <div v-if="loading" class="text-center q-pa-xl">
+            <q-spinner-dots color="secondary" size="3em" />
+            <p class="text-grey-5 q-mt-md uppercase tracking-wider">Lade Benutzerdaten...</p>
+          </div>
 
-        <q-form
-          @submit="handleSubmit"
-          @reset="resetForm"
-          class="q-gutter-md q-mt-md"
-        >
-          <q-select
-            :options="roleOptions"
-            label="User-Role"
-            filled
-            v-model="Role"
-            emit-value
-            map-options
-          />
-          <q-input
-            class="q-mt-md"
-            label="Username"
-            filled
-            v-model="Username"
-            hint="Bitte geben Sie Ihren Nutzernamen an."
-            :rules="usernameRules"
-            lazy-rules
-            :disable="isLoading"
-          />
-          <q-input
-            class="q-mt-md"
-            label="E-Mail"
-            filled
-            v-model="Email"
-            hint="Bitte geben Sie Ihre Email-Adresse an."
-            :rules="emailRules"
-            lazy-rules
-            :disable="isLoading"
-          />
-
-          <q-input
-            class="q-mt-md"
-            label="Vorname"
-            filled
-            v-model="Vorname"
-            hint="Bitte geben Sie Ihren Vornamen an."
-            :rules="usernameRules"
-            lazy-rules
-            :disable="isLoading"
-          />
-
-          <q-input
-            class="q-mt-md"
-            label="Nachname"
-            filled
-            v-model="Nachname"
-            hint="Bitte geben Sie Ihren Nachnamen an."
-            :rules="usernameRules"
-            lazy-rules
-            :disable="isLoading"
-          />
-
-          <q-input
-            class="q-mt-md"
-            label="Telefonnr."
-            filled
-            v-model="Telefon"
-            hint="Bitte geben Sie Ihren Telefonnr. an."
-            lazy-rules
-            :disable="isLoading"
-          />
-
-          <q-input
-            class="q-mt-md"
-            v-model="Password"
-            filled
-            label="Passwort"
-            :type="isPwd ? 'password' : 'text'"
-            hint="Bitte geben Sie ihr Passwort ein."
-            :rules="passwordRules"
-            lazy-rules
-            :disable="isLoading"
-          >
-            <template v-slot:append>
-              <q-icon
-                :name="isPwd ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="isPwd = !isPwd"
-              />
-            </template>
-          </q-input>
-
-          <q-input
-            class="q-mt-md"
-            v-model="PasswordRepeat"
-            filled
-            label="Passwort wiederholen"
-            :type="isPwd ? 'password' : 'text'"
-            hint="Bitte wiederholen Sie ihr Passwort ein."
-            :rules="passwordRepeatRules"
-            lazy-rules
-          >
-            <template v-slot:append>
-              <q-icon
-                :name="isPwd ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="isPwd = !isPwd"
-              />
-            </template>
-          </q-input>
-          <div
-            class="row q-mt-lg"
-            style="display: flex; justify-content: center; align-items: center"
-          >
+          <div v-else-if="error" class="text-center q-pa-xl">
+            <q-icon name="error_outline" color="negative" size="4em" />
+            <p class="text-negative q-mt-md">{{ error }}</p>
             <q-btn
-              class="q-mr-md"
-              label="Abbrechen"
-              color="negative"
-              flat
-              :disable="isLoading"
-              @click="closeUserAdd"
-            />
-            <q-btn
-              type="submit"
-              label="Benutzer hinzufügen"
-              icon="person_add"
               color="secondary"
-              :loading="isLoading"
-              :disable="isLoading"
+              outline
+              label="Erneut versuchen"
+              @click="fetchAllUsers"
+              class="q-mt-md luxury-btn-outline"
             />
           </div>
-        </q-form>
-      </q-card-section>
-    </q-card>
-  </q-dialog>
 
-  <!-- Benutzer bearbeiten Dialog -->
-  <q-dialog v-model="showEditDialog" persistent>
-    <q-card style="min-width: 400px">
-      <q-card-section>
-        <div
-          class="text-subtitle text-secondary text-center q-mb-sm row items-center justify-center"
-        >
-          <q-icon name="edit" color="secondary" size="xs" class="q-mr-sm" />
-          <span>Benutzer bearbeiten: {{ editingUser?.username }}</span>
-        </div>
+          <div v-else class="users-management">
+            <div class="text-center q-mb-lg">
+              <div class="text-overline text-secondary text-weight-bold uppercase tracking-widest">
+                System-Administration
+              </div>
+              <div class="text-h5 text-white text-weight-light">
+                {{ filteredUsers.length }} Benutzer gefunden
+              </div>
+            </div>
 
-        <q-form ref="editFormRef" @submit.prevent="saveUserChanges">
-          <q-input
-            label="Benutzername"
-            filled
-            v-model="editingUser!.username"
-            readonly
-            class="q-mt-md"
-            hint="Benutzername kann nicht geändert werden"
-          >
-            <template v-slot:prepend>
-              <q-icon name="account_circle" color="primary" />
-            </template>
-          </q-input>
+            <q-input
+              v-model="searchQuery"
+              label="Benutzer suchen..."
+              dark
+              filled
+              class="premium-input q-mb-lg"
+              clearable
+            >
+              <template v-slot:prepend>
+                <q-icon name="search" color="secondary" />
+              </template>
+            </q-input>
 
-          <q-input
-            label="E-Mail"
-            filled
-            v-model="editingUser!.email"
-            type="email"
-            class="q-mt-md"
-            :rules="[(val) => !!val || 'E-Mail ist erforderlich']"
-          >
-            <template v-slot:prepend>
-              <q-icon name="email" color="primary" />
-            </template>
-          </q-input>
-
-          <q-input
-            label="Vorname"
-            filled
-            v-model="editingUser!.firstName"
-            class="q-mt-md"
-          >
-            <template v-slot:prepend>
-              <q-icon name="person" color="primary" />
-            </template>
-          </q-input>
-
-          <q-input
-            label="Nachname"
-            filled
-            v-model="editingUser!.lastName"
-            class="q-mt-md"
-          >
-            <template v-slot:prepend>
-              <q-icon name="person_outline" color="primary" />
-            </template>
-          </q-input>
-
-          <q-input
-            label="Telefonnummer"
-            filled
-            v-model="editingUser!.telephone"
-            class="q-mt-md"
-          >
-            <template v-slot:prepend>
-              <q-icon name="phone" color="primary" />
-            </template>
-          </q-input>
-
-          <q-card-actions align="right" class="q-mt-md">
-            <q-btn
-              label="Abbrechen"
+            <q-table
+              rows-per-page-label="Benutzer pro Seite"
+              :rows="filteredUsers"
+              :columns="columns"
+              row-key="id"
+              v-model:pagination="pagination"
+              :rows-per-page-options="[10, 20, 30, 40, 50, 0]"
+              class="users-table-glass"
               flat
-              color="negative"
-              @click="showEditDialog = false"
-              :disable="editLoading"
-            />
-            <q-btn
-              type="submit"
-              label="Änderungen speichern"
-              color="secondary"
-              :loading="editLoading"
-            />
-          </q-card-actions>
-        </q-form>
-      </q-card-section>
-    </q-card>
-  </q-dialog>
+              dark
+              :grid="$q.screen.lt.md"
+            >
+              <template v-slot:body-cell-role="props">
+                <q-td :props="props">
+                  <q-badge
+                    :color="props.row.role === 1 ? 'negative' : 'secondary'"
+                    :label="props.row.role === 1 ? 'Admin' : 'User'"
+                    class="q-pa-xs"
+                  />
+                </q-td>
+              </template>
 
-  <!-- Passwort ändern Dialog -->
-  <q-dialog v-model="showPasswordDialog" persistent>
-    <q-card style="min-width: 400px">
-      <q-card-section>
-        <div
-          class="text-subtitle text-secondary text-center q-mb-sm row items-center justify-center"
-        >
-          <q-icon
-            name="lock_reset"
-            color="secondary"
-            size="xs"
-            class="q-mr-sm"
-          />
-          <span>Passwort ändern für: {{ passwordUser?.username }}</span>
+              <template #body-cell-username="props">
+                <q-td :props="props">
+                  <q-chip
+                    outline
+                    text-color="white"
+                    :color="props.row.username === 'admin' ? 'red-12' : 'secondary'"
+                  >
+                    {{ props.row.username }}
+                  </q-chip>
+                </q-td>
+              </template>
+
+              <template v-slot:body-cell-actions="props">
+                <q-td :props="props" class="q-gutter-x-xs">
+                  <q-btn icon="edit" color="secondary" flat round size="sm" @click="editUser(props.row)">
+                    <q-tooltip>Bearbeiten</q-tooltip>
+                  </q-btn>
+                  <q-btn icon="password" color="secondary" flat round size="sm" @click="changeUserPassword(props.row)">
+                    <q-tooltip>Passwort ändern</q-tooltip>
+                  </q-btn>
+                  <q-btn 
+                    icon="delete" 
+                    color="negative" 
+                    flat 
+                    round 
+                    size="sm" 
+                    @click="deleteUser(props.row)"
+                    v-if="props.row.id != 1"
+                  >
+                    <q-tooltip>Löschen</q-tooltip>
+                  </q-btn>
+                </q-td>
+              </template>
+
+              <template v-slot:item="props">
+                <div class="q-pa-xs col-xs-12 col-sm-6">
+                  <q-card class="premium-glass-card-dialog q-pa-sm">
+                    <q-card-section>
+                      <div class="row justify-between items-center">
+                        <q-chip color="secondary" text-color="dark" dense >
+                          {{ props.row.username }}
+                        </q-chip>
+                        <q-badge :color="props.row.role === 1 ? 'negative' : 'accent'">
+                          {{ props.row.role === 1 ? 'Admin' : 'User' }}
+                        </q-badge>
+                      </div>
+                      <div class="text-caption text-grey-4 q-mt-sm">ID: {{ props.row.id }}</div>
+                      <div class="text-white">{{ props.row.firstName }} {{ props.row.lastName }}</div>
+                      <div class="text-grey-5">{{ props.row.email }}</div>
+                    </q-card-section>
+                    <q-separator dark />
+                    <q-card-actions align="right">
+                      <q-btn flat icon="edit" color="secondary" @click="editUser(props.row)" />
+                      <q-btn flat icon="password" color="secondary" @click="changeUserPassword(props.row)" />
+                      <q-btn flat icon="delete" color="negative" @click="deleteUser(props.row)" v-if="props.row.id != 1" />
+                    </q-card-actions>
+                  </q-card>
+                </div>
+              </template>
+            </q-table>
+
+            <div class="flex justify-center q-mt-xl">
+              <q-btn
+                label="Benutzer hinzufügen"
+                icon="person_add"
+                class="luxury-btn q-px-xl"
+                color="secondary"
+                @click="addUserDialog()"
+              />
+            </div>
+          </div>
         </div>
+      </div>
+    </div>
 
-        <q-form ref="passwordFormRef" @submit.prevent="submitPasswordChange">
-          <q-input
-            v-model="passwordForm.newPassword"
-            type="password"
-            label="Neues Passwort"
-            filled
-            class="q-mb-md"
-            :rules="[
-              (val) => !!val || 'Neues Passwort ist erforderlich',
-              (val) =>
-                val.length >= 6 ||
-                'Passwort muss mindestens 6 Zeichen lang sein',
-            ]"
-          >
-            <template v-slot:prepend>
-              <q-icon name="lock_open" />
-            </template>
-          </q-input>
+    <q-dialog v-model="showUserAdd" persistent backdrop-filter="blur(10px)">
+      <q-card class="premium-glass-card-dialog" style="min-width: 400px; max-width: 900px">
+        <q-card-section class="text-center">
+          <div class="text-overline text-secondary uppercase">Neuaufnahme</div>
+          <div class="text-h6 text-white">Benutzer hinzufügen</div>
+        </q-card-section>
 
-          <q-input
-            v-model="passwordForm.confirmNewPassword"
-            type="password"
-            label="Neues Passwort bestätigen"
-            filled
-            :rules="[
-              (val) => !!val || 'Passwort-Bestätigung ist erforderlich',
-              (val) =>
-                val === passwordForm.newPassword ||
-                'Passwörter stimmen nicht überein',
-            ]"
-          >
-            <template v-slot:prepend>
-              <q-icon name="lock_outline" />
-            </template>
-          </q-input>
+        <q-card-section>
+          <q-form @submit="handleSubmit" class="q-gutter-md">
+            <q-select :options="roleOptions" label="User-Role" dark filled v-model="Role" emit-value map-options class="premium-input" />
+            <q-input label="Username" dark filled v-model="Username" :rules="usernameRules" class="premium-input" />
+            <q-input label="E-Mail" dark filled v-model="Email" :rules="emailRules" class="premium-input" />
+            <div class="row q-col-gutter-sm">
+              <q-input class="col-6 premium-input" label="Vorname" dark filled v-model="Vorname" />
+              <q-input class="col-6 premium-input" label="Nachname" dark filled v-model="Nachname" />
+            </div>
+            <q-input label="Telefonnr." dark filled v-model="Telefon" class="premium-input" />
+            <q-input label="Passwort" dark filled v-model="Password" :type="isPwd ? 'password' : 'text'" :rules="passwordRules" class="premium-input">
+              <template v-slot:append><q-icon :name="isPwd ? 'visibility_off' : 'visibility'" class="cursor-pointer" @click="isPwd = !isPwd" /></template>
+            </q-input>
+            <q-input label="Passwort wiederholen" dark filled v-model="PasswordRepeat" :type="isPwd ? 'password' : 'text'" :rules="passwordRepeatRules" class="premium-input" />
+            
+            <q-card-actions align="center" class="q-mt-md flex column">
+              
+              <q-btn type="submit" label="Speichern" color="secondary" class="luxury-btn full-width q-mb-xs" :loading="isLoading" />
+              <q-btn label="Abbrechen" color="white" flat @click="closeUserAdd" />
+            </q-card-actions>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
-          <q-card-actions align="right" class="q-mt-md">
-            <q-btn
-              label="Abbrechen"
-              flat
-              color="negative"
-              @click="showPasswordDialog = false"
-              :disable="passwordLoading"
-            />
-            <q-btn
-              type="submit"
-              label="Passwort ändern"
-              color="secondary"
-              :loading="passwordLoading"
-            />
-          </q-card-actions>
-        </q-form>
-      </q-card-section>
-    </q-card>
-  </q-dialog>
+    <q-dialog v-model="showEditDialog" persistent backdrop-filter="blur(10px)">
+      <q-card class="premium-glass-card-dialog" style="min-width: 400px">
+        <q-card-section class="text-center">
+          <div class="text-overline text-secondary uppercase">Profil anpassen</div>
+          <div class="text-h6 text-white">{{ editingUser?.username }} bearbeiten</div>
+        </q-card-section>
+        <q-card-section>
+          <q-form ref="editFormRef" @submit.prevent="saveUserChanges" class="q-gutter-y-md">
+            <q-input label="E-Mail" dark filled v-model="editingUser!.email" :rules="[(val) => !!val || 'E-Mail ist erforderlich']" class="premium-input" />
+            <q-input label="Vorname" dark filled v-model="editingUser!.firstName" class="premium-input" />
+            <q-input label="Nachname" dark filled v-model="editingUser!.lastName" class="premium-input" />
+            <q-input label="Telefonnummer" dark filled v-model="editingUser!.telephone" class="premium-input" />
+            <q-card-actions align="right" class="flex column">
 
-  <!-- Löschbestätigung Dialog -->
-  <q-dialog v-model="showDeleteDialog">
-    <q-card style="min-width: 400px">
-      <q-card-section class="row items-center">
-        <q-avatar icon="warning" color="negative" text-color="white" />
-        <span class="q-ml-sm"
-          >Benutzer "{{ userToDelete?.username }}" wirklich löschen?</span
-        >
-      </q-card-section>
+              <q-btn type="submit" label="Änderungen speichern" color="secondary" class="luxury-btn full-width q-mb-xs" :loading="editLoading" />
+                         <q-btn label="Abbrechen" flat color="white" @click="showEditDialog = false" />
+            </q-card-actions>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
-      <q-card-section class="q-pt-none">
-        Diese Aktion kann nicht rückgängig gemacht werden. Alle Daten des
-        Benutzers werden dauerhaft gelöscht.
-      </q-card-section>
+    <q-dialog v-model="showPasswordDialog" persistent backdrop-filter="blur(10px)">
+      <q-card class="premium-glass-card-dialog" style="min-width: 400px">
+        <q-card-section class="text-center">
+          <div class="text-overline text-secondary uppercase">Sicherheit</div>
+          <div class="text-h6 text-white">Neues Passwort vergeben</div>
+        </q-card-section>
+        <q-card-section>
+          <q-form ref="passwordFormRef" @submit.prevent="submitPasswordChange" class="q-gutter-y-md">
+            <q-input v-model="passwordForm.newPassword" type="password" label="Neues Passwort" dark filled class="premium-input" :rules="[(val) => !!val || 'Erforderlich', (val) => val.length >= 6 || 'Mind. 6 Zeichen']" />
+            <q-input v-model="passwordForm.confirmNewPassword" type="password" label="Bestätigen" dark filled class="premium-input" :rules="[(val) => val === passwordForm.newPassword || 'Stimmt nicht überein']" />
+            <q-card-actions align="right" class="flex column">
+              
+              <q-btn type="submit" label="Passwort setzen" color="secondary" class="luxury-btn full-width q-mb-xs" :loading="passwordLoading" />
+              <q-btn label="Abbrechen" flat color="white" @click="showPasswordDialog = false" />
+            </q-card-actions>
+          </q-form>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
-      <q-card-actions align="right">
-        <q-btn flat label="Abbrechen" color="negative" v-close-popup />
-        <q-btn
-          label="Löschen"
-          color="secondary"
-          @click="confirmDeleteUser"
-          :loading="deleteLoading"
-        />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+    <q-dialog v-model="showDeleteDialog" backdrop-filter="blur(10px)">
+      <q-card class="premium-glass-card-dialog" style="min-width: 350px">
+        <q-card-section class="row items-center q-pb-none">
+          <q-avatar icon="warning" color="negative" text-color="white" />
+          <div class="text-h6 q-ml-md text-white">Löschen bestätigen</div>
+        </q-card-section>
+        <q-card-section class="text-grey-4">
+          Möchten Sie den Benutzer <strong>{{ userToDelete?.username }}</strong> wirklich dauerhaft aus dem System entfernen?
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn flat label="Abbrechen" color="white" v-close-popup />
+          <q-btn label="Unwiderruflich löschen" color="negative" @click="confirmDeleteUser" :loading="deleteLoading" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -954,86 +662,100 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.background-img {
-  position: fixed;
-  top: 0;
-  left: 0;
+/* CSS von CODE 2 übernommen */
+.app-container {
+  min-height: 100vh;
+  background: radial-gradient(circle at top right, #2d3436 0%, #000000 100%);
+  padding-top: 80px;
+}
+
+.glass-header {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  top: 53px;
+}
+
+.logo-dot {
+  width: 12px;
+  height: 12px;
+  background-color: var(--q-secondary);
+  border-radius: 50%;
+  box-shadow: 0 0 15px var(--q-secondary);
+}
+
+.content-wrapper {
   width: 100%;
-  height: 100%;
-  background-image: url("./images/uhr.jpg");
-  background-size: cover;
-  background-position: center;
-  filter: blur(8px);
-  opacity: 0.5;
-  z-index: -1;
+  max-width: 1100px;
+  
 }
 
-.my-card2 {
-  margin-left: auto;
-  margin-right: auto;
-  max-width: 1200px;
-  width: 98%;
-  box-shadow: 1px 1px 0.6rem rgb(0, 0, 0);
-  border: 2px solid;
-  border-color: #6e6e6e;
-  max-height: auto;
-  margin-bottom: 40px;
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
 }
 
-.bannerIcon {
-  size: 30px;
+.card-inner {
+  padding: 40px;
 }
 
-.sticky-tabs {
-  position: sticky;
-  top: 50px;
-  z-index: 1;
-  background-color: white;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.premium-glass-card-dialog {
+  background: rgba(20, 20, 20, 0.8) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 20px !important;
 }
 
-.users-management {
-  max-width: 100%;
+.premium-input {
+  transition: all 0.3s ease;
 }
 
-.users-table {
-  margin-top: 1rem;
+.premium-input :deep(.q-field__control) {
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.luxury-btn {
+  border-radius: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 12px 24px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.luxury-btn-outline {
+  border-radius: 12px;
+  border-width: 2px;
+}
+
+/* Tabellen-Anpassungen für Dark-Glass */
+.users-table-glass {
+  background: transparent !important;
+}
+
+:deep(.q-table__card) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+:deep(.q-table thead tr th) {
+  font-weight: bold;
+  color: #9e9e9e;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+:deep(.q-table tbody tr:hover) {
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 @media (max-width: 600px) {
-  .my-card2 {
-    padding: 0;
-    margin-bottom: 0;
-  }
-
-  .banner {
-    max-height: 10px;
-  }
-
-  .bannerText {
-    font-size: 12px;
-  }
-
-  .bannerIcon {
-    font-size: 20px;
-  }
-
-  .above {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    height: 45px;
-  }
-
-  .textOben {
-    font-size: 12px;
-  }
-
-  .separatorOben {
-    display: flex;
-    flex-direction: row;
-    top: 0;
-    max-height: 8px;
+  .card-inner {
+    padding: 20px;
   }
 }
 </style>

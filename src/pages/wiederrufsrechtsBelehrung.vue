@@ -1,153 +1,160 @@
 <template>
-  <q-banner class="banner full-width text-accent">
-    <h6 class="bannerText">
-      <q-icon name="fact_check" class="bannerIcon" />
-      Widerrufsbelehrung
-    </h6>
-  </q-banner>
-  <div class="above bg-white">
-    <q-separator color="accent" />
-    <h2 class="textOben text-h5 text-weight-thin text-center">
-      unsere Widerrufsbelehrung ...
-    </h2>
-    <q-separator class="separatorOben" size="15px" color="grey-6" />
-  </div>
-  <q-img class="background-img" />
-  <q-card class="my-card q-mt-md">
-    <q-img class="img" src="./images/document.jpg">
-      <div class="text text-subtitle2 absolute-top text-center">
-        <h6>Widerrufsrecht</h6>
-        <q-separator inset class="q-mb-lg bg-grey-8" size="2px" />
-        <h6 class="text-body2">
-          Sie haben das Recht, innerhalb von 14 Tagen ohne Angabe von Gründen
-          den Vertrag zu widerrufen. Die Widerrufsfrist beträgt 14 Tage ab dem
-          Tag, an dem Sie oder ein von Ihnen benannter Dritter, der nicht der
-          Beförderer ist, die Waren in Besitz genommen haben. Um Ihr
-          Widerrufsrecht auszuüben, müssen Sie uns (Firma Name, Adresse,
-          E-Mail-Adresse, Telefonnummer) mittels einer eindeutigen Erklärung (z.
-          B. ein mit der Post versandter Brief oder eine E-Mail) über Ihren
-          Entschluss, diesen Vertrag zu widerrufen, informieren. Sie können
-          dafür das beigefügte Muster-Widerrufsformular verwenden, das jedoch
-          nicht vorgeschrieben ist.
-        </h6>
-        <p></p>
-        <h6>Folgen des Widerrufs</h6>
-        <h6 class="text-body2">
-          Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle Zahlungen,
-          die wir von Ihnen erhalten haben, einschließlich der Lieferkosten (mit
-          Ausnahme der zusätzlichen Kosten, die sich daraus ergeben, dass Sie
-          eine andere Art der Lieferung als die von uns angebotene, günstigste
-          Standardlieferung gewählt haben), unverzüglich und spätestens binnen
-          14 Tagen ab dem Tag, an dem die Mitteilung über Ihren Widerruf dieses
-          Vertrags bei uns eingegangen ist, zurückzuzahlen. Für diese
-          Rückzahlung verwenden wir dasselbe Zahlungsmittel, das Sie bei der
-          ursprünglichen Transaktion eingesetzt haben, es sei denn, mit Ihnen
-          wurde ausdrücklich etwas anderes vereinbart; in keinem Fall werden
-          Ihnen wegen dieser Rückzahlung Entgelte berechnet.
-        </h6>
-        <p></p>
-        <h6>Ausschluss des Widerrufsrechts</h6>
-        <h6 class="text-body2">
-          Das Widerrufsrecht besteht nicht bei Verträgen: zur Lieferung von
-          Waren, die schnell verderben können oder deren Verfallsdatum schnell
-          überschritten würde, zur Lieferung von versiegelten Waren, die aus
-          Gründen des Gesundheitsschutzes oder der Hygiene nicht zur Rückgabe
-          geeignet sind, wenn ihre Versiegelung nach der Lieferung entfernt
-          wurde.
-        </h6>
-        <p></p>
-        <h6>Muster-Widerrufsformular</h6>
-        <h6 class="text-body2">
-          (Wenn Sie den Vertrag widerrufen wollen, dann füllen Sie bitte dieses
-          Formular aus und senden Sie es zurück.) An [Name, Adresse, E-Mail des
-          Unternehmens]: Hiermit widerrufe(n) ich/wir den Vertrag über den Kauf
-          der folgenden Waren: Bestellt am / erhalten am: Name des/der
-          Verbraucher(s): Anschrift des/der Verbraucher(s): Unterschrift des/der
-          Verbraucher(s) (nur bei Mitteilung auf Papier): Datum:
-        </h6>
-        <p></p>
-        <h6>Stand: Februar 2025</h6>
+  <div class="app-container flex" style="justify-content: center;">
+    <!--
+    <div class="glass-header full-width fixed-top" style="z-index: 1;">
+      <div class="row justify-between items-center q-px-md q-py-md">
+        <div class="row items-center full-width">
+          <div class="logo-dot q-mr-sm"></div>
+          <span class="text-h6 text-white text-weight-bolder uppercase">Widerruf</span>
+        </div>
       </div>
-    </q-img>
-  </q-card>
-  <h5 class="text-caption text-center color-secondary">
-    Bestellen? zur
-    <RouterLink class="text-secondary" to="/speisekarte"
-      >Speisekarte</RouterLink
-    >
-  </h5>
+    </div>
+    -->
+
+    <div class="content-wrapper q-px-md">
+      <div class="premium-glass-card q-mb-xl shadow-24">
+        <div class="card-inner">
+          
+          <div class="text-center q-mb-xl">
+            <div class="text-overline text-secondary text-weight-bold">RECHTLICHE HINWEISE</div>
+            <div class="text-h4 text-white text-weight-bolder">Widerrufsbelehrung</div>
+          </div>
+
+          <div class="legal-text text-grey-4">
+            <section class="q-mb-lg">
+              <div class="text-h6 text-secondary q-mb-xs">Widerrufsrecht</div>
+              <p>
+                Sie haben das Recht, innerhalb von 14 Tagen ohne Angabe von Gründen diesen Vertrag zu widerrufen. 
+                Die Frist beginnt ab dem Tag, an dem Sie oder ein benannter Dritter die Waren in Besitz genommen haben.
+              </p>
+              <p>
+                Um Ihr Recht auszuüben, informieren Sie uns bitte (<strong>[Firma Name, Adresse, E-Mail, Telefon]</strong>) 
+                mittels einer eindeutigen Erklärung (z.B. Brief oder E-Mail) über Ihren Entschluss.
+              </p>
+            </section>
+
+            <section class="q-mb-lg">
+              <div class="text-h6 text-secondary q-mb-xs">Folgen des Widerrufs</div>
+              <p>
+                Wenn Sie diesen Vertrag widerrufen, haben wir Ihnen alle Zahlungen, einschließlich der Lieferkosten 
+                (ausgenommen Zusatzkosten durch spezielle Lieferwünsche), unverzüglich und spätestens binnen 14 Tagen 
+                ab dem Tag des Eingangs Ihres Widerrufs zurückzuzahlen.
+              </p>
+            </section>
+
+            <section class="q-mb-lg">
+              <div class="text-h6 text-negative q-mb-xs">Ausschluss des Widerrufsrechts</div>
+              <p class="text-weight-bold text-white">
+                Wichtig bei Lebensmitteln:
+              </p>
+              <p>
+                Das Widerrufsrecht besteht nicht bei Verträgen zur Lieferung von Waren, die schnell verderben können 
+                oder deren Verfallsdatum schnell überschritten würde (z.B. frisch zubereitete Speisen).
+              </p>
+            </section>
+
+            <section class="q-mb-lg muster-box q-pa-md">
+              <div class="text-subtitle1 text-white text-weight-bold q-mb-sm">Muster-Widerrufsformular</div>
+              <div class="text-caption text-grey-5">
+                (Wenn Sie den Vertrag widerrufen wollen, füllen Sie bitte dieses Formular aus:)
+                <br><br>
+                An: [Name, Adresse, E-Mail des Unternehmens]<br>
+                Hiermit widerrufe(n) ich/wir den Vertrag über den Kauf der folgenden Waren:<br>
+                Bestellt am: __________ / erhalten am: __________<br>
+                Name des Verbrauchers: ____________________<br>
+                Anschrift: ________________________________<br>
+                Datum & Unterschrift: ______________________
+              </div>
+            </section>
+
+            <q-separator dark class="q-my-lg opacity-2" />
+            
+            <div class="text-caption text-grey-6 italic">
+              Stand: Februar 2025
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-caption text-center q-mb-xl text-grey-5">
+        Doch lieber etwas bestellen? zur 
+        <RouterLink class="text-secondary text-weight-bold no-decoration" to="/speisekarte">Speisekarte</RouterLink>
+      </div>
+    </div>
+  </div>
 </template>
 
-<script setup lang="ts"></script>
-
 <style scoped>
-.my-card {
-  box-shadow: 1px 1px 0.8rem rgb(53, 53, 53);
-  text-align: center;
-  width: 94%;
-  height: auto;
-}
-.img {
-  max-width: 900px;
-  height: 800px;
-}
-.background-img {
-  position: absolute;
-  top: 0;
-  left: 0;
+/* --- BASIS DESIGN --- */
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
   width: 100%;
-  height: 100%;
-  background-image: url("./images/document.jpg");
-  background-size: cover;
-  background-position: center;
-  filter: blur(8px);
-  opacity: 0.5;
-  z-index: -1;
 }
-.text {
-  display: grid;
-  height: auto;
-  min-height: 100%;
-  overflow: visible;
+
+.glass-header {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  top: 53px;
 }
-.separator {
-  margin-left: auto;
-  margin-right: auto;
+
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--q-secondary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--q-secondary);
 }
-.abstand {
-  margin-bottom: 20px;
+
+.content-wrapper {
+  width: 100%;
+  max-width: 650px;
+  padding-top: 100px;
 }
-.bannerIcon {
-  size: 30px;
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
 }
+
+.card-inner {
+  padding: 40px;
+}
+
+/* --- SPEZIAL STYLING --- */
+.legal-text {
+  line-height: 1.6;
+  text-align: left;
+}
+
+.muster-box {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+}
+
+.no-decoration {
+  text-decoration: none;
+}
+
+.opacity-2 {
+  opacity: 0.1;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
 @media (max-width: 600px) {
-  .above {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    height: 45px;
+  .card-inner {
+    padding: 30px 20px;
   }
-  .textOben {
-    font-size: 12px;
-  }
-  .separatorOben {
-    display: flex;
-    flex-direction: row;
-    top: 0;
-    max-height: 8px;
-  }
-  .banner {
-    max-height: 10px;
-  }
-  .bannerText {
-    font-size: 12px;
-  }
-  .bannerIcon {
-    font-size: 22px;
-  }
-  .img {
-    max-width: 900px;
-    height: 1300px;
+  .text-h4 {
+    font-size: 1.7rem;
   }
 }
 </style>

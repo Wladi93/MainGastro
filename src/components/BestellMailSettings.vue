@@ -1,158 +1,138 @@
 <template>
-  <q-list
-    class="full-width"
-    v-for="bestellMail in bestellMail"
-    :key="bestellMail.id"
-  >
-    <div class="full-width">
-      <q-item-section>
-        <q-item-label class="q-mb-sm" caption>Bestell E-Mail:</q-item-label>
-        <q-input clearable label="E-Mail:" filled v-model="bestellMail.email" />
-      </q-item-section>
+  <div class="app-container flex justify-center">
+    <div class="content-wrapper q-px-md">
+      
+      <div class="premium-glass-card shadow-24 q-mb-xl">
+        <div class="card-inner">
+          
+          <div class="text-center q-mb-xl">
+            <div class="text-overline text-secondary text-weight-bold tracking-widest">KONFIGURATION</div>
+            <div class="text-h5 text-white text-weight-light uppercase">Bestell- & Mail-Server</div>
+          </div>
 
-      <q-separator class="q-mt-md q-mb-md" />
+          <div v-for="item in bestellMail" :key="item.id" class="q-gutter-y-lg">
+            
+            <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider">Mail-Server (SMTP)</div>
+            
+            <q-input 
+              label="Bestell E-Mail" 
+              dark filled 
+              v-model="item.email" 
+              class="premium-input"
+              clearable
+            >
+              <template v-slot:prepend><q-icon name="email" /></template>
+            </q-input>
 
-      <q-item-section>
-        <q-item-label class="q-mb-sm" caption>
-          Passwort Email-Adresse:
-        </q-item-label>
-        <q-form>
-          <q-input
-            label="Passwort"
-            filled
-            v-model="bestellMail.password"
-            :type="isPwd ? 'password' : 'text'"
-          >
-            <template v-slot:append>
-              <q-icon
-                :name="isPwd ? 'visibility_off' : 'visibility'"
-                class="cursor-pointer"
-                @click="isPwd = !isPwd"
-              />
-            </template> </q-input
-        ></q-form>
-      </q-item-section>
+            <q-input
+              label="Passwort Email-Adresse"
+              dark filled
+              v-model="item.password"
+              :type="isPwd ? 'password' : 'text'"
+              class="premium-input"
+            >
+              <template v-slot:prepend><q-icon name="lock" /></template>
+              <template v-slot:append>
+                <q-icon
+                  :name="isPwd ? 'visibility_off' : 'visibility'"
+                  class="cursor-pointer"
+                  @click="isPwd = !isPwd"
+                />
+              </template>
+            </q-input>
 
-      <q-separator class="q-mt-md q-mb-sm" />
+            <div >
+              <div >
+                <q-input label="SMTP-Server" dark filled v-model="item.smtp" class="premium-input" clearable>
+                  <template v-slot:prepend><q-icon name="dns" /></template>
+                </q-input>
+              </div>
+              <div class="q-mt-lg">
+                <q-input label="Port" dark filled v-model="item.port" class="premium-input" clearable>
+                  <template v-slot:prepend><q-icon name="settings_input_component" /></template>
+                </q-input>
+              </div>
+            </div>
 
-      <q-item-section>
-        <q-item-label class="q-mb-sm" caption>SMTP-Server:</q-item-label>
-        <q-input clearable label="Smtp:" filled v-model="bestellMail.smtp" />
-      </q-item-section>
+            <q-separator dark class="q-my-lg opacity-10" />
 
-      <q-separator class="q-mt-md q-mb-md" />
+            <div class="text-caption text-grey-5 q-mb-sm uppercase tracking-wider">Bestelloptionen & MwSt</div>
 
-      <q-item-section>
-        <q-item-label class="q-mb-sm" caption>SMTP-Port:</q-item-label>
-        <q-input clearable label="Port:" filled v-model="bestellMail.port" />
-      </q-item-section>
+            <div class="premium-glass-card-inner q-pa-md q-mb-md" style="border-radius: 16px;">
+              <div class="column q-gutter-sm">
+                <q-toggle
+                  v-model="item.rechnungOn"
+                  label="Rechnung erstellen"
+                  color="secondary"
+                  dark
+                  @update:model-value="(val) => { if (!val) item.rechnungSendenOn = false; }"
+                />
+                <q-toggle
+                  :disable="!item.rechnungOn"
+                  v-model="item.rechnungSendenOn"
+                  label="Rechnung per Mail senden"
+                  color="secondary"
+                  dark
+                />
+                <q-toggle
+                  v-model="item.liefernOn"
+                  label="Liefern anbieten"
+                  color="secondary"
+                  dark
+                />
+                <q-toggle
+                  v-model="item.abholenOn"
+                  label="Abholen anbieten"
+                  color="secondary"
+                  dark
+                />
+              </div>
+            </div>
 
-      <q-separator class="q-mt-md q-mb-sm" />
+            <div class="row q-col-gutter-md items-center">
+              <div class="col-12 col-sm-6">
+                <div class="row items-center no-wrap">
+                   <q-toggle v-model="item.mwStOn" color="secondary" dark class="q-mr-sm" />
+                   <q-input
+                    :disable="!item.mwStOn"
+                    type="number"
+                    v-model="item.mwSt"
+                    dark filled
+                    label="MwSt (%)"
+                    class="premium-input col"
+                    prefix="%"
+                  />
+                </div>
+              </div>
+              <div class="col-12 col-sm-6" v-if="fahrkosten[0]">
+                <div class="row items-center no-wrap">
+                  <q-toggle v-model="fahrkosten[0].fahrkostenOn" color="secondary" dark class="q-mr-sm" />
+                  <q-input
+                    :disable="!fahrkosten[0].fahrkostenOn"
+                    type="number"
+                    v-model="vModelFahrkosten"
+                    dark filled
+                    label="Fahrkosten"
+                    class="premium-input col"
+                    prefix="€"
+                  />
+                </div>
+              </div>
+            </div>
 
-      <q-item-section>
-        <q-item-label caption>Rechnung:</q-item-label>
-        <q-toggle
-          class="text-caption"
-          v-model="bestellMail.rechnungOn"
-          label="Rechnung erstellen"
-          color="positive"
-          @update:model-value="
-            (val) => {
-              if (!val) bestellMail.rechnungSendenOn = false;
-            }
-          "
-        />
-        <q-toggle
-          :disable="!bestellMail.rechnungOn"
-          class="text-caption"
-          v-model="bestellMail.rechnungSendenOn"
-          label="Rechnung per Mail mit senden"
-          color="positive"
-        />
-      </q-item-section>
-
-      <q-separator class="q-mt-md q-mb-sm" />
-
-      <q-item-section>
-        <q-item-label caption>Bestellung liefern:</q-item-label>
-        <q-toggle
-          class="text-caption"
-          v-model="bestellMail.liefernOn"
-          label="Liefern anbieten"
-          color="positive"
-        />
-      </q-item-section>
-
-      <q-separator class="q-mt-md q-mb-sm" />
-
-      <q-item-section>
-        <q-item-label caption>Bestellung abholen:</q-item-label>
-        <q-toggle
-          class="text-caption"
-          v-model="bestellMail.abholenOn"
-          label="Abholen anbieten"
-          color="positive"
-        />
-      </q-item-section>
-
-      <q-separator class="q-mt-md q-mb-sm" />
-
-      <q-item-section>
-        <q-item-label caption>Mwst:</q-item-label>
-        <q-toggle
-          class="text-caption"
-          v-model="bestellMail.mwStOn"
-          label="MwSt aktivieren"
-          color="positive"
-        />
-        <div style="position: relative">
-          <q-input
-            :disable="!bestellMail.mwStOn"
-            type="number"
-            v-model="bestellMail.mwSt"
-            filled
-            label="MwSt eingeben:"
-            ref="inputRef"
-            maxlength="2"
-            prefix="%"
-          />
+            <q-btn
+              @click="updateBestellMail(item, fahrkosten[0]!)"
+              label="Einstellungen speichern"
+              icon="save"
+              color="secondary"
+              class="luxury-btn full-width q-mt-xl"
+              :loading="isLoading"
+            />
+          </div>
         </div>
-      </q-item-section>
-
-      <q-separator class="q-mt-md q-mb-sm" />
-
-      <q-item-section>
-        <q-item-label caption>Fahrkosten:</q-item-label>
-        <q-toggle
-          class="text-caption"
-          v-model="fahrkosten[0]!.fahrkostenOn"
-          label="Fahrkosten aktivieren"
-          color="positive"
-        />
-        <q-input
-          :disable="!fahrkosten[0]!.fahrkostenOn"
-          type="number"
-          v-model="vModelFahrkosten"
-          filled
-          label="Fahrkosten eingeben:"
-          ref="inputRef"
-          maxlength="2"
-          prefix="€"
-        />
-      </q-item-section>
-
-      <q-separator class="q-mt-md q-mb-sm" />
-
-      <q-btn
-        @click="updateBestellMail(bestellMail, fahrkosten[0]!)"
-        label="Speichern"
-        icon="save"
-        color="secondary"
-        class="full-width q-mt-sm"
-        :loading="isLoading"
-      />
+      </div>
     </div>
-  </q-list>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -170,6 +150,7 @@ const bestellMail = ref<BestellMail[]>([]);
 const isPwd = ref(true);
 const isLoading = ref(false);
 const fahrkosten = ref<Fahrkosten[]>([]);
+
 const vModelFahrkosten = computed({
   get() {
     return fahrkosten.value[0] ? fahrkosten.value[0].fahrkosten.toFixed(2) : "";
@@ -190,22 +171,21 @@ const loadBestellMail = async () => {
       password: "",
     }));
   } catch (error) {
-    console.error(`Error fetching opening hours`, error);
+    console.error(`Error fetching bestellmail`, error);
   }
 };
 
 const updateBestellMail = async (
-  bestellMail: BestellMail,
-  fahrkosten: Fahrkosten
+  mailData: BestellMail,
+  fahrkostenData: Fahrkosten
 ) => {
   isLoading.value = true;
   try {
-    await api.put(`/api/bestellmail/${bestellMail.id}`, bestellMail);
-    await api.put(`/api/fahrkosten/${fahrkosten.id}`, fahrkosten);
+    await api.put(`/api/bestellmail/${mailData.id}`, mailData);
+    await api.put(`/api/fahrkosten/${fahrkostenData.id}`, fahrkostenData);
 
-    EventBus.emit("bestellmail-updated", bestellMail);
-
-    EventBus.emit("fahrkosten-updated", fahrkosten);
+    EventBus.emit("bestellmail-updated", mailData);
+    EventBus.emit("fahrkosten-updated", fahrkostenData);
 
     Notify.create({
       message: "Daten erfolgreich gespeichert...",
@@ -214,7 +194,7 @@ const updateBestellMail = async (
       icon: "check",
     });
   } catch (error) {
-    console.error("Fehler beim Aktualisieren der Kontakt-Daten", error);
+    console.error("Fehler beim Aktualisieren", error);
     Notify.create({
       message: "Fehler beim Speichern der Daten!",
       position: "top",
@@ -229,16 +209,9 @@ const updateBestellMail = async (
 async function loadFahrkosten() {
   try {
     const response = await api.get("/api/fahrkosten");
-
     fahrkosten.value = response.data;
   } catch (error) {
-    console.error("Fehler beim Laden der Fahrkosten:", error, fahrkosten);
-    Notify.create({
-      type: "negative",
-      position: "top",
-      icon: "clear",
-      message: "Fehler beim Laden der Fahrkosten",
-    });
+    console.error("Fehler beim Laden der Fahrkosten:", error);
   }
 }
 
@@ -247,4 +220,59 @@ onMounted(async () => {
   await loadBestellMail();
 });
 </script>
-<style scoped></style>
+
+<style scoped>
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
+  width: 100%;
+  margin-top: -70px;
+}
+
+.content-wrapper {
+  width: 100%;
+  max-width: 800px;
+  padding-top: 40px;
+  padding-bottom: 60px;
+}
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
+  overflow: hidden;
+}
+
+.card-inner {
+  padding: 40px 30px;
+}
+
+.premium-glass-card-inner {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.premium-input :deep(.q-field__control) {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+.luxury-btn {
+  border-radius: 12px;
+  font-weight: bold;
+  height: 55px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.opacity-10 { opacity: 0.6; }
+.tracking-widest { letter-spacing: 3px; }
+.tracking-wider { letter-spacing: 1.5px; }
+.uppercase { text-transform: uppercase; }
+
+@media (max-width: 600px) {
+  .card-inner { padding: 30px 20px; }
+}
+</style>

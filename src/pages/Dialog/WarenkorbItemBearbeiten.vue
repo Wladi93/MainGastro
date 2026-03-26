@@ -1,206 +1,139 @@
 <template>
-  <q-dialog v-model="isOpen" persistent>
-    <q-card class="full-width" style="justify-content: center">
-      <q-card-section class="full-width">
-        <q-item-label caption class="text-center"
-          >Artikel bearbeiten</q-item-label
-        >
-
-        <q-separator inset class="q-mb-md q-mt-sm" />
-
-        <q-card v-if="selectedItem" class="q-mb-md q-pa-sm row flex">
-          <q-img
-            :src="getFullImageUrl(selectedItem.img)"
-            class="q-mr-md"
-            :alt="selectedItem.name"
-            style="
-              border-radius: 6px;
-              aspect-ratio: 1;
-              max-width: 80px;
-              width: 80px;
-              min-width: 80px;
-              height: auto;
-              box-shadow: 2px 3px 0.2rem rgb(56, 56, 56);
-              border: 1px solid;
-              border-color: rgb(204, 204, 204);
-            "
-          />
-          <div class="item-details">
-            <p class="text-subtitle1 q-mb-xs">
-              {{ selectedItem.name }}
-            </p>
-            <p class="text-caption text-grey-7">
-              {{ selectedItem.description }}
-            </p>
-          </div>
-        </q-card>
-        <q-input
-          v-model.number="newQuantity"
-          label="Anzahl"
-          label-color="secondary"
-          type="number"
-          min="1"
-          max="99"
-          filled
-          :rules="[(val) => val > 0 || 'Anzahl muss mindestens 1 sein']"
-        >
-          <template v-slot:append>
-            <div class="quantity-controls">
-              <q-btn
-                flat
-                dense
-                icon="add"
-                size="sm"
-                @click="increaseQuantity"
-                :disable="newQuantity >= 99"
-              />
-              <q-btn
-                flat
-                dense
-                icon="remove"
-                size="sm"
-                @click="decreaseQuantity"
-                :disable="newQuantity <= 1"
-              />
-            </div>
-          </template>
-        </q-input>
-
-        <q-select
-          v-if="selectedItem?.hasSizes"
-          v-model="newSize"
-          :options="sizeOptions"
-          label="Größe auswählen"
-          filled
-          class="q-mb-md"
-          option-label="label"
-          option-value="value"
-          emit-value
-          map-options
-          :loading="loadingSizes"
-          :disable="loadingSizes"
-        >
-          <template v-slot:option="scope">
-            <q-item v-bind="scope.itemProps">
-              <q-item-section>
-                <q-item-label>{{ scope.opt.sizeName }}</q-item-label>
-                <q-item-label caption
-                  >{{ scope.opt.price.toFixed(2) }}€</q-item-label
-                >
-              </q-item-section>
-            </q-item>
-          </template>
-        </q-select>
-
-        <q-select
-          v-if="selectedItem?.hasBeilagen"
-          class="q-mb-md"
-          filled
-          v-model="selectedItem.beilagen"
-          :options="beilagenOptions"
-          label="Beilagen auswählen"
-          color="accent"
-          option-label="label"
-          option-value="value"
-          multiple
-          use-chips
-          emit-value
-          map-options
-          :key="selectedItem.selectedSize || 'no-size'"
-        />
-
-        <q-input
-          filled
-          type="textarea"
-          clearable
-          class="q-mb-md"
-          label="Anmerkung"
-          label-color="secondary"
-          stack-label
-          placeholder="hier kann eine Nachricht bzgl. der Bestellung hinterlassen werden..."
-          :model-value="String(selectedItem?.anmerkung ?? '')"
-          @update:model-value="
-            (val: string | number | null) =>
-              selectedItem && (selectedItem!.anmerkung = String(val ?? ''))
-          "
-        />
-
-        <q-item-section
-          style="
-            background-color: #f8f9fa;
-            padding: 16px;
-            border-radius: 4px;
-            border: 1px solid #e9ecef;
-          "
-          v-if="selectedItem"
-          class="q-mt-md full-width"
-        >
-          <div class="price-breakdown">
-            <div class="price-row">
-              <q-item-label caption>Einzelpreis:</q-item-label>
-              <q-item-label caption class="text-black"
-                >{{ getCurrentPrice().toFixed(2) }}€</q-item-label
-              >
-            </div>
-            <div
-              v-for="(beilage, index) in selectedItem.beilagen"
-              :key="index"
-              class="price-row"
-            >
-              <q-item-label caption>{{ beilage }}:</q-item-label>
-              <q-item-label caption
-                >+ {{ selectedItem.beilagenPreis?.toFixed(2) }}€</q-item-label
-              >
-            </div>
-            <div class="price-row">
-              <q-item-label caption>Anzahl:</q-item-label>
-              <q-item-label caption class="text-black">{{
-                newQuantity
-              }}</q-item-label>
-            </div>
-            <q-separator class="q-my-xs" />
-            <div class="price-row text-accent">
-              <q-item-label>Gesamtsumme:</q-item-label>
-              <q-item-label>
-                {{
-                  (itemPreis(selectedItem) * newQuantity).toFixed(2)
-                }}€</q-item-label
-              >
-            </div>
-          </div>
-        </q-item-section>
+  <q-dialog v-model="isOpen" backdrop-filter="blur(10px)" persistent>
+    <q-card class="premium-glass-card shadow-24 flex column no-wrap" style="min-width: 90vw; max-height: 85vh; border-radius: 28px;">
+      
+      <q-card-section class="text-center q-pb-none">
+        <q-item-label class="text-overline text-secondary text-weight-bold tracking-widest">
+          Artikel bearbeiten
+        </q-item-label>
+        <q-separator dark inset class="q-mt-sm opacity-2" />
       </q-card-section>
 
-      <q-card-actions
-        class="full-width"
-        style="display: flex; justify-content: center; align-items: center"
-      >
-        <div
-          class="row"
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-          "
-        >
-          <q-btn
-            @click="closeDialog"
-            label="Abbrechen"
-            color="negative"
-            flat
-            icon="close"
+      <q-card-section class="col scroll q-pa-md">
+        <q-list v-if="selectedItem" class="q-gutter-y-md">
+          
+          <q-item class="q-pa-none">
+            <q-card class="item-glass-card full-width flex row q-pa-sm items-center" flat>
+              <q-img
+                spinner-color="white"
+                :src="getFullImageUrl(selectedItem.img)"
+                class="item-image q-mr-md"
+              />
+              <q-item-section>
+                <q-item-label class="text-white text-weight-bold text-subtitle1">
+                  {{ selectedItem.name }}
+                </q-item-label>
+                <q-item-label caption class="text-grey-4 clamp-text">
+                  {{ selectedItem.description }}
+                </q-item-label>
+              </q-item-section>
+            </q-card>
+          </q-item>
+
+          <q-input
+            filled dark color="secondary" label-color="secondary" stack-label
+            v-model.number="newQuantity"
+            label="Anzahl"
+            type="number"
+            class="custom-input full-width"
+          >
+            <template v-slot:append>
+              <div class="quantity-controls">
+                <q-btn flat dense icon="add" size="sm" color="secondary" @click="increaseQuantity" :disable="newQuantity >= 99" />
+                <q-btn flat dense icon="remove" size="sm" color="secondary" @click="decreaseQuantity" :disable="newQuantity <= 1" />
+              </div>
+            </template>
+          </q-input>
+
+          <q-select
+            v-if="selectedItem?.hasSizes"
+            filled dark color="secondary" emit-value map-options
+            v-model="newSize"
+            :options="sizeOptions"
+            label="Größe auswählen"
+            :loading="loadingSizes"
+            class="custom-input full-width"
+            popup-content-class="premium-dropdown-menu"
+          >
+            <template v-slot:option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.sizeName }}</q-item-label>
+                  <q-item-label caption class="text-secondary">{{ scope.opt.price.toFixed(2) }}€</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+
+          <q-select
+            v-if="selectedItem?.hasBeilagen"
+            filled dark multiple use-chips emit-value map-options
+            v-model="selectedItem.beilagen"
+            :options="beilagenOptions"
+            label="Beilagen auswählen"
+            color="secondary" 
+            class="custom-input full-width"
+            popup-content-class="premium-dropdown-menu"
+          >
+            <template v-slot:selected-item="scope">
+              <q-chip
+                removable dense
+                @remove="scope.removeAtIndex(scope.index)"
+                :tabindex="scope.tabindex"
+                color="secondary" outline text-color="secondary"
+                class="q-ma-xs"
+              >
+                {{ scope.opt.label || scope.opt }}
+              </q-chip>
+            </template>
+          </q-select>
+
+          <q-input
+            filled dark color="secondary" label-color="secondary" stack-label
+            type="textarea" rows="2"
+            label="Anmerkung"
+            placeholder="hier Nachricht hinterlassen..."
+            class="custom-input full-width"
+            :model-value="String(selectedItem?.anmerkung ?? '')"
+            @update:model-value="(val) => selectedItem && (selectedItem!.anmerkung = String(val ?? ''))"
           />
-          <q-btn
-            @click="saveChanges"
-            label="Änderung speichern"
-            color="secondary"
-            unelevated
-            icon="save"
-            :loading="saving"
-            :disable="!isValid"
-          />
-        </div>
+
+          <div class="summary-box q-pa-md full-width">
+            <div class="price-breakdown">
+              <div class="price-row">
+                <span class="text-grey-5">Einzelpreis:</span>
+                <span class="text-white">{{ getCurrentPrice().toFixed(2) }}€</span>
+              </div>
+              <div v-for="(beilage, index) in selectedItem.beilagen" :key="index" class="price-row">
+                <span class="text-grey-5">{{ beilage }}:</span>
+                <span class="text-secondary">+ {{ selectedItem.beilagenPreis?.toFixed(2) }}€</span>
+              </div>
+              <div class="price-row">
+                <span class="text-grey-5">Anzahl:</span>
+                <span class="text-white">{{ newQuantity }}</span>
+              </div>
+              <q-separator dark class="q-my-sm opacity-2" />
+              <div class="price-row text-subtitle1 text-weight-bold">
+                <span class="text-secondary">Gesamtsumme:</span>
+                <span class="text-secondary">{{ (itemPreis(selectedItem) * newQuantity).toFixed(2) }}€</span>
+              </div>
+            </div>
+          </div>
+        </q-list>
+      </q-card-section>
+
+      <q-separator dark class="opacity-2" />
+      <q-card-actions class="q-pa-md column q-gutter-y-sm dialog-footer">
+        <q-btn
+          color="secondary" text-color="dark"
+          class="full-width premium-btn"
+          label="Änderung speichern"
+          icon="save"
+          :loading="saving"
+          :disable="!isValid"
+          @click="saveChanges"
+        />
+        <q-btn flat class="full-width text-grey-6 q-mb-xs" label="Abbrechen" icon="close" @click="closeDialog" no-caps />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -457,130 +390,47 @@ onMounted(async () => {
 });
 </script>
 
+<style>
+.premium-dropdown-menu {
+  border-radius: 16px !important;
+  background: rgba(30, 30, 30, 0.98) !important;
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: white !important;
+}
+</style>
+
 <style scoped>
-.section {
-  display: flex;
-  flex-direction: column;
-  min-width: 400px;
-  max-width: 500px;
+.premium-glass-card {
+  background: rgba(18, 18, 18, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.btnPosition {
-  display: flex;
-  flex-direction: row;
-  gap: 12px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
-  justify-content: space-between;
+.item-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.fenster {
-  min-width: 450px;
-  max-width: 550px;
-  background-color: white;
-  border-radius: 8px;
+.item-image { width: 60px; height: 60px; border-radius: 12px; }
+.summary-box { background: rgba(255, 255, 255, 0.03); border-radius: 16px; }
+.price-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
+
+.custom-input :deep(.q-field__control) {
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
 }
 
-.item-info {
-  background-color: #f8f9fa;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
-}
+.premium-btn { border-radius: 16px; font-weight: 900; height: 54px; }
+.quantity-controls { display: flex; flex-direction: column; justify-content: center; }
+.tracking-widest { letter-spacing: 0.15em; }
+.opacity-2 { opacity: 0.2; }
+.clamp-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-.item-display {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.item-image {
-  width: 60px;
-  height: 60px;
-  border-radius: 6px;
-  object-fit: cover;
-}
-
-.item-details {
-  flex: 1;
-}
-
-.price-preview {
-  background-color: #f8f9fa;
-  padding: 16px;
-  border-radius: 4px;
-  border: 1px solid #e9ecef;
-}
-
-.price-breakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.price-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.price {
-  font-weight: 500;
-}
-
-.quantity-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.name {
-  text-align: center;
-  margin-bottom: 16px;
-  color: #1976d2;
-}
-
-@media (max-width: 600px) {
-  .section {
-    min-width: 300px;
-    max-width: 350px;
-  }
-
-  .fenster {
-    min-width: 320px;
-    max-width: 380px;
-  }
-
-  .name {
-    font-size: 1.1rem;
-  }
-
-  .btnPosition {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .item-display {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .item-image {
-    width: 80px;
-    height: 80px;
-  }
-}
-
-@media (min-width: 601px) {
-  .section {
-    min-width: 450px;
-    max-width: 500px;
-  }
-
-  .fenster {
-    min-width: 500px;
-    max-width: 550px;
-  }
+/* iPhone Safe-Area Fix */
+.dialog-footer {
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  background: rgba(18, 18, 18, 0.98);
 }
 </style>

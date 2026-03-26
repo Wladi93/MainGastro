@@ -1,281 +1,125 @@
 <template>
-  <q-banner class="banner full-width text-accent">
-    <h6 class="bannerText">
-      <q-icon name="home" class="bannerIcon" />
-      Startseite
-    </h6>
-  </q-banner>
-  <div class="oben bg-white">
-    <q-separator color="accent" />
-    <h2 class="textOben text-h5 text-weight-thin text-center">Willkommen...</h2>
-
-    <q-separator class="separatorOben" size="15px" color="grey-6" />
-  </div>
-
-  <div class="animated-background">
-    <body>
-      <div>
-        <div class="wave"></div>
-        <div class="wave"></div>
-        <div class="wave"></div>
-      </div>
-    </body>
-    <section>
-      <div class="wave">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-    </section>
-
-    <div class="body"></div>
-    <div class="wave"></div>
-    <div class="wave"></div>
-    <div class="wave"></div>
-    <div class="wave"></div>
-    <div class="sky-gradient"></div>
-    <div class="clouds-container">
-      <div class="cloud cloud1"></div>
-      <div class="cloud cloud2"></div>
-      <div class="cloud cloud3"></div>
-      <div class="cloud cloud4"></div>
-      <div class="cloud cloud5"></div>
-      <div class="cloud cloud6"></div>
-      <div class="cloud cloud7"></div>
-      <div class="cloud cloud8"></div>
-    </div>
-    <div class="horizon-clouds">
-      <div class="horizon-cloud hcloud1"></div>
-      <div class="horizon-cloud hcloud2"></div>
-      <div class="horizon-cloud hcloud3"></div>
-      <div class="horizon-cloud hcloud4"></div>
-    </div>
-    <div class="planes-container">
-      <div class="plane plane1"></div>
-      <div class="plane plane2"></div>
-    </div>
-    <div class="sunset-planes">
-      <div class="sunset-plane splane1"></div>
-      <div class="sunset-plane splane2"></div>
-      <div class="sunset-plane splane3"></div>
-    </div>
-
-    <div class="floating-particles">
-      <div class="particle"></div>
-      <div class="particle"></div>
-      <div class="particle"></div>
-      <div class="particle"></div>
-      <div class="particle"></div>
-    </div>
-  </div>
-
-  <div
-    class="q-mt-md"
-    style="display: flex; justify-content: center; align-items: center"
-  >
-    <q-card
-      class="column my-card"
-      style="
-        max-width: 100vw;
-        background-color: transparent;
-        justify-content: center;
-      "
-      flat
-    >
-      <div
-        class="img-container flex"
-        style="justify-content: center; align-items: center"
-      >
-        <q-img
-          class="img"
-          v-for="logos in logo.filter((item) => item.id === 2)"
-          :key="logos.id"
-          :src="getFullImageUrl(logos.url)"
-          style="
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            flex-direction: column;
-          "
-        >
-          <div
-            class="text text-subtitle2 text-center column absolute-top inhalt-container"
-            style="
-              display: flex;
-              flex-direction: column;
-              justify-content: center;
-              align-items: center;
-            "
-          >
-            <h6 v-for="inhalte in inhalt" :key="inhalte.id" class="q-mt-md">
-              {{ inhalte.inhalt1 }}
-            </h6>
-            <q-separator inset class="q-mb-lg bg-white" size="2px" />
-
-            <div
-              class="q-mt-sm"
-              style="
-                display: flex;
-                justify-content: center;
-                align-items: center;
-              "
-            ></div>
-            <h6
-              v-for="inhalte in inhalt"
-              :key="inhalte.id"
-              class="text-caption text-weight-medium"
-            >
-              {{ inhalte.inhalt2 }}
-            </h6>
-
-            <div
-              class="q-mb-md q-mt-md"
-              style="
-                display: flex;
-                justify-content: center;
-                align-items: center;
-              "
-            >
-              <q-img
-                class="flex"
-                v-for="logos in logo.filter((item) => item.id === 1)"
-                :key="logos.id"
-                style="
-                  height: 150px;
-                  width: 150px;
-                  border-radius: 50%;
-                  border: 2px solid var(--q-secondary);
-                  align-items: center;
-                  justify-content: center;
-                "
-                :src="getFullImageUrl(logos.url)"
-              />
-            </div>
-            <h6
-              v-for="inhalte in inhalt"
-              :key="inhalte.id"
-              class="text-caption"
-            >
-              {{ inhalte.inhalt3 }}
-            </h6>
-
-            <div
-              style="
-                display: flex;
-                justify-content: center;
-                align-items: center;
-              "
-              class="full-width"
-            ></div>
-            <q-card-section class="full-width">
-              <q-btn
-                dense
-                label="Zur Speisekarte"
-                class="gradient-btn full-width"
-                text-color="white"
-                color="secondary"
-                icon="restaurant_menu"
-                clickable
-                @click="onSubmit"
-              >
-              </q-btn>
-            </q-card-section>
-            <div
-              class="q-mt-md"
-              style="display: flex; justify-content: center; gap: 20px"
-            >
-              <div
-                class="social-item"
-                v-for="firma in firmenName"
-                :key="firma.id"
-              >
-                <q-btn
-                  v-if="firma.instagram"
-                  round
-                  color="pink-5"
-                  icon="photo_camera"
-                  size="md"
-                  :href="firma.instagram!"
-                  target="instagram-window"
-                  class="social-btn instagram-btn"
-                  aria-label="Instagram"
-                />
-                <div v-if="firma.instagram" class="social-label">Instagram</div>
-              </div>
-              <div
-                class="social-item"
-                v-for="firma in firmenName"
-                :key="firma.id"
-              >
-                <q-btn
-                  v-if="firma.facebook"
-                  round
-                  color="blue-7"
-                  icon="facebook"
-                  size="md"
-                  :href="firma.facebook!"
-                  target="facebook-window"
-                  class="social-btn facebook-btn"
-                  aria-label="Facebook"
-                />
-                <div v-if="firma.facebook" class="social-label">Facebook</div>
-              </div>
-              <div
-                class="social-item"
-                v-for="firma in firmenName"
-                :key="firma.id"
-              >
-                <q-btn
-                  v-if="firma.lieferando"
-                  round
-                  color="orange"
-                  icon="takeout_dining"
-                  size="md"
-                  :href="firma.lieferando!"
-                  target="lieferando-window"
-                  class="social-btn facebook-btn"
-                  aria-label="Lieferando"
-                />
-                <div v-if="firma.lieferando" class="social-label">
-                  Lieferando
-                </div>
-              </div>
-            </div>
-            <q-separator inset class="q-mt-lg q-mb-sm bg-white" size="2px" />
-            <h6
-              v-for="inhalte in inhalt"
-              :key="inhalte.id"
-              class="text-overline"
-            >
-              {{ inhalte.inhalt4 }}
-            </h6>
-          </div>
-        </q-img>
-
-        <div class="img-particles">
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
-          <div class="img-particle"></div>
+  <div class="app-container flex" style="justify-content: center;">
+    <!--
+    <div class="glass-header full-width fixed-top" style="z-index: 10;">
+      <div class="row justify-between items-center q-px-md q-py-md">
+        <div class="row items-center full-width">
+          <div class="logo-dot q-mr-sm"></div>
+          <span class="text-h6 text-white text-weight-bolder uppercase">Startseite</span>
         </div>
-
-        <div class="glow-effect"></div>
       </div>
-    </q-card>
+    </div>
+    -->
+
+    <div class="content-wrapper q-px-md">
+
+
+      <div class="premium-glass-card shadow-24">
+        <div class="card-inner column items-center">
+          
+          <div class="img-container full-width">
+            <q-img
+              class="img-styled"
+              v-for="logos in logo.filter((item) => item.id === 2)"
+              :key="logos.id"
+              :src="getFullImageUrl(logos.url)"
+            >
+              <template v-slot:default>
+                <div class="absolute-full content-overlay column items-center justify-center">
+                  <h6 v-for="inhalte in inhalt" :key="inhalte.id" class="text-h6 text-weight-bold q-ma-none text-white">
+                    {{ inhalte.inhalt1 }}
+                  </h6>
+                  
+                  <q-separator dark class="q-my-md opacity-2 separator-width" />
+
+                  <h6 v-for="inhalte in inhalt" :key="inhalte.id" class="text-subtitle2 text-weight-medium text-white">
+                    {{ inhalte.inhalt2 }}
+                  </h6>
+
+                  <div class="q-my-lg full-width flex justify-center">
+                    <q-img
+                      v-for="logos in logo.filter((item) => item.id === 1)"
+                      :key="logos.id"
+                      class="profile-logo"
+                      :src="getFullImageUrl(logos.url)"
+                      fit="contain" 
+                    />
+                  </div>
+
+                  <h6 v-for="inhalte in inhalt" :key="inhalte.id" class="text-caption text-grey-4">
+                    {{ inhalte.inhalt3 }}
+                  </h6>
+
+                  <div class="full-width q-mt-lg btn-wrapper">
+                    <q-btn
+                      label="Zur Speisekarte"
+                      class="premium-btn full-width"
+                      icon="restaurant_menu"
+                      @click="onSubmit"
+                    />
+                  </div>
+
+                  <div class="row justify-center q-gutter-md q-mt-xl">
+                    <div class="social-item column items-center" v-for="firma in firmenName" :key="firma.id">
+                      <q-btn
+                        v-if="firma.instagram"
+                        round
+                        flat
+                        class="glass-btn"
+                        icon="photo_camera"
+                        :href="firma.instagram!"
+                        target="_blank"
+                      />
+                      <span v-if="firma.instagram" class="social-label">Instagram</span>
+                    </div>
+                    
+                    <div class="social-item column items-center" v-for="firma in firmenName" :key="firma.id">
+                      <q-btn
+                        v-if="firma.facebook"
+                        round
+                        flat
+                        class="glass-btn"
+                        icon="facebook"
+                        :href="firma.facebook!"
+                        target="_blank"
+                      />
+                      <span v-if="firma.facebook" class="social-label">Facebook</span>
+                    </div>
+
+                    <div class="social-item column items-center" v-for="firma in firmenName" :key="firma.id">
+                      <q-btn
+                        v-if="firma.lieferando"
+                        round
+                        flat
+                        class="glass-btn"
+                        icon="takeout_dining"
+                        :href="firma.lieferando!"
+                        target="_blank"
+                      />
+                      <span v-if="firma.lieferando" class="social-label">Lieferando</span>
+                    </div>
+                  </div>
+
+                  <q-separator dark class="q-mt-xl q-mb-sm separator-width opacity-2" />
+                  
+                  <h6 v-for="inhalte in inhalt" :key="inhalte.id" class="text-overline text-grey-5">
+                    {{ inhalte.inhalt4 }}
+                  </h6>
+                </div>
+              </template>
+            </q-img>
+          </div>
+        </div>
+      </div>
+
+      <div class="text-caption text-center q-mt-xl q-mb-xl text-grey-5">
+        Sie haben Fragen? zum 
+        <RouterLink class="text-secondary text-weight-bold no-decoration" to="/kontakt">
+          Kontaktformular
+        </RouterLink>
+      </div>
+    </div>
   </div>
-  <h5 class="text-caption text-center color-secondary">
-    Sie haben Fragen? zum
-    <RouterLink class="text-accent" to="/kontakt">Kontaktformular</RouterLink>
-  </h5>
 </template>
 
 <script setup lang="ts">
@@ -293,14 +137,12 @@ const onSubmit = () => {
 
 const { loadLogo, logo, getFullImageUrl } = useLogo();
 const { loadInhalt, inhalt } = useInhalt();
-
 const { firmenName, loadFirmenName } = useFirmenName();
 
 const applyStylesheetFromApi = async () => {
   try {
     const response = await api.get("/api/hintergrund/active");
     const cssPath = response.data.cssName;
-
     if (cssPath) {
       const link = document.createElement("link");
       link.id = "dynamic-theme";
@@ -329,65 +171,162 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.lol {
-  border: 1px solid;
-}
-.bannerImage {
-  height: 230px;
+.app-container {
+  background: radial-gradient(circle at top right, #1a1a1a, #050505);
+  min-height: 100vh;
+  color: white;
+  width: 100%;
 }
 
-.text {
-  display: grid;
+.glass-header {
+  background: rgba(10, 10, 10, 0.7);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  top: 53px;
 }
-.separator {
-  margin-left: auto;
-  margin-right: auto;
+
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--q-secondary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--q-secondary);
 }
-.abstand {
-  margin-bottom: 20px;
+
+.content-wrapper {
+  width: 100%;
+  max-width: 600px;
+  padding-top: 80px;
+  
 }
-.bannerIcon {
-  size: 30px;
+
+.premium-glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 32px;
+  overflow: hidden;
 }
-.img {
-  max-width: 80vw;
-  min-height: 80vh;
+
+.card-inner {
+  padding: 0;
 }
-.inhalt-container {
-  background-color: var(--q-warning);
+
+.img-container {
+  position: relative;
+}
+
+.img-styled {
+  border-radius: 32px;
+  min-height: 800px;
+}
+
+.content-overlay {
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7));
+  padding: 40px 30px;
+  text-align: center;
+}
+
+.separator-width {
+  width: 80%;
+  max-width: 300px;
+}
+
+.btn-wrapper {
+  max-width: 400px;
+  padding: 0 20px;
+}
+
+.profile-logo {
+  width: 100%;
+  max-width: 300px;
+  min-width: 300px;
   height: auto;
+  min-height: 150px;
+}
+
+.premium-btn {
+  background: var(--q-secondary) !important;
+  color: white !important;
+  border-radius: 12px;
+  font-weight: bold;
+  height: 50px;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+}
+
+.glass-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: var(--q-secondary);
+}
+
+.social-label {
+  font-size: 10px;
+  color: #aaa;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.no-decoration {
+  text-decoration: none;
+}
+
+.opacity-2 {
+  opacity: 0.2;
+}
+
+.uppercase {
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 @media (max-width: 600px) {
-  .bannerImage {
-    height: 130px;
+  .content-wrapper {
+    padding-top: 80px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
-  .inhalt-container {
-    height: auto;
+  
+  .content-overlay {
+    padding: 30px 20px;
   }
-  .oben {
-    display: flex;
-    justify-content: center;
-    flex-direction: row;
-    height: 45px;
+  
+  .img-styled {
+    min-height: 750px;
   }
-  .textOben {
-    font-size: 12px;
+  
+  .profile-logo {
+    max-width: 200px;
+    min-height: 120px;
   }
-  .separatorOben {
-    display: flex;
-    flex-direction: row;
-    top: 0;
-    max-height: 8px;
+  
+  .btn-wrapper {
+    padding: 0 10px;
   }
-  .banner {
-    max-height: 10px;
+  
+  .premium-btn {
+    height: 48px;
+    font-size: 14px;
   }
-  .bannerText {
-    font-size: 12px;
+}
+
+@media (max-width: 400px) {
+  .img-styled {
+    min-height: 850px;
   }
-  .bannerIcon {
-    font-size: 20px;
+  
+  .content-overlay {
+    padding: 25px 15px;
   }
 }
 </style>
