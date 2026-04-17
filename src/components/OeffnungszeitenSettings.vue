@@ -92,6 +92,7 @@
               icon="save"
               label="Öffnungszeiten speichern"
               @click="updateOeffnungszeiten()"
+              :text-color="schriftFarbe ? 'white' : 'black'"
             />
           </div>
 
@@ -143,8 +144,22 @@ const updateOeffnungszeiten = async () => {
   }
 };
 
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
+
 onMounted(async () => {
   await loadOeffnungszeiten();
+  await loadSchriftFarbe();
 });
 </script>
 

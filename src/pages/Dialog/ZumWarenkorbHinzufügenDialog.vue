@@ -143,7 +143,7 @@
       <q-separator dark class="opacity-2" />
       <q-card-actions class="q-pa-md column q-gutter-y-sm dialog-footer">
         <q-btn
-          color="secondary" text-color="dark"
+          color="secondary" :text-color="schriftFarbe ? 'white' : 'black'"
           class="full-width premium-btn"
           label="In den Warenkorb"
           icon="shopping_cart_checkout"
@@ -176,6 +176,19 @@ const anzahl = ref(1);
 const $q = useQuasar();
 const beilageName = ref<BeilagenName[]>([]);
 const selectedBeilagen = ref<string[]>([]);
+
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
 
 const filteredSaucen = computed(() => {
   if (!selectedItem.value?.saucenIds) return [];
@@ -463,6 +476,7 @@ async function loadSaucen() {
 onMounted(async () => {
   await getAllergeneZusatzstoffe();
   await loadSaucen();
+  await loadSchriftFarbe();
 });
 </script>
 <style>

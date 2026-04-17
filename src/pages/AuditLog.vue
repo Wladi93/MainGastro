@@ -221,7 +221,6 @@
               </q-chip>
             </div>
 
-            <!-- Old Values vs New Values (for updates) -->
             <div
               v-if="parsedDetails.oldValues && parsedDetails.newValues"
               class="q-mb-md"
@@ -288,7 +287,6 @@
               </div>
             </div>
 
-            <!-- Simple object display (for create/delete operations) -->
             <div
               v-else-if="
                 parsedDetails &&

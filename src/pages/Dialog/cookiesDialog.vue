@@ -24,6 +24,15 @@
             class="col-grow btn-rounded text-weight-bold" 
             no-caps 
             @click="acceptCookies" 
+            :text-color="schriftFarbe ? 'white' : 'black'"
+          />
+                    <q-btn 
+            label="Nur erforderliche Cookies akzeptieren" 
+            outline
+            color="secondary" 
+            class="col-grow btn-rounded text-weight-bold" 
+            no-caps 
+            @click="acceptCookies" 
           />
           <q-btn 
             label="Ablehnen" 
@@ -43,6 +52,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import api from 'src/boot/axios'
 
 const $q = useQuasar()
 const showDialog = ref<boolean>(false)
@@ -55,7 +65,6 @@ const acceptCookies = () => {
 }
 
 const declineCookies = () => {
-  // Kleiner visueller Effekt beim Ablehnen
   isShaking.value = true
   setTimeout(() => (isShaking.value = false), 500)
 
@@ -69,9 +78,25 @@ const declineCookies = () => {
   })
 }
 
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
+
+onMounted(async() => {
+ await loadSchriftFarbe();
+});
+
 onMounted(() => {
   if (!cookiesAccepted.value) {
-    // Kurze Verzögerung für einen sanften Auftritt
     setTimeout(() => {
       showDialog.value = true
     }, 1000)
@@ -113,7 +138,6 @@ onMounted(() => {
   opacity: 0.7;
 }
 
-/* Schüttel-Animation wenn man auf "Ablehnen" klickt */
 .shake-animation {
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
 }
@@ -125,7 +149,6 @@ onMounted(() => {
   40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
-/* Damit das Dialog-Hintergrund-Overlay nicht alles komplett schwarz macht */
 :deep(.q-dialog__backdrop) {
   backdrop-filter: blur(4px);
   background: rgba(0, 0, 0, 0.4);

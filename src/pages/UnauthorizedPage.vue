@@ -45,7 +45,6 @@
 </template>
 
 <style scoped>
-/* --- BASIS DESIGN --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -57,7 +56,7 @@
   background: rgba(10, 10, 10, 0.7);
   backdrop-filter: blur(25px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  top: 0; /* Hier auf 0 gesetzt für Standalone-Look */
+  top: 0;
 }
 
 .logo-dot {
@@ -82,7 +81,6 @@
   width: 100%;
 }
 
-/* --- SEITENSPEZIFISCH --- */
 .error-glow {
   filter: drop-shadow(0 0 15px rgba(255, 0, 0, 0.3));
 }

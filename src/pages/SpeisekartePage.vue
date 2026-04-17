@@ -77,6 +77,7 @@
                   style="justify-content: center; align-items: center;"
                   v-if="item.neu == true"
                   label="Neu"
+                  :text-color="schriftFarbe ? 'white' : 'black'"
                 />
                 </div>
                 <p class="card-desc">{{ item.description }}</p>
@@ -99,6 +100,7 @@
                   color="secondary"
                   icon="add"
                   size="sm"
+                  :text-color="schriftFarbe ? 'white' : 'black'"
                   class="add-btn-over"
                   @click.stop="openZumWarenkorbHinzufügen(item, category.name)"
                 />
@@ -136,6 +138,19 @@ const sectionRefs = ref<Record<string, HTMLElement>>({});
 const isOpenHinzufügen = ref(false);
 const selectedItem = ref<CategoryItem | null>(null);
 const categoryItems = ref<Record<string, CategoryItem[]>>({});
+
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
 
 const getFullImageUrl = (imgUrl: string): string => {
   if (!imgUrl) return '';
@@ -224,6 +239,7 @@ const openZumWarenkorbHinzufügen = (item: CategoryItem, catName: string) => {
 let observer: IntersectionObserver | null = null;
 
 onMounted(async () => {
+  await loadSchriftFarbe();
   await loadLieferzeit();
   await fetchCategories();
   for (const cat of categories.value) { await fetchCategoryItems(cat.name); }
@@ -243,7 +259,6 @@ onBeforeUnmount(() => { observer?.disconnect(); });
   
 }
 
-/* --- GLASS HEADER --- */
 .glass-header {
   position: sticky;
   top: 0;
@@ -277,7 +292,6 @@ onBeforeUnmount(() => { observer?.disconnect(); });
   border: 1px solid rgba(255,255,255,0.05);
 }
 
-/* --- NAV PILLS --- */
 .categories-nav {
   display: flex;
   overflow-x: auto;
@@ -302,12 +316,11 @@ onBeforeUnmount(() => { observer?.disconnect(); });
   border-color: var(--q-secondary);
 }
 
-/* --- CATEGORY HERO --- */
 .category-block { margin-bottom: 50px; }
 
 .category-hero {
   height: 220px;
-  margin-bottom: -40px; /* Overlap effect */
+  margin-bottom: -40px;
   border-radius: 0 0 40px 40px;
   overflow: hidden;
 }
@@ -316,7 +329,6 @@ onBeforeUnmount(() => { observer?.disconnect(); });
   background: linear-gradient(to bottom, transparent 20%, #050505 100%);
 }
 
-/* --- PREMIUM GLASS CARDS --- */
 .premium-glass-card {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(10px);
@@ -368,7 +380,6 @@ onBeforeUnmount(() => { observer?.disconnect(); });
   right: -8px;
   border: 4px solid #0a0a0a;
 }
-
 
 @media (min-width: 800px) {
   .items-container {

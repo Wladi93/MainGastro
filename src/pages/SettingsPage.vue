@@ -87,7 +87,6 @@ const tabsList = [
   width: 100%;
 }
 
-/* --- GLASS HEADER --- */
 .glass-header {
   position: -webkit-sticky; 
   position: sticky;
@@ -104,7 +103,6 @@ const tabsList = [
   width: 100%;
 }
 
-/* --- NAV PILLS --- */
 .categories-nav {
   display: flex;
   overflow-x: auto;

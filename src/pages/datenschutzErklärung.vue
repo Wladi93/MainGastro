@@ -106,7 +106,6 @@
 </script>
 
 <style scoped>
-/* --- BASIS DESIGN (KONSISTENT ZU ALLEN SEITEN) --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -132,7 +131,7 @@
 
 .content-wrapper {
   width: 100%;
-  max-width: 700px; /* Etwas breiter für besseren Lesefluss langer Texte */
+  max-width: 700px; 
   padding-top: 80px;
 }
 
@@ -148,7 +147,6 @@
   padding: 40px;
 }
 
-/* --- TEXT STYLING --- */
 .ds-text {
   line-height: 1.6;
   text-align: left;
@@ -175,7 +173,6 @@
   font-style: italic;
 }
 
-/* --- MOBILE OPTIMIERUNG --- */
 @media (max-width: 600px) {
   .card-inner {
     padding: 30px 20px;

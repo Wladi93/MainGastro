@@ -143,6 +143,7 @@
                 class="luxury-btn q-px-xl"
                 color="secondary"
                 @click="addUserDialog()"
+                :text-color="schriftFarbe ? 'white' : 'black'"
               />
             </div>
           </div>
@@ -620,7 +621,6 @@ const confirmDeleteUser = async () => {
       throw new Error("Nicht angemeldet - kein Token gefunden");
     }
 
-    // Wenn dein Axios-Interceptor den Token setzt, kannst du headers weglassen
     await api.delete(`/api/users/${userToDelete.value.id}`);
 
     users.value = users.value.filter((u) => u.id !== userToDelete.value!.id);
@@ -656,13 +656,28 @@ const confirmDeleteUser = async () => {
   }
 };
 
+//Schriftfarbe laden
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
+
 onMounted(async () => {
   await fetchAllUsers();
+  await loadSchriftFarbe();
+
 });
 </script>
 
 <style scoped>
-/* CSS von CODE 2 übernommen */
 .app-container {
   min-height: 100vh;
   background: radial-gradient(circle at top right, #2d3436 0%, #000000 100%);

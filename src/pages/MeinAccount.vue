@@ -89,6 +89,7 @@
                   color="secondary"
                   class="luxury-btn full-width"
                   @click="showEditUserInfoDialog = true"
+                  :text-color="schriftFarbe ? 'white' : 'black'"
                 />
                 
                 <div class="row q-col-gutter-sm">
@@ -581,13 +582,27 @@ const deleteAccount = async () => {
   }
 };
 
+//Schriftfarbe laden
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
+
 onMounted(async () => {
   await fetchUserData();
+  await loadSchriftFarbe();
 });
 </script>
 
 <style scoped>
-/* --- LUXURY DESIGN SYSTEM (FROM CODE 2) --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -638,7 +653,6 @@ onMounted(async () => {
   padding: 40px 30px;
 }
 
-/* --- INPUTS & BUTTONS --- */
 .premium-input :deep(.q-field__control) {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05) !important;
@@ -668,7 +682,6 @@ onMounted(async () => {
 .no-decoration { text-decoration: none; }
 .opacity-2 { opacity: 0.1; }
 
-/* --- MOBILE --- */
 @media (max-width: 600px) {
   .card-inner { padding: 30px 20px; }
   .content-wrapper { padding-top: 100px; }

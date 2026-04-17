@@ -27,6 +27,7 @@
                 flat
                 no-caps
                 :class="liefern ? 'toggle-active' : 'toggle-inactive'"
+                  :style="liefern ? { color: schriftFarbe ? 'white' : 'black' } : {}"
                 icon="moped"
                 label="Liefern"
                 @click="onLiefern"
@@ -36,6 +37,7 @@
                 flat
                 no-caps
                 :class="abholen ? 'toggle-active' : 'toggle-inactive'"
+                  :style="abholen ? { color: schriftFarbe ? 'white' : 'black' } : {}"
                 icon="storefront"
                 label="Abholen"
                 @click="onAbholen"
@@ -142,6 +144,7 @@
             no-caps
             icon-right="chevron_right"
             @click="bestellen"
+            :text-color="schriftFarbe ? 'white' : 'black'"
           />
 
         </div>
@@ -156,7 +159,6 @@
 </template>
 
 <script setup lang="ts">
-// ... (Die gesamte Script-Logik bleibt absolut identisch) ...
 import { useCartStore } from "src/store/cardStore";
 import type { GenericCartItem } from "src/store/cardStore";
 import { computed, onMounted, ref } from "vue";
@@ -175,6 +177,19 @@ const bestellMail = ref<BestellMail[]>([]);
 const genericCartItems = computed(() => cartStore.genericCartItems);
 const fahrkosten = ref<Fahrkosten[]>([]);
 const sauce = ref<SaucenType[]>([]);
+
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
 
 const getSauceNameForItem = (item: GenericCartItem) => {
   if (!item.saucenIds || item.saucenIds.length === 0) return "";
@@ -279,11 +294,11 @@ onMounted(async () => {
   await loadBestellMail();
   await loadFahrkosten();
   await loadSaucen();
+  await loadSchriftFarbe();
 });
 </script>
 
 <style scoped>
-/* --- BASIS DESIGN (WIE CODE 1) --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -324,7 +339,6 @@ onMounted(async () => {
   padding: 40px 25px;
 }
 
-/* --- WARENKORB SPEZIFISCH --- */
 .toggle-container {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 12px;
@@ -333,7 +347,6 @@ onMounted(async () => {
 
 .toggle-active {
   background: var(--q-secondary) !important;
-  color: black !important;
   border-radius: 8px;
   font-weight: bold;
 }

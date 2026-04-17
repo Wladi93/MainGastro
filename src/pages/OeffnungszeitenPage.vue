@@ -88,7 +88,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* --- BASIS DESIGN (EXAKT WIE CODE 1) --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;

@@ -125,7 +125,7 @@
       <q-separator dark class="opacity-2" />
       <q-card-actions class="q-pa-md column q-gutter-y-sm dialog-footer">
         <q-btn
-          color="secondary" text-color="dark"
+          color="secondary" :text-color="schriftFarbe ? 'white' : 'black'"
           class="full-width premium-btn"
           label="Änderung speichern"
           icon="save"
@@ -165,6 +165,19 @@ const loadingSizes = ref(false);
 const saving = ref(false);
 const beilageName = ref<BeilagenName[]>([]);
 const beilagenPreise = ref<BeilagenPreise[]>([]);
+
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
 
 const itemPreis = computed(() => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -388,6 +401,11 @@ onMounted(async () => {
     }
   }
 });
+
+onMounted(async () => {
+   await loadSchriftFarbe();
+});
+
 </script>
 
 <style>
@@ -428,7 +446,6 @@ onMounted(async () => {
 .opacity-2 { opacity: 0.2; }
 .clamp-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-/* iPhone Safe-Area Fix */
 .dialog-footer {
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
   background: rgba(18, 18, 18, 0.98);

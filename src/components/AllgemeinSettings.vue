@@ -18,6 +18,7 @@
                   <div class="text-subtitle2 text-white q-mr-md">Button-Farbe:</div>
                   <q-icon color="secondary" name="lens" size="sm" />
                 </div>
+                
                 <q-btn
                   icon="opacity"
                   @click="openDialogZweitfarbe"
@@ -26,6 +27,25 @@
                   class="luxury-btn-outline q-px-md"
                   flat
                 />
+              </div>
+              <div class="column q-mt-sm">Schriftfarbe:
+                <div class="row justify-center items-center selector-container q-mt-sm">
+                  <q-btn
+                    class="col btn-choice"
+                    :class="{ 'choice-active': schriftFarbe === true }"
+                    label="Weiss"
+                    @click="schriftFarbe = true"
+                    flat
+                  />
+
+                  <q-btn
+                    class="col btn-choice"
+                    :class="{ 'choice-active': schriftFarbe === false }"
+                    label="Schwarz"
+                    @click="schriftFarbe = false"
+                    flat
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -154,6 +174,7 @@
               color="secondary"
               class="luxury-btn full-width q-mt-xl"
               @click="updateFirmenName(firma)"
+              :text-color="schriftFarbe2 ? 'white' : 'black'"
             />
           </div>
         </div>
@@ -163,6 +184,7 @@
     <SettingsFarbeButtons
       v-model:colorButtons="colorButtons"
       v-model:isOpen="isOpenButtons"
+      v-model:schriftFarbe="schriftFarbe"
       @change:colorButtons="colorButtons = $event"
     />
   </div>
@@ -170,21 +192,47 @@
 
 <script setup lang="ts">
 import { useFirmenName } from "src/composables/Firmenname";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import SettingsFarbeButtons from "src/components/SettingsFarbeButtons.vue";
+import { EventBus } from "src/utils/eventBus";
+import api from "src/boot/axios";
+
 
 const colorButtons = ref("");
 const isOpenButtons = ref(false);
+const schriftFarbe = ref(false);
 
 const { firmenName, loadFirmenName, updateFirmenName } = useFirmenName();
+
+const schriftFarbe2 = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
 
 function openDialogZweitfarbe() {
   isOpenButtons.value = true;
 }
 
+watch(schriftFarbe, (val) => {
+  console.log("schriftFarbe geändert auf:", val ? "Weiss" : "Schwarz");
+});
+watch(schriftFarbe, (val) => {
+  EventBus.emit("schriftfarbe-updated", val);
+});
+
+
 
 onMounted(async () => {
   await loadFirmenName();
+  await loadSchriftFarbe();
 });
 </script>
 
@@ -237,6 +285,25 @@ onMounted(async () => {
   border: 1px solid var(--q-secondary);
   border-radius: 12px;
   color: white;
+}
+
+.btn-choice {
+  color: #888;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.choice-active {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--q-secondary) !important;
+  font-weight: bold;
+}
+
+.selector-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .tracking-widest { letter-spacing: 3px; }

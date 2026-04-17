@@ -85,7 +85,6 @@
 </template>
 
 <style scoped>
-/* --- BASIS DESIGN --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -125,7 +124,6 @@
   padding: 40px;
 }
 
-/* --- SPEZIAL STYLING --- */
 .legal-text {
   line-height: 1.6;
   text-align: left;

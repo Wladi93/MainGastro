@@ -82,7 +82,7 @@
   max-width: 500px;
   position: relative;
   z-index: 1;
-  padding-top: 100px;
+  top: 53px;
 }
 
 .icon-circle {
@@ -105,7 +105,6 @@
   letter-spacing: 0.2em;
 }
 
-/* Mobile Adjustments */
 @media (max-width: 600px) {
   .success-glass-card {
     padding: 20px;

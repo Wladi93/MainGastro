@@ -1,7 +1,6 @@
 import { boot } from 'quasar/wrappers'
 
 export default boot(() => {
-  // Hole den originalen Descriptor
   const descriptor = Object.getOwnPropertyDescriptor(EventTarget.prototype, 'addEventListener')
 
   if (descriptor && typeof descriptor.value === 'function') {

@@ -127,6 +127,7 @@
               color="secondary"
               class="luxury-btn full-width q-mt-xl"
               :loading="isLoading"
+              :text-color="schriftFarbe ? 'white' : 'black'"
             />
           </div>
         </div>
@@ -215,9 +216,23 @@ async function loadFahrkosten() {
   }
 }
 
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
+
 onMounted(async () => {
   await loadFahrkosten();
   await loadBestellMail();
+  await loadSchriftFarbe();
 });
 </script>
 

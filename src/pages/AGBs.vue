@@ -108,11 +108,9 @@
 </template>
 
 <script setup lang="ts">
-// Keine spezielle Logik erforderlich
 </script>
 
 <style scoped>
-/* --- BASIS DESIGN (KONSISTENT ZU ALLEN SEITEN) --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;

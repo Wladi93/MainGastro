@@ -110,7 +110,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* --- BASIS DESIGN (IDENTISCH ZU CODE 1) --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -136,7 +135,7 @@ onMounted(async () => {
 
 .content-wrapper {
   width: 100%;
-  max-width: 600px; /* Etwas breiter für Textinhalte */
+  max-width: 600px;
   padding-top: 80px;
 }
 
@@ -165,9 +164,6 @@ onMounted(async () => {
   font-style: italic;
 }
 
-
-
-/* --- MOBILE OPTIMIERUNG --- */
 @media (max-width: 600px) {
   .card-inner {
     padding: 30px 20px;

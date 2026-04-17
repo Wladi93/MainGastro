@@ -16,6 +16,7 @@
             icon="moped" flat no-caps
             class="col btn-choice"
             :class="{ 'choice-active': liefern }"
+            :style="liefern ? { color: schriftFarbe ? 'white' : 'black' } : {}"
             label="Liefern"
             @click="onLiefern"
           />
@@ -24,6 +25,7 @@
             icon="storefront" flat no-caps
             class="col btn-choice"
             :class="{ 'choice-active': abholen }"
+            :style="abholen ? { color: schriftFarbe ? 'white' : 'black' } : {}"
             label="Abholen"
             @click="onAbholen"
           />
@@ -119,7 +121,8 @@
       <q-separator dark class="opacity-2" />
       <q-card-actions class="q-pa-md column q-gutter-y-sm dialog-footer">
         <q-btn
-          color="secondary" text-color="dark"
+          color="secondary"
+          :text-color="schriftFarbe ? 'white' : 'dark'"
           class="full-width premium-btn"
           label="Zum Warenkorb"
           icon="shopping_basket"
@@ -157,6 +160,19 @@ const showMwSt = computed(() => {
 });
 const fahrkosten = ref<Fahrkosten[]>([]);
 const sauce = ref<SaucenType[]>([]);
+
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getSauceNameForItem = (item: any) => {
@@ -292,21 +308,25 @@ onMounted(() => {
     EventBus.on("fahrkosten-updated", () => {
       void loadFahrkosten();
     });
+        EventBus.on("schriftfarbe-updated", (val) => {
+      schriftFarbe.value = val as boolean;
+    });
   })();
 });
 
 onUnmounted(() => {
   EventBus.off("bestellmail-updated");
   EventBus.off("fahrkosten-updated");
+   EventBus.off("schriftfarbe-updated");
 });
 onMounted(async () => {
   await loadFahrkosten();
   await loadBestellMail();
   await loadSaucen();
+  await loadSchriftFarbe();
 });
 </script>
 <style scoped>
-/* WICHTIG: Die Card darf nicht wachsen, der Inhalt muss scrollen */
 .premium-glass-card {
   background: rgba(18, 18, 18, 0.95);
   backdrop-filter: blur(20px);
@@ -336,9 +356,9 @@ onMounted(async () => {
 }
 
 .choice-active {
-  background: rgba(255, 255, 255, 0.1) !important;
-  color: var(--q-secondary) !important;
+  background: var(--q-secondary) !important;
   font-weight: bold;
+  border-radius: 8px;
 }
 
 .item-glass-card {

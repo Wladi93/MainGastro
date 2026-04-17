@@ -95,7 +95,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-/* --- BASIS DESIGN (IDENTISCH ZU CODE 1) --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -108,7 +107,7 @@ onMounted(async () => {
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  top: 53px; /* Beibehalten gemäß deiner Header-Position */
+  top: 53px;
 }
 
 .logo-dot {
@@ -121,7 +120,7 @@ onMounted(async () => {
 
 .content-wrapper {
   width: 100%;
-  max-width: 600px; /* Für Karte etwas breiter als beim Text */
+  max-width: 600px;
   padding-top: 80px;
 }
 
@@ -138,7 +137,6 @@ onMounted(async () => {
   padding: 40px 30px;
 }
 
-/* --- KARTEN STYLING --- */
 .map-container {
   border-radius: 20px;
   overflow: hidden;
@@ -149,7 +147,7 @@ onMounted(async () => {
   width: 100%;
   height: 250px;
   display: block;
-  filter: grayscale(0.2) contrast(1.1); /* Passt die Karte dezent an den Dark-Mode an */
+  filter: grayscale(0.2) contrast(1.1);
 }
 
 .no-decoration {
@@ -168,8 +166,6 @@ onMounted(async () => {
   text-transform: uppercase;
 }
 
-
-/* --- MOBILE OPTIMIERUNG --- */
 @media (max-width: 600px) {
   .card-inner {
     padding: 25px 15px;

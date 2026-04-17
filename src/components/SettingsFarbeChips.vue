@@ -1,3 +1,29 @@
+<template>
+  <q-dialog v-model="isOpen">
+    <q-card
+      class="q-mt-md"
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-width: 80vw;
+        min-height: 50vh;
+        max-height: 70vh;
+      "
+    >
+      <q-color
+        style="min-width: 80vw; min-height: 50vh; max-height: 70vh"
+        :model-value="colorChips"
+        @change="
+          (val) => {
+            colorChips = val;
+          }
+        "
+      />
+    </q-card>
+  </q-dialog>
+</template>
+
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
 import { setCssVar } from "quasar";
@@ -38,29 +64,3 @@ onMounted(async () => {
   await loadColor();
 });
 </script>
-
-<template>
-  <q-dialog v-model="isOpen">
-    <q-card
-      class="q-mt-md"
-      style="
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-width: 80vw;
-        min-height: 50vh;
-        max-height: 70vh;
-      "
-    >
-      <q-color
-        style="min-width: 80vw; min-height: 50vh; max-height: 70vh"
-        :model-value="colorChips"
-        @change="
-          (val) => {
-            colorChips = val;
-          }
-        "
-      />
-    </q-card>
-  </q-dialog>
-</template>

@@ -154,7 +154,6 @@
 </template>
 
 <script setup lang="ts">
-/* --- 100% UNVERÄNDERTE LOGIK --- */
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import cookiesDialog from "src/pages/Dialog/cookiesDialog.vue";
@@ -193,7 +192,6 @@ async function logout() {
   location.reload();
 }
 
-//Badge#
 const isOpen = ref(false);
 function openWarenkorb() {
   isOpen.value = true;
@@ -212,13 +210,16 @@ const totalItemCount = computed(() => {
 onMounted(async () => {
   await loadFirmenName();
   await loadLogo();
+
+  document.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+  });
 });
 </script>
 
 <style scoped>
 @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
 
-/* --- GLOBAL APP BACKGROUND (Wie Code 1) --- */
 .app-layout {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -227,10 +228,9 @@ onMounted(async () => {
 }
 
 .q-page-container {
-  padding-top: 0px !important; /* Exakt die Höhe deines Headers */
+  padding-top: 0px !important; 
 }
 
-/* --- GLASS HEADER --- */
 .glass-header {
   background: rgba(10, 10, 10, 0.7);
   backdrop-filter: blur(25px);
@@ -239,7 +239,6 @@ onMounted(async () => {
   height: 60px; /* Optional fixierte Höhe */
 }
 
-/* --- GLASS FOOTER --- */
 .glass-footer {
   background: rgba(10, 10, 10, 0.85);
   backdrop-filter: blur(25px);
@@ -249,8 +248,6 @@ onMounted(async () => {
   margin-top: auto;
 }
 
-/* --- GLASS DRAWER --- */
-/* Wir nutzen :deep, um die interne Quasar-Klasse .q-drawer zu überschreiben */
 :deep(.q-drawer) {
   background: rgba(15, 15, 15, 0.95) !important;
   backdrop-filter: blur(20px);
@@ -261,7 +258,6 @@ onMounted(async () => {
     color: white;
 }
 
-/* --- MENU ITEMS --- */
 .menu-item-glass {
     color: #888;
     border-radius: 12px;
@@ -280,7 +276,6 @@ onMounted(async () => {
     font-weight: 600;
 }
 
-/* --- UTILS & TEXT --- */
 .headerTxt {
   font-family: "Poppins", serif;
   font-size: 20px;
@@ -291,19 +286,16 @@ onMounted(async () => {
   cursor: pointer;
 }
 
-/* Buttons im Glas-Stil anpassen */
 .glass-btn {
     border-radius: 12px;
     font-weight: 600;
 }
 
-/* Links */
 a:visited {
   color: inherit;
   text-decoration: none;
 }
 
-/* Scrollbars unsichtbar machen für cleaneren Look */
 ::-webkit-scrollbar {
   width: 6px;
 }
@@ -315,33 +307,33 @@ a:visited {
   border-radius: 3px;
 }
 html, body {
-  background: #050505 !important; /* Gleiche Farbe wie dein Layout-Start */
+  background: #050505 !important;
 }
 
 .drawer-header-fixed {
   position: sticky;
   top: 0;
-  z-index: 20; /* Liegt über der Scroll-Area */
+  z-index: 20;
   
-  /* Dunkler, transparenter Hintergrund */
   background: rgba(10, 10, 10, 0.75) !important; 
   
-  /* Der Blur-Effekt (Wichtig für iPhone Safari) */
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   
-  /* Dezente Trennlinie */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Sicherstellen, dass die Scroll-Area direkt darunter beginnt */
 .glass-drawer .q-scroll-area {
-  height: calc(100% - 70px); /* Höhe abzüglich Header-Höhe */
+  height: calc(100% - 70px);
 }
 
-/* Optionale Verschönerung für den Drawer-Hintergrund selbst */
 :deep(.q-drawer) {
   background: rgba(5, 5, 5, 0.9) !important;
 }
 
+img {
+  -webkit-user-drag: none;
+  user-drag: none;
+  pointer-events: none;
+}
 </style>

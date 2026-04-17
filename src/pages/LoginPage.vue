@@ -106,7 +106,6 @@
 </template>
 
 <script setup lang="ts">
-// ... (Script bleibt identisch zu deinem Code 2)
 import { nextTick, onMounted, ref } from "vue";
 import { useLogin } from "../components/login";
 
@@ -190,7 +189,6 @@ declare global {
 </script>
 
 <style scoped>
-/* --- BASIS DESIGN AUS CODE 1 --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -217,7 +215,6 @@ declare global {
   box-shadow: 0 0 10px var(--q-secondary);
 }
 
-/* --- LOGIN CARD STYLING --- */
 .content-wrapper {
   width: 100%;
   max-width: 600px;
@@ -238,7 +235,6 @@ declare global {
   padding: 40px 30px;
 }
 
-/* --- INPUT STYLING --- */
 .search-glass {
   background: rgba(255, 255, 255, 0.05) !important;
   border-radius: 15px !important;
@@ -259,7 +255,6 @@ declare global {
   box-shadow: 0 4px 15px rgba(var(--q-secondary), 0.3);
 }
 
-/* --- RECAPTCHA --- */
 .recaptcha-wrapper {
   display: flex;
   justify-content: center;
@@ -271,7 +266,6 @@ declare global {
   text-decoration: none;
 }
 
-/* --- MOBILE OPTIMIERUNG --- */
 @media (max-width: 600px) {
   .card-inner {
     padding: 30px 20px;

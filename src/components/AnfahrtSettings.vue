@@ -37,6 +37,7 @@
                 class="luxury-btn q-px-lg full-width q-mt-md"
                 @click="searchLocation"
                 :loading="isSearching"
+                :text-color="schriftFarbe ? 'white' : 'black'"
               />
             </div>
           </div>
@@ -62,6 +63,8 @@
                     flat
                     class="luxury-btn-outline"
                     @click="selectLocation(result)"
+                    
+
                   />
                 </q-item-section>
               </q-item>
@@ -151,6 +154,7 @@
                 label="Speichern"
                 @click="saveOwnEmbedCode"
                 :loading="isSaving"
+                :text-color="schriftFarbe ? 'white' : 'black'"
               />
             </div>
           </div>
@@ -182,7 +186,6 @@ import { Notify } from "quasar";
 import api from "src/boot/axios";
 import { onMounted, ref } from "vue";
 
-// --- FUNKTIONEN (EXAKT WIE IN DEINEM CODE 1) ---
 const searchAddress = ref("");
 const searchResults = ref<SearchResult[]>([]);
 const selectedLocation = ref<SelectedLocation | null>(null);
@@ -372,8 +375,22 @@ const loadExistingMap = async () => {
   }
 };
 
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
+
 onMounted(async () => {
   await loadExistingMap();
+  await loadSchriftFarbe();
 });
 </script>
 

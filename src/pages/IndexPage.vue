@@ -56,6 +56,7 @@
                       class="premium-btn full-width"
                       icon="restaurant_menu"
                       @click="onSubmit"
+                      :text-color="schriftFarbe ? 'white' : 'black'"
                     />
                   </div>
 
@@ -125,7 +126,7 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import { useLogo } from "../composables/LogoLoad";
-import { onBeforeUnmount, onMounted } from "vue";
+import { onBeforeUnmount, onMounted, ref } from "vue";
 import { useFirmenName } from "../composables/Firmenname";
 import { useInhalt } from "../composables/InhaltLoad";
 import api from "src/boot/axios";
@@ -155,11 +156,25 @@ const applyStylesheetFromApi = async () => {
   }
 };
 
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
+
 onMounted(async () => {
   await loadLogo();
   await loadFirmenName();
   await loadInhalt();
   await applyStylesheetFromApi();
+  await loadSchriftFarbe();
 });
 
 onBeforeUnmount(() => {
@@ -249,7 +264,6 @@ onBeforeUnmount(() => {
 
 .premium-btn {
   background: var(--q-secondary) !important;
-  color: white !important;
   border-radius: 12px;
   font-weight: bold;
   height: 50px;

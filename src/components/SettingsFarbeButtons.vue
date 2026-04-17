@@ -1,61 +1,3 @@
-<script setup lang="ts">
-import { onMounted, watch } from "vue";
-import { setCssVar } from "quasar";
-import api from "src/boot/axios";
-
-const isOpen = defineModel<boolean>("isOpen", { default: false });
-const colorButtons = defineModel<string>("colorButtons", {
-  required: true,
-});
-
-const loadColor = async () => {
-  try {
-    const res = await api.get("api/color/2");
-    if (res.data && res.data.color) {
-      colorButtons.value = res.data.color;
-      setCssVar("secondary", colorButtons.value);
-    }
-  } catch (error) {
-    console.error("Fehler beim Laden der Farbe", error);
-  }
-};
-
-const saveColor = async (newColor: string, id: number) => {
-  try {
-    if (/^#[0-9A-F]{6}$/i.test(newColor)) {
-      await api.put("api/color/2", { id, color: newColor });
-    }
-  } catch (error) {
-    console.error("Fehler beim speichern der Farbe", error);
-  }
-};
-
-const handleManualInput = (val: string | number | null) => {
-  let stringVal = String(val || '');
-  
-  if (stringVal && !stringVal.startsWith('#')) {
-    stringVal = '#' + stringVal;
-  }
-  
-  if (stringVal.length > 7) {
-    stringVal = stringVal.substring(0, 7);
-  }
-  
-  colorButtons.value = stringVal;
-};
-
-watch(colorButtons, async (newVal) => {
-  if (/^#[0-9A-F]{6}$/i.test(newVal)) {
-    setCssVar("secondary", newVal);
-    await saveColor(newVal, 2);
-  }
-});
-
-onMounted(async () => {
-  await loadColor();
-});
-</script>
-
 <template>
   <q-dialog v-model="isOpen" backdrop-filter="blur(15px)">
     <q-card class="premium-glass-card shadow-24">
@@ -111,6 +53,73 @@ onMounted(async () => {
     </q-card>
   </q-dialog>
 </template>
+
+<script setup lang="ts">
+import { onMounted, watch } from "vue";
+import { setCssVar } from "quasar";
+import api from "src/boot/axios";
+
+const isOpen = defineModel<boolean>("isOpen", { default: false });
+const colorButtons = defineModel<string>("colorButtons", {
+  required: true,
+});
+const schriftFarbe = defineModel<boolean>("schriftFarbe");
+
+const loadColor = async () => {
+  try {
+    const res = await api.get("api/color/2");
+
+    if (res.data && res.data.color) {
+      colorButtons.value = res.data.color;
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+      setCssVar("secondary", colorButtons.value);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Farbe", error);
+  }
+};
+
+const saveColor = async (newColor: string, id: number) => {
+  try {
+    if (/^#[0-9A-F]{6}$/i.test(newColor)) {
+      await api.put("api/color/2", { id, color: newColor, schriftFarbe: schriftFarbe.value });
+    }
+  } catch (error) {
+    console.error("Fehler beim speichern der Farbe", error);
+  }
+};
+
+const handleManualInput = (val: string | number | null) => {
+  let stringVal = String(val || '');
+  
+  if (stringVal && !stringVal.startsWith('#')) {
+    stringVal = '#' + stringVal;
+  }
+  
+  if (stringVal.length > 7) {
+    stringVal = stringVal.substring(0, 7);
+  }
+  
+  colorButtons.value = stringVal;
+};
+
+watch(colorButtons, async (newVal) => {
+  if (/^#[0-9A-F]{6}$/i.test(newVal)) {
+    setCssVar("secondary", newVal);
+    await saveColor(newVal, 2);
+  }
+});
+
+watch(schriftFarbe, async () => {
+  if (/^#[0-9A-F]{6}$/i.test(colorButtons.value)) {
+    await saveColor(colorButtons.value, 2);
+  }
+});
+
+onMounted(async () => {
+  await loadColor();
+});
+</script>
 
 <style scoped>
 .premium-glass-card {

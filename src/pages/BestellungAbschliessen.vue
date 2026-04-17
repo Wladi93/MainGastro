@@ -295,7 +295,6 @@ const validateForm = () => {
     return false;
   }
 
-  // E-Mail Validierung
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email.value)) {
     $q.notify({
@@ -308,7 +307,6 @@ const validateForm = () => {
     return false;
   }
 
-  // Telefon Validierung
   if (!/^(\+?\d+)*$/.test(telefon.value)) {
     $q.notify({
       message: "Bitte geben Sie eine gültige Telefonnummer ein.",
@@ -320,7 +318,6 @@ const validateForm = () => {
     return false;
   }
 
-  // Hausnummer Validierung
   if (!/^\d+[a-zA-Z]*$/.test(hausnr.value)) {
     $q.notify({
       message: "Bitte geben Sie eine gültige Hausnummer ein.",
@@ -332,7 +329,6 @@ const validateForm = () => {
     return false;
   }
 
-  // PLZ Validierung
   if (!/^\d{5}$/.test(plz.value)) {
     $q.notify({
       message: "Bitte geben Sie eine gültige 5-stellige PLZ ein.",
@@ -442,7 +438,6 @@ onMounted(async () => {
   padding-top: 40px;
 }
 
-/* Glass Effekt für Karten */
 .order-glass-card {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px);
@@ -458,7 +453,6 @@ onMounted(async () => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Input Styling */
 .premium-input :deep(.q-field__control) {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05) !important;
@@ -493,7 +487,6 @@ onMounted(async () => {
 .opacity-2 { opacity: 0.1; }
 .opacity-7 { opacity: 0.7; }
 
-/* Desktop Optimierung */
 @media (min-width: 600px) {
   .order-glass-card {
     margin-top: 40px;

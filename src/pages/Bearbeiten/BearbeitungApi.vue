@@ -1,7 +1,6 @@
 <template>
   <div class="app-container">
 
-    <!-- GLASS HEADER -->
     <div class="glass-header">
       <div
         v-if="lieferzeit.length"
@@ -29,7 +28,6 @@
         </div>
       </div>
 
-      <!-- Tab erstellen / löschen -->
       <div class="q-px-md q-py-md row q-gutter-sm">
         <q-btn
           label="Tab +"
@@ -50,7 +48,6 @@
         />
       </div>
 
-      <!-- Categories nav pills -->
       <div class="categories-nav q-pl-md q-pb-md" id="categories-nav-sortable">
         <div
           v-for="category in categories"
@@ -61,7 +58,7 @@
           @click="onPillClick(category)"
         >
           <q-icon name="drag_indicator" size="12px" class="q-mr-xs pill-drag-icon" />
-          <q-icon :name="category.icon" size="14px" class="q-mr-xs" />
+         
           {{ category.name }}
         </div>
       </div>
@@ -148,8 +145,9 @@
                   <q-chip
                     v-if="item.neu == true"
                     class="bg-secondary text-white q-ml-sm"
-                    size="xs"
+                    
                     label="Neu"
+                    :text-color="schriftFarbe ? 'white' : 'black'"
                   />
                 </div>
                 <p class="card-desc">{{ item.description }}</p>
@@ -176,6 +174,7 @@
                   round
                   unelevated
                   color="secondary"
+                  :text-color="schriftFarbe ? 'white' : 'black'"
                   icon="edit"
                   size="sm"
                   class="add-btn-over"
@@ -491,6 +490,19 @@ const selectAllItems = () => {
     );
   }
 };
+
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
 
 const openLieferzeitDialog = () => {
   lieferzeitOpen.value = true;
@@ -1270,6 +1282,7 @@ const handleIntersection = (entries: IntersectionObserverEntry[]) => {
 };
 
 onMounted(async () => {
+  await loadSchriftFarbe();
   await loadLieferzeit();
   await fetchCategories();
   for (const category of categories.value) {

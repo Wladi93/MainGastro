@@ -94,6 +94,7 @@
               no-caps
               size="lg"
               @click="sendKontaktToApi"
+              :text-color="schriftFarbe ? 'white' : 'black'"
             >
               <q-icon name="send" class="q-ml-sm" size="xs" />
             </q-btn>
@@ -118,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useQuasar } from "quasar";
 import { useRouter } from "vue-router";
 import api from "src/boot/axios";
@@ -131,6 +132,19 @@ const nachname = ref("");
 const email = ref("");
 const telefon = ref("");
 const anliegen = ref("");
+
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
 
 const sendKontaktToApi = async () => {
   $q.loading.show();
@@ -166,10 +180,13 @@ const sendKontaktToApi = async () => {
     $q.loading.hide();
   }
 };
+
+onMounted(async () => {
+  await loadSchriftFarbe();
+});
 </script>
 
 <style scoped>
-/* --- BASIS DESIGN (WIE CODE 1) --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -195,7 +212,7 @@ const sendKontaktToApi = async () => {
 
 .content-wrapper {
   width: 100%;
-  max-width: 600px; /* Einheitliche Breite */
+  max-width: 600px;
   padding-top: 80px;
 }
 
@@ -212,7 +229,6 @@ const sendKontaktToApi = async () => {
   padding: 40px 30px;
 }
 
-/* --- FORMULAR DESIGN --- */
 .premium-input :deep(.q-field__control) {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05) !important;
@@ -237,7 +253,6 @@ const sendKontaktToApi = async () => {
   text-transform: uppercase;
 }
 
-/* --- MOBILE OPTIMIERUNG --- */
 @media (max-width: 600px) {
   .card-inner {
     padding: 30px 20px;

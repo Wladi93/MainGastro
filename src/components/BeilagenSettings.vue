@@ -25,6 +25,7 @@
               color="secondary"
               class="luxury-btn full-width q-mt-sm"
               @click="postBeilage()"
+              :text-color="schriftFarbe ? 'white' : 'black'"
             />
 
             <q-expansion-item
@@ -69,6 +70,7 @@
               color="secondary"
               class="luxury-btn full-width q-mt-sm"
               @click="postSauce()"
+              :text-color="schriftFarbe ? 'white' : 'black'"
             />
 
             <q-expansion-item
@@ -134,6 +136,7 @@
               label="speichern"
               icon="save"
               class="luxury-btn full-width q-mt-md"
+              :text-color="schriftFarbe ? 'white' : 'black'"
             />
 
             
@@ -158,6 +161,19 @@ const beilageName = ref<BeilagenName[]>([]);
 const beilagenPreise = ref<BeilagenPreise[]>([]);
 const sauce = ref("");
 const saucenName = ref<SaucenType[]>([]);
+
+const schriftFarbe = ref<boolean>(false);
+
+  async function loadSchriftFarbe() {
+  try {
+    const res = await api.get("api/color/2");
+    if (res.data) {
+      schriftFarbe.value = Boolean(res.data.schriftFarbe);
+    }
+  } catch (error) {
+    console.error("Fehler beim Laden der Schriftfarbe", error);
+  }
+}
 
 const preisKlein = computed({
   get() {
@@ -343,6 +359,7 @@ const deleteSauce = async (id: number) => {
 onMounted(async () => {
   await loadBeilagen();
   await loadSaucen();
+  await loadSchriftFarbe();
 });
 </script>
 

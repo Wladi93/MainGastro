@@ -77,11 +77,9 @@
 </template>
 
 <script setup lang="ts">
-// Keine Logik benötigt
 </script>
 
 <style scoped>
-/* --- BASIS DESIGN (WIE CODE 1) --- */
 .app-container {
   background: radial-gradient(circle at top right, #1a1a1a, #050505);
   min-height: 100vh;
@@ -123,7 +121,6 @@
   padding: 40px 30px;
 }
 
-/* --- TEXT STYLING --- */
 .cookie-text {
   line-height: 1.6;
   text-align: left;
@@ -146,7 +143,6 @@
   text-transform: uppercase;
 }
 
-/* --- MOBILE OPTIMIERUNG --- */
 @media (max-width: 600px) {
   .card-inner {
     padding: 30px 20px;
