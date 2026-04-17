@@ -542,16 +542,23 @@ const initializeTabsSortable = () => {
     tabsSortableInstance.value = new Sortable(tabsContainer, {
       animation: 150,
       handle: ".nav-pill",
-      fallbackOnBody: true,
       ghostClass: "sortable-ghost",
       chosenClass: "sortable-chosen",
       dragClass: "sortable-drag",
       forceFallback: false,
+      fallbackOnBody: true,
       fallbackTolerance: 3,
-      touchStartThreshold: 5,
-      delay: 100,
+      touchStartThreshold: 4,
+      delay: 200,
       delayOnTouchOnly: true,
+      scroll: true,
+      scrollSensitivity: 80,
+      scrollSpeed: 10,
+      onStart: () => {
+        document.body.style.overflow = "hidden";
+      },
       onEnd: (evt: SortableEvent) => {
+        document.body.style.overflow = "";
         pillDragged.value = true;
         if (evt.oldIndex !== undefined && evt.newIndex !== undefined && evt.oldIndex !== evt.newIndex) {
           void updateCategoryOrder(evt.oldIndex, evt.newIndex);
@@ -597,6 +604,7 @@ const updateCategoryOrder = async (oldIndex: number, newIndex: number) => {
 // ─── Items sortieren ───────────────────────────────────────────────────────
 
 const sortableInstances = ref<Record<string, Sortable>>({});
+
 const initializeSortable = () => {
   categories.value.forEach((category) => {
     const container = document.getElementById(`sortable-${category.id}`);
@@ -604,16 +612,26 @@ const initializeSortable = () => {
       sortableInstances.value[category.id] = new Sortable(container, {
         animation: 150,
         handle: ".drag-handle",
-        fallbackOnBody: true,
         ghostClass: "sortable-ghost",
         chosenClass: "sortable-chosen",
         dragClass: "sortable-drag",
         forceFallback: false,
+        fallbackOnBody: true,
         fallbackTolerance: 3,
-        touchStartThreshold: 5,
-        delay: 100,
+        touchStartThreshold: 4,
+        delay: 200,
         delayOnTouchOnly: true,
+        scroll: true,
+        scrollSensitivity: 80,
+        scrollSpeed: 10,
+        onChoose: () => {
+          if (navigator.vibrate) navigator.vibrate(30);
+        },
+        onStart: () => {
+          document.body.style.overflow = "hidden";
+        },
         onEnd: (evt: SortableEvent) => {
+          document.body.style.overflow = "";
           if (evt.oldIndex !== undefined && evt.newIndex !== undefined && evt.oldIndex !== evt.newIndex) {
             void updateItemOrder(
               category.id,
@@ -1365,7 +1383,6 @@ onBeforeUnmount(() => {
   border-radius: 12px;
 }
 
-/* --- NAV PILLS --- */
 .categories-nav {
   display: flex;
   overflow-x: auto;
@@ -1404,12 +1421,10 @@ onBeforeUnmount(() => {
   border-color: var(--q-secondary);
 }
 
-/* --- SCROLLABLE CONTENT --- */
 .content-scrollable {
   padding-bottom: 60px;
 }
 
-/* --- CATEGORY HERO --- */
 .category-block {
   margin-bottom: 50px;
 }
@@ -1427,8 +1442,6 @@ onBeforeUnmount(() => {
 .hero-overlay {
   background: linear-gradient(to bottom, transparent 20%, #050505 100%);
 }
-
-/* --- PREMIUM GLASS CARDS --- */
 .items-container {
   padding-top: 50px;
 }
@@ -1504,8 +1517,33 @@ onBeforeUnmount(() => {
 }
 
 .sortable-ghost {
-  opacity: 0.3;
-  background: var(--q-secondary) !important;
+  opacity: 0.4;
+  border: 2px dashed var(--q-secondary) !important;
+  background: transparent !important;
+}
+.sortable-chosen {
+  opacity: 0.85;
+  transform: scale(1.02);
+}
+.sortable-drag {
+  opacity: 0.95 !important;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important;
+}
+
+.nav-pill,
+.drag-handle,
+.premium-glass-card {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.sortable-chosen .premium-glass-card,
+.sortable-chosen.nav-pill {
+  transform: scale(1.03);
+  border-color: var(--q-secondary) !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
 }
 
 @media (min-width: 800px) {
