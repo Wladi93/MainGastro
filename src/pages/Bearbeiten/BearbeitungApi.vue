@@ -48,7 +48,7 @@
         />
       </div>
 
-      <div class="categories-nav q-pl-md q-pb-md" id="categories-nav-sortable">
+      <div ref="navContainerRef" class="categories-nav q-pl-md q-pb-md" id="categories-nav-sortable">
         <div
           v-for="category in categories"
           :key="category.sortOrder"
@@ -64,7 +64,6 @@
       </div>
     </div>
 
-    <!-- SCROLLABLE CONTENT -->
     <div class="content-scrollable">
       <div
         v-for="category in categories"
@@ -73,7 +72,6 @@
         :ref="(el: any) => setSectionRef(category.name, el)"
         class="category-block"
       >
-        <!-- Category Hero Banner -->
         <div class="category-hero">
           <q-img
             :src="getFullImageUrl(category.bannerImage)"
@@ -122,7 +120,6 @@
           </q-img>
         </div>
 
-        <!-- Items -->
         <div
           :id="`sortable-${category.id}`"
           class="items-container q-px-md"
@@ -187,7 +184,6 @@
       </div>
     </div>
 
-    <!-- Versteckter File-Input für Banner-Edit -->
     <input
       ref="bannerEditInput"
       type="file"
@@ -196,7 +192,6 @@
       @change="onEditBannerFileChange"
     />
 
-    <!-- DIALOG: Kategorie erstellen -->
     <q-dialog v-model="showCategoryDialog" persistent>
       <q-card style="min-width: 350px; max-width: 600px">
         <q-card-section class="row items-center q-pb-none">
@@ -302,7 +297,6 @@
       </q-card>
     </q-dialog>
 
-    <!-- DIALOG: Kategorie löschen -->
     <q-dialog v-model="showCategoryDeleteDialog" persistent>
       <q-card style="min-width: 350px; width: 800px">
         <q-card-section class="text-center">
@@ -461,7 +455,7 @@
 
 <script setup lang="ts">
 import type { ComponentPublicInstance } from "vue";
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useQuasar } from "quasar";
 import createDialogAll from "./createDialogAll.vue";
 import editDialogAll from "./editDialogAll.vue";
@@ -529,8 +523,6 @@ const anzeigeLieferzeit = computed(() => {
   }
   return teile.length > 0 ? teile.join(" ") : "0min";
 });
-
-// ─── Tabs sortieren ────────────────────────────────────────────────────────
 
 const tabsSortableInstance = ref<Sortable | null>(null);
 
@@ -600,8 +592,6 @@ const updateCategoryOrder = async (oldIndex: number, newIndex: number) => {
     });
   }
 };
-
-// ─── Items sortieren ───────────────────────────────────────────────────────
 
 const sortableInstances = ref<Record<string, Sortable>>({});
 
@@ -868,29 +858,15 @@ const onBannerFileChange = async (file: File | null) => {
   }
 };
 
-// ─── NEU: Banner-Bild einer bestehenden Kategorie ändern ───────────────────
 
-/** Ref auf den versteckten <input type="file"> */
 const bannerEditInput = ref<HTMLInputElement | null>(null);
-
-/** Die Kategorie, deren Banner gerade geändert wird */
 const editingCategory = ref<Category | null>(null);
-
-/** ID der Kategorie, für die gerade ein Upload läuft (für Loading-State am Button) */
 const bannerEditLoadingId = ref<number | null>(null);
-
-/**
- * Öffnet den Datei-Dialog für das Banner-Edit der übergebenen Kategorie.
- */
 const triggerBannerEdit = (category: Category) => {
   editingCategory.value = category;
   bannerEditInput.value?.click();
 };
 
-/**
- * Wird aufgerufen, sobald der User eine Datei im versteckten Input ausgewählt hat.
- * Lädt das Bild hoch und aktualisiert die Kategorie via PUT.
- */
 const onEditBannerFileChange = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
@@ -901,16 +877,13 @@ const onEditBannerFileChange = async (event: Event) => {
   bannerEditLoadingId.value = targetCategory.id;
 
   try {
-    // 1. Bild hochladen
     const newBannerUrl = await uploadBannerImage(file);
 
-    // 2. Kategorie per PUT aktualisieren
     await api.put(`/api/category/${targetCategory.id}`, {
       ...targetCategory,
       bannerImage: newBannerUrl,
     });
 
-    // 3. Altes Bild auf dem Server löschen (best-effort, Fehler werden nur geloggt)
     if (targetCategory.bannerImage) {
       const oldFileName = targetCategory.bannerImage.split("/").pop();
       if (oldFileName) {
@@ -922,11 +895,9 @@ const onEditBannerFileChange = async (event: Event) => {
       }
     }
 
-    // 4. Lokalen State aktualisieren
     const cat = categories.value.find((c) => c.id === targetCategory.id);
     if (cat) cat.bannerImage = newBannerUrl;
 
-    // 5. Audit-Log
     await logAudit("update", "category", targetCategory.id, {
       name: targetCategory.name,
       username: currentUser,
@@ -949,12 +920,9 @@ const onEditBannerFileChange = async (event: Event) => {
   } finally {
     bannerEditLoadingId.value = null;
     editingCategory.value = null;
-    // Input zurücksetzen, damit dieselbe Datei erneut gewählt werden kann
     input.value = "";
   }
 };
-
-// ───────────────────────────────────────────────────────────────────────────
 
 const categoryItems = ref<Record<string, CategoryItem[]>>({});
 
@@ -1235,8 +1203,6 @@ const fetchCategoryItems = async (categoryName: string) => {
 const tab = ref("");
 const isUserScrolling = ref(false);
 const sectionRefs = ref<Record<string, HTMLElement>>({});
-
-// Verhindert dass ein Drag-Vorgang als Klick gewertet wird
 const pillDragged = ref(false);
 
 const onPillMouseDown = () => {
@@ -1299,6 +1265,28 @@ const handleIntersection = (entries: IntersectionObserverEntry[]) => {
   });
 };
 
+const navContainerRef = ref<HTMLElement | null>(null);
+
+  watch(tab, async () => {
+  await nextTick(); 
+  
+  if (!navContainerRef.value) return;
+
+  const activePill = navContainerRef.value.querySelector('.pill-active') as HTMLElement;
+  
+  if (activePill) {
+    const containerWidth = navContainerRef.value.clientWidth;
+    const pillLeft = activePill.offsetLeft;
+    const pillWidth = activePill.clientWidth;
+    const scrollPos = pillLeft - (containerWidth / 2) + (pillWidth / 2);
+
+    navContainerRef.value.scrollTo({
+      left: scrollPos,
+      behavior: 'smooth'
+    });
+  }
+});
+
 onMounted(async () => {
   await loadSchriftFarbe();
   await loadLieferzeit();
@@ -1328,7 +1316,6 @@ onBeforeUnmount(() => {
       if (section) observer?.unobserve(section);
     });
   }
-  // Sortable-Instanzen aufräumen
   if (tabsSortableInstance.value) {
     tabsSortableInstance.value.destroy();
     tabsSortableInstance.value = null;
@@ -1348,7 +1335,6 @@ onBeforeUnmount(() => {
   padding-top: 60px;
 }
 
-/* --- GLASS HEADER --- */
 .glass-header {
   position: sticky;
   top: 0;

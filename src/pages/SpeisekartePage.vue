@@ -30,7 +30,7 @@
         </q-input>
       </div>
 
-      <div class="categories-nav q-pl-md q-pb-md">
+      <div ref="navContainerRef" class="categories-nav q-pl-md q-pb-md">
         <div 
           v-for="category in categories"
           :key="category.apiEndpoint"
@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, computed } from "vue";
+import { ref, onMounted, onBeforeUnmount, computed, watch, nextTick } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import api, { getBaseURL } from "src/boot/axios";
 import ZumWarenkorbHinzufügenDialog from "./Dialog/ZumWarenkorbHinzufügenDialog.vue";
@@ -237,6 +237,28 @@ const openZumWarenkorbHinzufügen = (item: CategoryItem, catName: string) => {
 };
 
 let observer: IntersectionObserver | null = null;
+
+const navContainerRef = ref<HTMLElement | null>(null);
+
+  watch(tab, async () => {
+  await nextTick(); 
+  
+  if (!navContainerRef.value) return;
+
+  const activePill = navContainerRef.value.querySelector('.pill-active') as HTMLElement;
+  
+  if (activePill) {
+    const containerWidth = navContainerRef.value.clientWidth;
+    const pillLeft = activePill.offsetLeft;
+    const pillWidth = activePill.clientWidth;
+    const scrollPos = pillLeft - (containerWidth / 2) + (pillWidth / 2);
+
+    navContainerRef.value.scrollTo({
+      left: scrollPos,
+      behavior: 'smooth'
+    });
+  }
+});
 
 onMounted(async () => {
   await loadSchriftFarbe();
