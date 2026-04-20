@@ -26,7 +26,7 @@
                 </q-item-label>
               </q-item-section>
               <q-item-section side class="text-right">
-                <div class="text-subtitle1 text-secondary text-weight-bolder">
+                <div class="text-subtitle1 text-weight-bolder" text-color="rgb(184, 184, 184)">
                   {{ (currentPrice + selectedBeilagen.length * beilagenEinzelpreis).toFixed(2) }}€
                 </div>
               </q-item-section>
@@ -67,7 +67,7 @@
 
           <q-select
             v-if="selectedItem.hasSaucen"
-            filled dark color="secondary"
+            filled dark color="grey-6"
             v-model="selectedSauce"
             :options="filteredSaucen"
             label="Sauce auswählen"
@@ -79,7 +79,7 @@
             popup-content-class="premium-dropdown-menu"
           >
             <template v-slot:selected-item="scope">
-              <q-chip v-if="scope.opt" dense color="secondary" outline text-color="secondary">
+              <q-chip v-if="scope.opt" dense color="grey-4" outline text-color="secondary">
                 {{ scope.opt.name || scope.opt }}
               </q-chip>
             </template>
@@ -91,7 +91,7 @@
             v-model="selectedBeilagen"
             :options="beilagenOptions"
             label="Beilagen auswählen"
-            color="secondary" 
+            color="grey-6" 
             class="custom-input full-width"
             popup-content-class="premium-dropdown-menu"
           >
@@ -100,7 +100,7 @@
                 removable dense
                 @remove="scope.removeAtIndex(scope.index)"
                 :tabindex="scope.tabindex"
-                color="secondary" outline text-color="secondary"
+                color="grey-4" outline text-color="secondary"
                 class="q-ma-xs"
               >
                 {{ scope.opt.label || scope.opt }}
@@ -116,27 +116,27 @@
             class="custom-input full-width"
           />
 
-          <div class="q-gutter-y-sm">
-            <q-expansion-item class="item-glass-card text-grey-4 overflow-hidden full-width" label="Allergene" icon="info" dense dark>
-              <q-card class="bg-transparent">
-                <q-card-section class="row wrap q-gutter-xs">
-                  <q-chip  v-for="allergen in filteredAllergene" :key="allergen.id" dense size="md" outline color="secondary">
-                    <span class="text-white">{{ allergen.name }}</span>
-                  </q-chip>
-                </q-card-section>
-              </q-card>
-            </q-expansion-item>
+<div class="q-gutter-y-sm">
+  <q-expansion-item class="item-glass-card text-grey-4 overflow-hidden full-width" label="Allergene" icon="info" dense dark>
+    <q-card class="bg-transparent">
+      <q-card-section class="row wrap q-gutter-xs">
+        <q-chip v-for="allergen in filteredAllergene" :key="allergen.id" dense size="md" outline color="secondary" class="multiline-chip">
+          <span class="text-white">{{ allergen.name }}</span>
+        </q-chip>
+      </q-card-section>
+    </q-card>
+  </q-expansion-item>
 
-            <q-expansion-item class="item-glass-card text-grey-4 overflow-hidden full-width" label="Zusatzstoffe" icon="list" dense dark>
-              <q-card class="bg-transparent">
-                <q-card-section class="row wrap q-gutter-xs">
-                  <q-chip v-for="zusatzstoff in filteredZusatzstoffe" :key="zusatzstoff.id" dense size="md" outline color="secondary">
-                    <span class="text-white">{{ zusatzstoff.name }}</span>
-                  </q-chip>
-                </q-card-section>
-              </q-card>
-            </q-expansion-item>
-          </div>
+  <q-expansion-item class="item-glass-card text-grey-4 overflow-hidden full-width" label="Zusatzstoffe" icon="list" dense dark>
+    <q-card class="bg-transparent">
+      <q-card-section class="row wrap q-gutter-xs">
+        <q-chip v-for="zusatzstoff in filteredZusatzstoffe" :key="zusatzstoff.id" dense size="md" outline color="secondary" class="multiline-chip">
+          <span class="text-white">{{ zusatzstoff.name }}</span>
+        </q-chip>
+      </q-card-section>
+    </q-card>
+  </q-expansion-item>
+</div>
         </q-list>
       </q-card-section>
 
@@ -531,4 +531,18 @@ onMounted(async () => {
 .tracking-widest { letter-spacing: 0.15em; }
 .opacity-2 { opacity: 0.2; }
 .wrap { flex-wrap: wrap !important; }
+
+.multiline-chip {
+  height: auto !important; 
+  min-height: 24px;
+  padding: 8px;
+  border-radius: 20px;
+  color: rgb(134, 134, 134) !important;
+}
+
+.multiline-chip :deep(.q-chip__content) {
+  white-space: normal !important; 
+  word-wrap: break-word; 
+  line-height: 1.3;
+}
 </style>

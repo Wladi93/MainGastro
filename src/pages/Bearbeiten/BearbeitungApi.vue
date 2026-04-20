@@ -84,12 +84,10 @@
                 <div>
                   <div class="text-overline text-secondary text-weight-bold">KATEGORIE</div>
                   <div class="text-h4 text-white text-weight-bolder">
-                    <q-icon :name="category.icon" color="secondary" size="xs" class="q-mr-xs" />
                     {{ category.name }}
                   </div>
                 </div>
                 <div class="q-gutter-sm">
-                  <!-- NEU: Banner-Bild ändern Button -->
                   <q-btn
                     round
                     color="primary"
@@ -680,7 +678,6 @@ const bannerFile = ref<File | null>(null);
 const bannerPreview = ref<string>("");
 
 const uploadBannerImage = async (file: File): Promise<string> => {
-  // Bild clientseitig komprimieren
   const compressImage = (f: File, maxSizeMB = 4.5): Promise<File> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -1468,6 +1465,7 @@ onBeforeUnmount(() => {
   margin: 6px 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

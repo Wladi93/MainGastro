@@ -20,22 +20,32 @@
             <div class="text-h4 text-white text-weight-bolder">Öffnungszeiten</div>
           </div>
 
-          <div class="text-white text-center full-width q-gutter-y-sm">
-            <div 
-              v-for="(oeffnungszeit, index) in oeffnungsZeiten" 
-              :key="oeffnungszeit.id"
-            >
-              <div class="row justify-between items-center q-py-xs">
-                <span class="text-weight-bold text-secondary text-body1">{{ oeffnungszeit.tag }}</span>
-                <span class="text-body1">{{ oeffnungszeit.von }} Uhr - {{ oeffnungszeit.bis }} Uhr</span>
-              </div>
-              
-              <q-separator 
-                v-if="index < oeffnungsZeiten.length - 1" 
-                dark 
-                class="q-my-xs opacity-2" 
-              />
-            </div>
+<div class="text-white text-center full-width q-gutter-y-sm">
+  <template v-if="oeffnungsZeiten.length > 0">
+    <div 
+  v-for="(oeffnungszeit, index) in oeffnungsZeiten" 
+  :key="oeffnungszeit.id"
+>
+  <div class="row justify-between items-center q-py-xs">
+    <span class="text-weight-bold text-secondary text-body1">{{ oeffnungszeit.tag }}</span>
+    <span v-if="oeffnungszeit.von && oeffnungszeit.bis" class="text-body1">
+      {{ oeffnungszeit.von }} Uhr - {{ oeffnungszeit.bis }} Uhr
+    </span>
+    <span v-else class="text-body1 text-negative">Geschlossen</span>
+  </div>
+  
+  <q-separator 
+    v-if="index < oeffnungsZeiten.length - 1" 
+    dark 
+    class="q-my-xs opacity-2" 
+  />
+</div>
+  </template>
+
+  <div v-else class="row justify-between items-center q-py-xs">
+    <span class="text-weight-bold text-secondary text-body1">Heute</span>
+    <span class="text-body1 text-negative">Geschlossen</span>
+  </div>
 
             <q-separator dark class="q-my-md opacity-2" />
 
@@ -73,7 +83,7 @@ const loadOeffnungszeiten = async () => {
   try {
     const response = await api.get(`/api/oeffnungszeiten`);
     oeffnungsZeiten.value = response.data;
-    // Sortierung beibehalten
+
     oeffnungsZeiten.value.sort((a, b) => {
       return a.id >= b.id ? 1 : -1;
     });
