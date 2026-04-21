@@ -23,23 +23,32 @@
 <div class="text-white text-center full-width q-gutter-y-sm">
   <template v-if="oeffnungsZeiten.length > 0">
     <div 
-  v-for="(oeffnungszeit, index) in oeffnungsZeiten" 
-  :key="oeffnungszeit.id"
+      v-for="(oeffnungszeit, index) in oeffnungsZeiten" 
+      :key="oeffnungszeit.id"
+    >
+      <div class="row justify-between items-start q-py-xs">
+        <span class="text-weight-bold text-secondary text-body1">{{ oeffnungszeit.tag }}</span>
+        
+        <div class="column items-end">
+          <template v-if="oeffnungszeit.zeitraeume && oeffnungszeit.zeitraeume.length > 0">
+<span 
+  v-for="(zeitraum, zIndex) in oeffnungszeit.zeitraeume" 
+  :key="zeitraum.id ?? zIndex" 
+  class="text-body1"
 >
-  <div class="row justify-between items-center q-py-xs">
-    <span class="text-weight-bold text-secondary text-body1">{{ oeffnungszeit.tag }}</span>
-    <span v-if="oeffnungszeit.von && oeffnungszeit.bis" class="text-body1">
-      {{ oeffnungszeit.von }} Uhr - {{ oeffnungszeit.bis }} Uhr
-    </span>
-    <span v-else class="text-body1 text-negative">Geschlossen</span>
-  </div>
-  
-  <q-separator 
-    v-if="index < oeffnungsZeiten.length - 1" 
-    dark 
-    class="q-my-xs opacity-2" 
-  />
-</div>
+  {{ zeitraum.von }} Uhr - {{ zeitraum.bis }} Uhr
+</span>
+          </template>
+          <span v-else class="text-body1 text-negative">Geschlossen</span>
+        </div>
+      </div>
+
+      <q-separator 
+        v-if="index < oeffnungsZeiten.length - 1" 
+        dark 
+        class="q-my-xs opacity-2" 
+      />
+    </div>
   </template>
 
   <div v-else class="row justify-between items-center q-py-xs">
@@ -47,13 +56,12 @@
     <span class="text-body1 text-negative">Geschlossen</span>
   </div>
 
-            <q-separator dark class="q-my-md opacity-2" />
+  <q-separator dark class="q-my-md opacity-2" />
 
-            <div class="text-caption text-grey-4 italic">
-              An Feiertagen gelten gesonderte Öffnungszeiten.
-            </div>
-          </div>
-
+  <div class="text-caption text-grey-4 italic">
+    An Feiertagen gelten gesonderte Öffnungszeiten.
+  </div>
+</div>
           <q-separator dark class="q-mt-xl q-mb-sm full-width opacity-2" />
           
           <div class="text-overline text-grey-5 text-center">
@@ -151,7 +159,6 @@ onMounted(async () => {
 .italic {
   font-style: italic;
 }
-
 
 
 @media (max-width: 600px) {

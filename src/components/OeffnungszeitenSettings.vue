@@ -14,26 +14,21 @@
             <div v-for="oeffnungszeit in oeffnungsZeiten" :key="oeffnungszeit.id" class="oeffnungs-row">
               
               <div class="row items-center q-mb-sm">
-                <q-icon
-                  class="q-mr-sm"
-                  size="xs"
-                  color="secondary"
-                  name="calendar_month"
-                />
-                <div class="text-subtitle1 text-white text-weight-medium">
-                  {{ oeffnungszeit.tag }}
-                </div>
+                <q-icon class="q-mr-sm" size="xs" color="secondary" name="calendar_month" />
+                <div class="text-subtitle1 text-white text-weight-medium">{{ oeffnungszeit.tag }}</div>
               </div>
 
-              <div class="row q-col-gutter-md items-center">
-                <div class="col-12 col-sm-6">
+              <!-- Zeiträume -->
+              <div 
+                v-for="(zeitraum, zIndex) in oeffnungszeit.zeitraeume" 
+                :key="zeitraum.id ?? zIndex"
+                class="row q-col-gutter-md items-center q-mb-sm"
+              >
+                <div class="col">
                   <q-input
-                    dense
-                    dark
-                    filled
-                    v-model="oeffnungszeit.von"
-                    mask="time"
-                    :rules="['time']"
+                    dense dark filled
+                    v-model="zeitraum.von"
+                    mask="time" :rules="['time']"
                     label="Von (Uhr)"
                     class="premium-input no-bottom-space"
                   >
@@ -43,7 +38,7 @@
                     <template v-slot:append>
                       <q-icon name="edit" size="xs" color="grey-5" class="cursor-pointer">
                         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                          <q-time v-model="oeffnungszeit.von" color="secondary">
+                          <q-time v-model="zeitraum.von" color="secondary">
                             <div class="row items-center justify-end q-gutter-sm">
                               <q-btn label="schließen" color="white" flat v-close-popup />
                             </div>
@@ -54,14 +49,11 @@
                   </q-input>
                 </div>
 
-                <div class="col-12 col-sm-6">
+                <div class="col">
                   <q-input
-                    dense
-                    dark
-                    filled
-                    v-model="oeffnungszeit.bis"
-                    mask="time"
-                    :rules="['time']"
+                    dense dark filled
+                    v-model="zeitraum.bis"
+                    mask="time" :rules="['time']"
                     label="Bis (Uhr)"
                     class="premium-input no-bottom-space"
                   >
@@ -71,7 +63,7 @@
                     <template v-slot:append>
                       <q-icon name="edit" size="xs" color="grey-5" class="cursor-pointer">
                         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                          <q-time v-model="oeffnungszeit.bis" color="secondary">
+                          <q-time v-model="zeitraum.bis" color="secondary">
                             <div class="row items-center justify-end q-gutter-sm">
                               <q-btn label="schließen" color="white" flat v-close-popup />
                             </div>
@@ -81,7 +73,27 @@
                     </template>
                   </q-input>
                 </div>
+
+                <!-- Zeitraum entfernen -->
+                <div class="col-auto">
+                  <q-btn
+                    round flat dense
+                    icon="remove_circle_outline"
+                    color="negative"
+                    @click="zeitraumEntfernen(oeffnungszeit, zIndex)"
+                  />
+                </div>
               </div>
+
+              <!-- Zeitraum hinzufügen -->
+              <q-btn
+                flat dense
+                icon="add"
+                color="secondary"
+                label="Zeitraum hinzufügen"
+                class="q-mt-xs"
+                @click="zeitraumHinzufuegen(oeffnungszeit)"
+              />
 
               <q-separator dark class="q-mt-lg opacity-10" />
             </div>
@@ -114,12 +126,18 @@ const loadOeffnungszeiten = async () => {
   try {
     const response = await api.get(`/api/oeffnungszeiten`);
     oeffnungsZeiten.value = response.data;
-    oeffnungsZeiten.value.sort((a, b) => {
-      return a.id >= b.id ? 1 : -1;
-    });
+    oeffnungsZeiten.value.sort((a, b) => (a.id >= b.id ? 1 : -1));
   } catch (error) {
     console.error(`Error fetching opening hours`, error);
   }
+};
+
+const zeitraumHinzufuegen = (oeffnungszeit: Oeffnungszeiten) => {
+  oeffnungszeit.zeitraeume.push({ von: "08:00", bis: "17:00" });
+};
+
+const zeitraumEntfernen = (oeffnungszeit: Oeffnungszeiten, index: number) => {
+  oeffnungszeit.zeitraeume.splice(index, 1);
 };
 
 const updateOeffnungszeiten = async () => {
@@ -146,7 +164,7 @@ const updateOeffnungszeiten = async () => {
 
 const schriftFarbe = ref<boolean>(false);
 
-  async function loadSchriftFarbe() {
+async function loadSchriftFarbe() {
   try {
     const res = await api.get("api/color/2");
     if (res.data) {

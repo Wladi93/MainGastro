@@ -9,16 +9,13 @@
         <div class="row items-center">
           <div class="logo-dot q-mr-sm"></div>
           <span class="text-h6 text-white text-weight-bolder">SPEISEKARTE EDIT</span>
-<q-icon name="edit" class="q-ml-sm" size="sm"/>
+          <q-icon name="edit" class="q-ml-sm" size="sm"/>
         </div>
 
         <div class="delivery-pill row items-center" v-for="Lieferzeit in lieferzeit" :key="Lieferzeit.id">
-                    <q-btn
+          <q-btn
             icon="settings"
-            flat
-            round
-            dense
-            size="sm"
+            flat round dense size="sm"
             color="grey-4"
             class="q-mr-sm"
             @click="openLieferzeitDialog"
@@ -32,16 +29,14 @@
         <q-btn
           label="Tab +"
           class="admin-btn col"
-          no-caps
-          unelevated
+          no-caps unelevated
           icon="dashboard_customize"
           @click="showCategoryDialog = true"
         />
         <q-btn
           label="Tab -"
           class="admin-btn col"
-          no-caps
-          unelevated
+          no-caps unelevated
           color="negative"
           icon="delete"
           @click="showCategoryDeleteDialog = true"
@@ -58,7 +53,6 @@
           @click="onPillClick(category)"
         >
           <q-icon name="drag_indicator" size="12px" class="q-mr-xs pill-drag-icon" />
-         
           {{ category.name }}
         </div>
       </div>
@@ -83,35 +77,18 @@
               <div class="q-pa-lg full-width row justify-between items-end">
                 <div>
                   <div class="text-overline text-secondary text-weight-bold">KATEGORIE</div>
-                  <div class="text-h4 text-white text-weight-bolder">
-                    {{ category.name }}
-                  </div>
+                  <div class="text-h4 text-white text-weight-bolder">{{ category.name }}</div>
                 </div>
                 <div class="q-gutter-sm">
                   <q-btn
-                    round
-                    color="primary"
-                    icon="image"
-                    size="sm"
+                    round color="primary" icon="image" size="sm"
                     :loading="bannerEditLoadingId === category.id"
                     @click="triggerBannerEdit(category)"
                   >
                     <q-tooltip>Bannerbild ändern</q-tooltip>
                   </q-btn>
-                  <q-btn
-                    round
-                    color="secondary"
-                    icon="post_add"
-                    size="sm"
-                    @click="openCreateDialogAll(category.name)"
-                  />
-                  <q-btn
-                    round
-                    color="negative"
-                    icon="delete"
-                    size="sm"
-                    @click="openDeleteDialog(category.name)"
-                  />
+                  <q-btn round color="secondary" icon="post_add" size="sm" @click="openCreateDialogAll(category.name)" />
+                  <q-btn round color="negative" icon="delete" size="sm" @click="openDeleteDialog(category.name)" />
                 </div>
               </div>
             </div>
@@ -140,7 +117,6 @@
                   <q-chip
                     v-if="item.neu == true"
                     class="bg-secondary text-white q-ml-sm"
-                    
                     label="Neu"
                     :text-color="schriftFarbe ? 'white' : 'black'"
                   />
@@ -166,12 +142,10 @@
                   </template>
                 </q-img>
                 <q-btn
-                  round
-                  unelevated
+                  round unelevated
                   color="secondary"
                   :text-color="schriftFarbe ? 'white' : 'black'"
-                  icon="edit"
-                  size="sm"
+                  icon="edit" size="sm"
                   class="add-btn-over"
                   @click="() => openEditDialog(item, category.name)"
                 />
@@ -190,219 +164,197 @@
       @change="onEditBannerFileChange"
     />
 
-    <q-dialog v-model="showCategoryDialog" persistent>
-      <q-card style="min-width: 350px; max-width: 600px">
-        <q-card-section class="row items-center q-pb-none">
-          <div class="text-h6">Neue Kategorie erstellen</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
-        </q-card-section>
+    <!-- ===== DIALOG: KATEGORIE ERSTELLEN ===== -->
+    <q-dialog v-model="showCategoryDialog" persistent transition-show="scale" transition-hide="scale">
+      <q-card class="dialog-glass-card shadow-24" style="width: 600px; max-width: 95vw;">
+        <q-card-section class="q-pa-none relative-position">
+          <q-btn
+            icon="close"
+            flat round dense
+            class="absolute-top-right q-ma-md text-white"
+            style="z-index: 10"
+            v-close-popup
+          />
 
-        <q-card-section>
-          <q-form @submit="onSubmitCategory" class="q-gutter-md">
-            <q-input
-              v-model="newCategory.name"
-              label="Kategorie Name *"
-              hint="z.B. Salate, Hauptgerichte, etc."
-              :rules="[(val) => !!val || 'Name ist erforderlich']"
-              outlined
-            />
+          <div class="card-inner-dialog">
+            <div class="text-center q-mb-xl">
+              <div class="text-overline text-secondary text-weight-bold" style="letter-spacing: 3px">KATEGORIE</div>
+              <div class="text-h5 text-white text-weight-light" style="text-transform: uppercase">
+                <q-icon name="dashboard_customize" class="q-mr-sm" />
+                Neue Kategorie erstellen
+              </div>
+            </div>
 
-            <q-select
-              v-model="newCategory.icon"
-              :options="iconOptions"
-              label="Icon auswählen"
-              outlined
-              emit-value
-              map-options
-            >
-              <template v-slot:option="scope">
-                <q-item v-bind="scope.itemProps">
-                  <q-item-section avatar>
-                    <q-icon :name="scope.opt.value" />
-                  </q-item-section>
-                  <q-item-section>
-                    <q-item-label>{{ scope.opt.label }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </template>
-              <template v-slot:selected>
-                <div class="row items-center">
-                  <q-icon :name="newCategory.icon" class="q-mr-sm" />
-                  {{
-                    iconOptions.find((opt) => opt.value === newCategory.icon)
-                      ?.label
-                  }}
+            <q-form @submit="onSubmitCategory" class="q-gutter-md">
+              <q-input
+                v-model="newCategory.name"
+                label="Kategorie Name *"
+                hint="z.B. Salate, Hauptgerichte, etc."
+                :rules="[(val) => !!val || 'Name ist erforderlich']"
+                outlined dark
+                class="dialog-input"
+              />
+
+              <div class="q-gutter-sm">
+                <q-file
+                  label="Banner Bild hochladen"
+                  outlined dark
+                  accept="image/*"
+                  :model-value="null"
+                  @update:model-value="onBannerFileChange"
+                  :loading="isUploading"
+                  class="dialog-input"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="attach_file" />
+                  </template>
+                </q-file>
+
+                <q-linear-progress
+                  v-if="isUploading"
+                  :value="uploadProgress / 100"
+                  color="secondary"
+                  size="16px"
+                  class="q-mt-sm"
+                  rounded
+                >
+                  <div class="absolute-full flex flex-center">
+                    <q-badge color="white" text-color="secondary" :label="`${uploadProgress}%`" />
+                  </div>
+                </q-linear-progress>
+
+                <div v-if="bannerPreview" class="q-mt-md">
+                  <q-img :src="bannerPreview" style="height: 100px; max-width: 200px" class="rounded-borders" />
                 </div>
-              </template>
-            </q-select>
-
-            <div class="q-gutter-sm">
-              <q-file
-                label="Banner Bild hochladen"
-                outlined
-                accept="image/*"
-                :model-value="null"
-                @update:model-value="onBannerFileChange"
-                :loading="isUploading"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="attach_file" />
-                </template>
-              </q-file>
-              <div v-if="isUploading">
-                <h6 class="text-caption">Upload-Status:</h6>
               </div>
 
-              <q-linear-progress
-                v-if="isUploading"
-                :value="uploadProgress / 100"
-                color="positive"
-                size="16px"
-                class="q-mt-sm"
-                rounded
-              >
-                <div class="absolute-full flex flex-center">
-                  <q-badge
-                    color="white"
-                    text-color="secondary"
-                    :label="`${uploadProgress}%`"
+              <div class="row q-col-gutter-md q-mt-sm">
+                <div class="col-12 col-sm-6">
+                  <q-btn flat label="Abbrechen" color="white" class="luxury-btn-outline full-width" v-close-popup />
+                </div>
+                <div class="col-12 col-sm-6">
+                  <q-btn
+                    label="Kategorie erstellen"
+                    color="secondary"
+                    class="luxury-btn full-width"
+                    icon="check"
+                    type="submit"
+                    :loading="categoryLoading"
+                    :disable="!isCategoryFormValid"
                   />
                 </div>
-              </q-linear-progress>
-
-              <div v-if="bannerPreview" class="q-mt-md">
-                <q-img
-                  :src="bannerPreview"
-                  style="height: 100px; max-width: 200px"
-                  class="rounded-borders"
-                />
               </div>
-            </div>
-
-            <div class="row justify-end q-gutter-sm q-mt-xl">
-              <q-btn label="Abbrechen" color="negative" flat v-close-popup />
-              <q-btn
-                label="Kategorie erstellen"
-                color="secondary"
-                type="submit"
-                :loading="categoryLoading"
-                :disable="!isCategoryFormValid"
-              />
-            </div>
-          </q-form>
+            </q-form>
+          </div>
         </q-card-section>
       </q-card>
     </q-dialog>
 
-    <q-dialog v-model="showCategoryDeleteDialog" persistent>
-      <q-card style="min-width: 350px; width: 800px">
-        <q-card-section class="text-center">
-          <div class="text-h6 text-negative">
-            <q-icon name="delete" class="q-mr-sm" />
-            Kategorien löschen
-          </div>
-          <div class="text-caption q-mb-md">
-            Wählen Sie die Kategorien, die Sie löschen möchten:
-          </div>
+    <!-- ===== DIALOG: KATEGORIE LÖSCHEN ===== -->
+    <q-dialog v-model="showCategoryDeleteDialog" persistent transition-show="scale" transition-hide="scale">
+      <q-card class="dialog-glass-card shadow-24" style="width: 700px; max-width: 95vw;">
+        <q-card-section class="q-pa-none relative-position">
+          <q-btn
+            icon="close"
+            flat round dense
+            class="absolute-top-right q-ma-md text-white"
+            style="z-index: 10"
+            @click="showCategoryDeleteDialog = false"
+          />
 
-          <div v-if="categories.length === 0" class="text-center text-grey-6">
-            Keine Kategorien verfügbar
-          </div>
+          <div class="card-inner-dialog">
+            <div class="text-center q-mb-xl">
+              <div class="text-overline text-negative text-weight-bold" style="letter-spacing: 3px">GEFAHRENZONE</div>
+              <div class="text-h5 text-white text-weight-light" style="text-transform: uppercase">
+                <q-icon name="delete" class="q-mr-sm" />
+                Kategorien löschen
+              </div>
+            </div>
 
-          <div
-            v-else
-            class="q-gutter-sm"
-            style="max-height: 300px; overflow-y: auto"
-          >
-            <div class="q-mb-md">
-              <q-btn
-                size="sm"
-                color="secondary"
-                @click="selectAllItems"
-                :label="
-                  selectedCategoriesForDeletion.length === categories.length
-                    ? 'Alle abwählen'
-                    : 'Alle auswählen'
-                "
-              />
+            <div v-if="categories.length === 0" class="text-center text-grey-6 q-pa-xl">
+              Keine Kategorien verfügbar
+            </div>
+
+            <template v-else>
+              <div class="row justify-between items-center q-mb-md">
+                <div class="text-caption text-grey-5" style="text-transform: uppercase; letter-spacing: 1.5px">Einträge auswählen</div>
+                <q-btn
+                  flat size="sm" color="secondary"
+                  class="luxury-btn-outline q-px-md"
+                  @click="selectAllItems"
+                  :label="selectedCategoriesForDeletion.length === categories.length ? 'Alle abwählen' : 'Alle auswählen'"
+                />
+              </div>
+
+              <div class="scroll-container q-gutter-y-sm" style="max-height: 46vh; overflow-y: auto">
+                <div
+                  v-for="category in categories"
+                  :key="category.id"
+                  class="delete-item-card q-pa-sm"
+                  :class="{ 'selected-item-active': selectedCategoriesForDeletion.includes(category.id) }"
+                >
+                  <div class="row items-center no-wrap" style="gap: 12px">
+
+                    <div class="category-banner-thumb">
+                      <q-img
+                        v-if="category.bannerImage"
+                        :src="getFullImageUrl(category.bannerImage)"
+                        :alt="category.name"
+                        style="width: 100%; height: 100%"
+                      >
+                        <div class="absolute-bottom q-px-sm q-py-xs" style="background: linear-gradient(transparent, rgba(0,0,0,0.7))">
+                          <span class="text-white text-weight-bold" style="font-size: 12px">{{ category.name }}</span>
+                        </div>
+                        <template v-slot:error>
+                          <div class="absolute-full flex flex-center bg-grey-9 column">
+                            <q-icon name="image" color="grey-7" />
+                            <span class="text-grey-6 text-caption q-mt-xs">{{ category.name }}</span>
+                          </div>
+                        </template>
+                      </q-img>
+                      <div v-else class="absolute-full flex flex-center bg-grey-9 column">
+                        <q-icon name="category" color="grey-6" size="sm" />
+                        <span class="text-grey-6 text-caption q-mt-xs">{{ category.name }}</span>
+                      </div>
+                    </div>
+
+                    <q-checkbox
+                      v-model="selectedCategoriesForDeletion"
+                      :val="category.id"
+                      color="negative"
+                      dark
+                    />
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <div v-if="selectedCategoriesForDeletion.length > 0" class="q-mt-lg q-pa-md warning-banner row items-center no-wrap">
+              <q-icon name="warning" color="negative" size="sm" class="q-mr-sm" />
+              <div class="text-caption text-white">
+                <span class="text-weight-bold text-negative">{{ selectedCategoriesForDeletion.length }}</span>
+                Kategorien werden unwiderruflich gelöscht.
+              </div>
+            </div>
+
+            <div class="row q-col-gutter-md q-mt-sm">
+              <div class="col-12 col-sm-6">
+                <q-btn flat label="Abbrechen" color="white" class="luxury-btn-outline full-width" @click="showCategoryDeleteDialog = false" />
+              </div>
+              <div class="col-12 col-sm-6">
+                <q-btn
+                  label="Löschen"
+                  color="negative"
+                  class="luxury-btn full-width"
+                  icon="delete_forever"
+                  :disable="selectedCategoriesForDeletion.length === 0"
+                  :loading="isDeleting"
+                  @click="deleteCategory"
+                />
+              </div>
             </div>
           </div>
         </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <q-card
-            v-for="category in categories"
-            :key="category.id"
-            class="item-delete-item q-mt-sm"
-            :class="{
-              'selected-for-deletion': selectedCategoriesForDeletion.includes(
-                category.id
-              ),
-            }"
-          >
-            <q-card-section class="row items-center no-wrap" style="gap: 5px">
-              <q-card style="height: 80px; width: 600px">
-                <q-img
-                  v-if="category.bannerImage"
-                  :src="getFullImageUrl(category.bannerImage)"
-                  :alt="category.name"
-                  style="
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    width: 100%;
-                    height: 100%;
-                    object-fit: cover;
-                  "
-                  class="rounded-borders q-mr-md"
-                >
-                  <div
-                    class="text-white absolute-bottom text-center"
-                    style="font-size: 18px"
-                  >
-                    <q-icon
-                      :name="category.icon"
-                      color="secondary"
-                      size="xs"
-                      class="q-mr-xs"
-                    />
-                    {{ category.name }}
-                  </div>
-                </q-img>
-              </q-card>
-
-              <q-checkbox
-                v-model="selectedCategoriesForDeletion"
-                :val="category.id"
-                color="negative"
-                class="q-mr-md"
-              />
-            </q-card-section>
-          </q-card>
-
-          <div
-            v-if="selectedCategoriesForDeletion.length > 0"
-            class="q-mt-md text-negative"
-          >
-            <q-icon name="warning" class="q-mr-xs" />
-            {{ selectedCategoriesForDeletion.length }} Kategorien werden gelöscht.
-            Diese Aktion kann nicht rückgängig gemacht werden!
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right" class="text-primary">
-          <q-btn label="Abbrechen" color="grey" flat v-close-popup />
-          <q-btn
-            label="Löschen"
-            color="negative"
-            :disable="selectedCategoriesForDeletion.length === 0"
-            :loading="isDeleting"
-            @click="deleteCategory"
-          />
-        </q-card-actions>
       </q-card>
     </q-dialog>
 
@@ -473,19 +425,18 @@ const { logAudit, getCurrentUsername } = useAuditLogger();
 const currentUser = getCurrentUsername();
 const $q = useQuasar();
 const selectedCategoriesForDeletion = ref<number[]>([]);
+
 const selectAllItems = () => {
   if (selectedCategoriesForDeletion.value.length === categories.value.length) {
     selectedCategoriesForDeletion.value = [];
   } else {
-    selectedCategoriesForDeletion.value = categories.value.map(
-      (item) => item.id
-    );
+    selectedCategoriesForDeletion.value = categories.value.map((item) => item.id);
   }
 };
 
 const schriftFarbe = ref<boolean>(false);
 
-  async function loadSchriftFarbe() {
+async function loadSchriftFarbe() {
   try {
     const res = await api.get("api/color/2");
     if (res.data) {
@@ -525,9 +476,7 @@ const anzeigeLieferzeit = computed(() => {
 const tabsSortableInstance = ref<Sortable | null>(null);
 
 const initializeTabsSortable = () => {
-  const tabsContainer = document.getElementById(
-    "categories-nav-sortable"
-  ) as HTMLElement;
+  const tabsContainer = document.getElementById("categories-nav-sortable") as HTMLElement;
   if (tabsContainer && !tabsSortableInstance.value) {
     tabsSortableInstance.value = new Sortable(tabsContainer, {
       animation: 150,
@@ -544,9 +493,7 @@ const initializeTabsSortable = () => {
       scroll: true,
       scrollSensitivity: 80,
       scrollSpeed: 10,
-      onStart: () => {
-        document.body.style.overflow = "hidden";
-      },
+      onStart: () => { document.body.style.overflow = "hidden"; },
       onEnd: (evt: SortableEvent) => {
         document.body.style.overflow = "";
         pillDragged.value = true;
@@ -562,32 +509,18 @@ const updateCategoryOrder = async (oldIndex: number, newIndex: number) => {
   const updatedCategories = [...categories.value];
   const [movedCategory] = updatedCategories.splice(oldIndex, 1);
   updatedCategories.splice(newIndex, 0, movedCategory!);
-
   categories.value = updatedCategories;
 
   try {
     const updatePromises = updatedCategories.map((category, index) =>
-      api.put(`/api/category/${category.id}`, {
-        ...category,
-        sortOrder: index,
-      })
+      api.put(`/api/category/${category.id}`, { ...category, sortOrder: index })
     );
-
     await Promise.all(updatePromises);
-
-    $q.notify({
-      type: "positive",
-      position: "top",
-      message: "Kategorie-Reihenfolge erfolgreich aktualisiert",
-    });
+    $q.notify({ type: "positive", position: "top", message: "Kategorie-Reihenfolge erfolgreich aktualisiert" });
   } catch (error) {
     console.error("Error updating category order:", error);
     await fetchCategories();
-    $q.notify({
-      type: "negative",
-      position: "top",
-      message: "Fehler beim Aktualisieren der Kategorie-Reihenfolge",
-    });
+    $q.notify({ type: "negative", position: "top", message: "Fehler beim Aktualisieren der Kategorie-Reihenfolge" });
   }
 };
 
@@ -612,21 +545,12 @@ const initializeSortable = () => {
         scroll: true,
         scrollSensitivity: 80,
         scrollSpeed: 10,
-        onChoose: () => {
-          if (navigator.vibrate) navigator.vibrate(30);
-        },
-        onStart: () => {
-          document.body.style.overflow = "hidden";
-        },
+        onChoose: () => { if (navigator.vibrate) navigator.vibrate(30); },
+        onStart: () => { document.body.style.overflow = "hidden"; },
         onEnd: (evt: SortableEvent) => {
           document.body.style.overflow = "";
           if (evt.oldIndex !== undefined && evt.newIndex !== undefined && evt.oldIndex !== evt.newIndex) {
-            void updateItemOrder(
-              category.id,
-              category.name,
-              evt.oldIndex,
-              evt.newIndex
-            );
+            void updateItemOrder(category.id, category.name, evt.oldIndex, evt.newIndex);
           }
         },
       });
@@ -634,43 +558,26 @@ const initializeSortable = () => {
   });
 };
 
-const updateItemOrder = async (
-  categoryId: number,
-  categoryName: string,
-  oldIndex: number,
-  newIndex: number
-) => {
+const updateItemOrder = async (categoryId: number, categoryName: string, oldIndex: number, newIndex: number) => {
   const items = [...getCategoryItems(categoryName)];
   const [movedItem] = items.splice(oldIndex, 1);
   items.splice(newIndex, 0, movedItem!);
-
   categoryItems.value[categoryName] = items;
 
   try {
     const updatePromises = items.map((item, index) =>
       api.put(`/api/categoryItems/${item.id}`, { ...item, sortOrder: index })
     );
-
     await Promise.all(updatePromises);
-
-    $q.notify({
-      type: "positive",
-      position: "top",
-      message: "Reihenfolge erfolgreich aktualisiert",
-    });
+    $q.notify({ type: "positive", position: "top", message: "Reihenfolge erfolgreich aktualisiert" });
   } catch (error) {
     console.error("Error updating item order:", error);
     await fetchCategoryItems(categoryName);
-    $q.notify({
-      type: "negative",
-      position: "top",
-      message: "Fehler beim Aktualisieren der Reihenfolge",
-    });
+    $q.notify({ type: "negative", position: "top", message: "Fehler beim Aktualisieren der Reihenfolge" });
   }
 };
 
 const categories = ref<Category[]>([]);
-
 const showCategoryDialog = ref(false);
 const showCategoryDeleteDialog = ref(false);
 const categoryLoading = ref(false);
@@ -685,7 +592,6 @@ const uploadBannerImage = async (file: File): Promise<string> => {
 
       img.onload = () => {
         URL.revokeObjectURL(url);
-
         const MAX_DIM = 1920;
         let { width, height } = img;
 
@@ -707,27 +613,16 @@ const uploadBannerImage = async (file: File): Promise<string> => {
 
         let quality = 0.9;
         const tryCompress = () => {
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) return reject(new Error("Canvas toBlob fehlgeschlagen"));
-
-              if (blob.size <= maxSizeMB * 1024 * 1024 || quality <= 0.3) {
-                resolve(
-                  new File([blob], f.name.replace(/\.[^.]+$/, ".jpg"), {
-                    type: "image/jpeg",
-                    lastModified: Date.now(),
-                  })
-                );
-              } else {
-                quality = Math.max(quality - 0.1, 0.3);
-                tryCompress();
-              }
-            },
-            "image/jpeg",
-            quality
-          );
+          canvas.toBlob((blob) => {
+            if (!blob) return reject(new Error("Canvas toBlob fehlgeschlagen"));
+            if (blob.size <= maxSizeMB * 1024 * 1024 || quality <= 0.3) {
+              resolve(new File([blob], f.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg", lastModified: Date.now() }));
+            } else {
+              quality = Math.max(quality - 0.1, 0.3);
+              tryCompress();
+            }
+          }, "image/jpeg", quality);
         };
-
         tryCompress();
       };
 
@@ -739,34 +634,22 @@ const uploadBannerImage = async (file: File): Promise<string> => {
   try {
     isUploading.value = true;
     uploadProgress.value = 0;
-
     const fileToUpload = await compressImage(file);
-
     const formData = new FormData();
     formData.append("image", fileToUpload, fileToUpload.name);
 
     const response = await api.post("/api/uploads/images", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
+      headers: { "Content-Type": "multipart/form-data" },
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total) {
-          uploadProgress.value = Math.round(
-            (progressEvent.loaded * 100) / progressEvent.total
-          );
+          uploadProgress.value = Math.round((progressEvent.loaded * 100) / progressEvent.total);
         }
       },
     });
 
     const result = response.data;
-
-    if (result.filename) {
-      return `/uploads/images/${result.filename}`;
-    }
-    if (result.url && result.url.includes("/uploads/images/")) {
-      return result.url;
-    }
-
+    if (result.filename) return `/uploads/images/${result.filename}`;
+    if (result.url && result.url.includes("/uploads/images/")) return result.url;
     throw new Error("Ungültige Antwort vom Upload-Server");
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
@@ -791,34 +674,8 @@ const newCategory = ref<NewCategory>({
   bannerImage: "",
 });
 
-const iconOptions = [
-  { label: "Pizza", value: "local_pizza" },
-  { label: "Fastfood", value: "fastfood" },
-  { label: "Getränke", value: "wine_bar" },
-  { label: "Saucen", value: "water_drop" },
-  { label: "Desserts", value: "cake" },
-  { label: "Salat", value: "eco" },
-  { label: "Fleisch", value: "restaurant" },
-  { label: "Fisch", value: "set_meal" },
-  { label: "Pasta", value: "ramen_dining" },
-  { label: "Suppe", value: "soup_kitchen" },
-  { label: "Brot", value: "bakery_dining" },
-  { label: "Kaffee", value: "local_cafe" },
-  { label: "Eis", value: "icecream" },
-  { label: "Burger", value: "lunch_dining" },
-  { label: "Asiatisch", value: "rice_bowl" },
-  { label: "Teller", value: "local_dining" },
-  { label: "Tasse", value: "coffee_maker" },
-  { label: "Essen", value: "food_bank" },
-  { label: "Flasche", value: "local_drink" },
-];
-
 const isCategoryFormValid = computed(() => {
-  return (
-    newCategory.value.name.trim() !== "" &&
-    newCategory.value.icon !== "" &&
-    !isUploading.value
-  );
+  return newCategory.value.name.trim() !== "" && !isUploading.value;
 });
 
 const onBannerFileChange = async (file: File | null) => {
@@ -830,35 +687,25 @@ const onBannerFileChange = async (file: File | null) => {
   }
 
   bannerFile.value = null;
-
   const reader = new FileReader();
   reader.onload = (e) => (bannerPreview.value = e.target?.result as string);
   reader.readAsDataURL(file);
 
   try {
     newCategory.value.bannerImage = await uploadBannerImage(file);
-
-    $q.notify({
-      type: "positive",
-      position: "top",
-      message: "Bannerbild erfolgreich hochgeladen",
-    });
+    $q.notify({ type: "positive", position: "top", message: "Bannerbild erfolgreich hochgeladen" });
   } catch (error) {
     console.error("Fehler beim Upload:", error);
-    $q.notify({
-      type: "negative",
-      position: "top",
-      message: "Fehler beim Hochladen des Bannerbildes",
-    });
+    $q.notify({ type: "negative", position: "top", message: "Fehler beim Hochladen des Bannerbildes" });
     newCategory.value.bannerImage = "";
     bannerPreview.value = "";
   }
 };
 
-
 const bannerEditInput = ref<HTMLInputElement | null>(null);
 const editingCategory = ref<Category | null>(null);
 const bannerEditLoadingId = ref<number | null>(null);
+
 const triggerBannerEdit = (category: Category) => {
   editingCategory.value = category;
   bannerEditInput.value?.click();
@@ -867,7 +714,6 @@ const triggerBannerEdit = (category: Category) => {
 const onEditBannerFileChange = async (event: Event) => {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0];
-
   if (!file || !editingCategory.value) return;
 
   const targetCategory = editingCategory.value;
@@ -875,11 +721,7 @@ const onEditBannerFileChange = async (event: Event) => {
 
   try {
     const newBannerUrl = await uploadBannerImage(file);
-
-    await api.put(`/api/category/${targetCategory.id}`, {
-      ...targetCategory,
-      bannerImage: newBannerUrl,
-    });
+    await api.put(`/api/category/${targetCategory.id}`, { ...targetCategory, bannerImage: newBannerUrl });
 
     if (targetCategory.bannerImage) {
       const oldFileName = targetCategory.bannerImage.split("/").pop();
@@ -902,18 +744,10 @@ const onEditBannerFileChange = async (event: Event) => {
       message: `Bannerbild der Kategorie "${targetCategory.name}" wurde geändert.`,
     });
 
-    $q.notify({
-      type: "positive",
-      position: "top",
-      message: `Bannerbild für "${targetCategory.name}" erfolgreich aktualisiert`,
-    });
+    $q.notify({ type: "positive", position: "top", message: `Bannerbild für "${targetCategory.name}" erfolgreich aktualisiert` });
   } catch (error) {
     console.error("Fehler beim Aktualisieren des Bannerbildes:", error);
-    $q.notify({
-      type: "negative",
-      position: "top",
-      message: "Fehler beim Aktualisieren des Bannerbildes",
-    });
+    $q.notify({ type: "negative", position: "top", message: "Fehler beim Aktualisieren des Bannerbildes" });
   } finally {
     bannerEditLoadingId.value = null;
     editingCategory.value = null;
@@ -927,25 +761,17 @@ const fetchCategories = async () => {
   try {
     const response = await api.get("/api/category");
     categories.value = response.data;
-    categories.value.sort((a, b) => {
-      return a.sortOrder >= b.sortOrder ? 1 : -1;
-    });
+    categories.value.sort((a, b) => (a.sortOrder >= b.sortOrder ? 1 : -1));
   } catch (error) {
     console.error(error);
-    $q.notify({
-      type: "negative",
-      position: "top",
-      message: "Fehler beim Laden der Kategorien",
-    });
+    $q.notify({ type: "negative", position: "top", message: "Fehler beim Laden der Kategorien" });
   }
 };
 
 const isDeleting = ref(false);
-const deleteCategory = async () => {
-  if (selectedCategoriesForDeletion.value.length === 0) {
-    return;
-  }
 
+const deleteCategory = async () => {
+  if (selectedCategoriesForDeletion.value.length === 0) return;
   isDeleting.value = true;
 
   try {
@@ -963,10 +789,7 @@ const deleteCategory = async () => {
             try {
               await api.delete(`/api/uploads/images/${imageFileName}`);
             } catch (imageError) {
-              console.warn(
-                `Fehler beim Löschen des Bildes für Category ${category.id}:`,
-                imageError
-              );
+              console.warn(`Fehler beim Löschen des Bildes für Category ${category.id}:`, imageError);
             }
           }
         }
@@ -981,43 +804,26 @@ const deleteCategory = async () => {
 
         return { ok: true, categoryId: category.id };
       } catch (error) {
-        console.error(
-          `Fehler beim Löschen von Category ${category.id}:`,
-          error
-        );
+        console.error(`Fehler beim Löschen von Category ${category.id}:`, error);
         return { ok: false, categoryId: category.id };
       }
     });
 
     const results = await Promise.all(deletePromises);
-
     const successCount = results.filter((result) => result.ok).length;
     const failCount = results.length - successCount;
 
     if (successCount > 0) {
-      $q.notify({
-        type: "positive",
-        position: "top",
-        message: `${successCount} Kategorie(n) erfolgreich gelöscht`,
-      });
+      $q.notify({ type: "positive", position: "top", message: `${successCount} Kategorie(n) erfolgreich gelöscht` });
     }
-
     if (failCount > 0) {
-      $q.notify({
-        type: "negative",
-        position: "top",
-        message: `Fehler beim Löschen von ${failCount} Kategorie(n)`,
-      });
+      $q.notify({ type: "negative", position: "top", message: `Fehler beim Löschen von ${failCount} Kategorie(n)` });
     }
 
     selectedCategoriesForDeletion.value = [];
   } catch (error) {
     console.error("Fehler beim Löschvorgang:", error);
-    $q.notify({
-      type: "negative",
-      position: "top",
-      message: "Fehler beim Löschvorgang",
-    });
+    $q.notify({ type: "negative", position: "top", message: "Fehler beim Löschvorgang" });
   } finally {
     isDeleting.value = false;
     showCategoryDeleteDialog.value = false;
@@ -1027,11 +833,10 @@ const deleteCategory = async () => {
 
 const onSubmitCategory = async () => {
   if (!isCategoryFormValid.value) return;
-
   categoryLoading.value = true;
+
   try {
     const response = await api.post("/api/category", newCategory.value);
-
     const createdCategory = response.data;
 
     categories.value.push(createdCategory);
@@ -1047,44 +852,24 @@ const onSubmitCategory = async () => {
       message: `Kategorie "${createdCategory.name}" wurde in Kategorien erstellt.`,
     });
 
-    newCategory.value = {
-      name: "",
-      icon: "",
-      apiEndpoint: "",
-      bannerImage: "",
-    };
+    newCategory.value = { name: "", icon: "", apiEndpoint: "", bannerImage: "" };
     bannerPreview.value = "";
 
-    $q.notify({
-      type: "positive",
-      position: "top",
-      message: "Kategorie erfolgreich erstellt!",
-    });
-
+    $q.notify({ type: "positive", position: "top", message: "Kategorie erfolgreich erstellt!" });
     showCategoryDialog.value = false;
   } catch (error) {
     console.error("Error creating category:", error);
-    $q.notify({
-      type: "negative",
-      position: "top",
-      message: "Fehler beim Erstellen der Kategorie",
-    });
+    $q.notify({ type: "negative", position: "top", message: "Fehler beim Erstellen der Kategorie" });
   } finally {
     categoryLoading.value = false;
   }
 };
 
 const getFullImageUrl = (imgUrl: string): string => {
-  if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) {
-    return imgUrl;
-  }
-
+  if (imgUrl.startsWith("http://") || imgUrl.startsWith("https://")) return imgUrl;
   const apiBaseURL = getBaseURL();
-  const normalizedBaseURL = apiBaseURL.endsWith("/")
-    ? apiBaseURL
-    : apiBaseURL + "/";
+  const normalizedBaseURL = apiBaseURL.endsWith("/") ? apiBaseURL : apiBaseURL + "/";
   const cleanedImgUrl = imgUrl.replace(/^\/+/, "");
-
   return normalizedBaseURL + cleanedImgUrl;
 };
 
@@ -1120,28 +905,20 @@ const deleteDialog = ref({
 
 const openCreateDialogAll = (categoryName: string) => {
   const category = categories.value.find((c) => c.name === categoryName);
-  if (!category) {
-    console.warn(`Category "${categoryName}" not found`);
-    return;
-  }
+  if (!category) { console.warn(`Category "${categoryName}" not found`); return; }
   createDialog.value = {
     show: true,
     title: `Neues ${categoryName} erstellen`,
     buttonText: `${categoryName} erstellen`,
     categoryId: category.id,
     imageHint: `z.B. uploads/images/example.jpg`,
-    onCreated: async () => {
-      await fetchCategoryItems(categoryName);
-    },
+    onCreated: async () => { await fetchCategoryItems(categoryName); },
   };
 };
 
 const openEditDialog = (item: CategoryItem, categoryName: string) => {
   const category = categories.value.find((c) => c.name === categoryName);
-  if (!category) {
-    console.warn(`Category "${categoryName}" not found`);
-    return;
-  }
+  if (!category) { console.warn(`Category "${categoryName}" not found`); return; }
   editDialog.value = {
     show: true,
     item: item,
@@ -1157,43 +934,27 @@ const openEditDialog = (item: CategoryItem, categoryName: string) => {
 
 const openDeleteDialog = (categoryName: string) => {
   const category = categories.value.find((c) => c.name === categoryName);
-  if (!category) {
-    console.warn(`Category "${categoryName}" not found`);
-    return;
-  }
+  if (!category) { console.warn(`Category "${categoryName}" not found`); return; }
   deleteDialog.value = {
     show: true,
     title: categoryName,
     apiEndpoint: category.apiEndpoint,
     categoryId: category.id,
-    onDeleted: async () => {
-      await fetchCategoryItems(categoryName);
-    },
+    onDeleted: async () => { await fetchCategoryItems(categoryName); },
   };
 };
 
 const fetchCategoryItems = async (categoryName: string) => {
   const category = categories.value.find((c) => c.name === categoryName);
-  if (!category) {
-    console.warn(`Category "${categoryName}" not found`);
-    return;
-  }
+  if (!category) { console.warn(`Category "${categoryName}" not found`); return; }
 
   try {
-    const response = await api.get(
-      `/api/categoryItems/by-category/${category.id}`
-    );
+    const response = await api.get(`/api/categoryItems/by-category/${category.id}`);
     categoryItems.value[categoryName] = response.data;
-    categoryItems.value[categoryName]!.sort((a, b) => {
-      return a.sortOrder >= b.sortOrder ? 1 : -1;
-    });
+    categoryItems.value[categoryName]!.sort((a, b) => (a.sortOrder >= b.sortOrder ? 1 : -1));
   } catch (error) {
     console.error(`Error fetching ${categoryName}:`, error);
-    $q.notify({
-      type: "negative",
-      position: "top",
-      message: `Fehler beim Laden der ${categoryName}`,
-    });
+    $q.notify({ type: "negative", position: "top", message: `Fehler beim Laden der ${categoryName}` });
   }
 };
 
@@ -1202,22 +963,14 @@ const isUserScrolling = ref(false);
 const sectionRefs = ref<Record<string, HTMLElement>>({});
 const pillDragged = ref(false);
 
-const onPillMouseDown = () => {
-  pillDragged.value = false;
-};
+const onPillMouseDown = () => { pillDragged.value = false; };
 
 const onPillClick = (category: Category) => {
-  if (pillDragged.value) {
-    pillDragged.value = false;
-    return;
-  }
+  if (pillDragged.value) { pillDragged.value = false; return; }
   onTabChange(category);
 };
 
-const setSectionRef = (
-  categoryName: string,
-  el: Element | ComponentPublicInstance | null
-) => {
+const setSectionRef = (categoryName: string, el: Element | ComponentPublicInstance | null) => {
   if (el && el instanceof HTMLElement) {
     sectionRefs.value[categoryName] = el;
   }
@@ -1229,58 +982,41 @@ const onTabChange = (category: Category) => {
 
   const headerOffset = 160;
   const element = sectionRefs.value[tab.value];
-
   if (element) {
     const elementTop = element.offsetTop;
     const scrollTop = elementTop - headerOffset;
-
-    window.scrollTo({
-      top: Math.max(0, scrollTop),
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: Math.max(0, scrollTop), behavior: "smooth" });
   }
 
-  setTimeout(() => {
-    isUserScrolling.value = false;
-  }, 1000);
+  setTimeout(() => { isUserScrolling.value = false; }, 1000);
 };
 
 let observer: IntersectionObserver | null = null;
 
 const handleIntersection = (entries: IntersectionObserverEntry[]) => {
   if (isUserScrolling.value) return;
-
   entries.forEach((entry) => {
     if (entry.isIntersecting) {
       const categoryName = Object.keys(sectionRefs.value).find(
         (key) => sectionRefs.value[key] === entry.target
       );
-      if (categoryName) {
-        tab.value = categoryName;
-      }
+      if (categoryName) tab.value = categoryName;
     }
   });
 };
 
 const navContainerRef = ref<HTMLElement | null>(null);
 
-  watch(tab, async () => {
-  await nextTick(); 
-  
+watch(tab, async () => {
+  await nextTick();
   if (!navContainerRef.value) return;
-
-  const activePill = navContainerRef.value.querySelector('.pill-active') as HTMLElement;
-  
+  const activePill = navContainerRef.value.querySelector(".pill-active") as HTMLElement;
   if (activePill) {
     const containerWidth = navContainerRef.value.clientWidth;
     const pillLeft = activePill.offsetLeft;
     const pillWidth = activePill.clientWidth;
-    const scrollPos = pillLeft - (containerWidth / 2) + (pillWidth / 2);
-
-    navContainerRef.value.scrollTo({
-      left: scrollPos,
-      behavior: 'smooth'
-    });
+    const scrollPos = pillLeft - containerWidth / 2 + pillWidth / 2;
+    navContainerRef.value.scrollTo({ left: scrollPos, behavior: "smooth" });
   }
 });
 
@@ -1317,9 +1053,7 @@ onBeforeUnmount(() => {
     tabsSortableInstance.value.destroy();
     tabsSortableInstance.value = null;
   }
-  Object.values(sortableInstances.value).forEach((instance) => {
-    instance.destroy();
-  });
+  Object.values(sortableInstances.value).forEach((instance) => { instance.destroy(); });
   sortableInstances.value = {};
 });
 </script>
@@ -1372,9 +1106,7 @@ onBeforeUnmount(() => {
   gap: 10px;
   scrollbar-width: none;
 }
-.categories-nav::-webkit-scrollbar {
-  display: none;
-}
+.categories-nav::-webkit-scrollbar { display: none; }
 
 .nav-pill {
   display: flex;
@@ -1391,26 +1123,17 @@ onBeforeUnmount(() => {
   font-size: 13px;
   user-select: none;
 }
-.nav-pill:active {
-  cursor: grabbing;
-}
-.pill-drag-icon {
-  opacity: 0.3;
-  color: #aaa;
-}
+.nav-pill:active { cursor: grabbing; }
+.pill-drag-icon { opacity: 0.3; color: #aaa; }
 .pill-active {
   background: rgba(255, 255, 255, 0.1);
   color: white;
   border-color: var(--q-secondary);
 }
 
-.content-scrollable {
-  padding-bottom: 60px;
-}
+.content-scrollable { padding-bottom: 60px; }
 
-.category-block {
-  margin-bottom: 50px;
-}
+.category-block { margin-bottom: 50px; }
 
 .category-hero {
   height: 220px;
@@ -1418,16 +1141,10 @@ onBeforeUnmount(() => {
   border-radius: 0 0 40px 40px;
   overflow: hidden;
 }
-.hero-img {
-  height: 100%;
-  width: 100%;
-}
-.hero-overlay {
-  background: linear-gradient(to bottom, transparent 20%, #050505 100%);
-}
-.items-container {
-  padding-top: 50px;
-}
+.hero-img { height: 100%; width: 100%; }
+.hero-overlay { background: linear-gradient(to bottom, transparent 20%, #050505 100%); }
+
+.items-container { padding-top: 50px; }
 
 .premium-glass-card {
   background: rgba(255, 255, 255, 0.03);
@@ -1445,13 +1162,8 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
-.drag-handle {
-  cursor: grab;
-  opacity: 0.5;
-}
-.drag-handle:active {
-  cursor: grabbing;
-}
+.drag-handle { cursor: grab; opacity: 0.5; }
+.drag-handle:active { cursor: grabbing; }
 
 .card-body {
   flex: 1;
@@ -1476,10 +1188,7 @@ onBeforeUnmount(() => {
   font-weight: 800;
   color: var(--q-secondary);
 }
-.currency {
-  font-size: 12px;
-  opacity: 0.6;
-}
+.currency { font-size: 12px; opacity: 0.6; }
 
 .card-media {
   position: relative;
@@ -1487,11 +1196,7 @@ onBeforeUnmount(() => {
   height: 100px;
   flex-shrink: 0;
 }
-.item-img {
-  width: 100%;
-  height: 100%;
-  border-radius: 20px;
-}
+.item-img { width: 100%; height: 100%; border-radius: 20px; }
 
 .add-btn-over {
   position: absolute;
@@ -1500,19 +1205,78 @@ onBeforeUnmount(() => {
   border: 4px solid #0a0a0a;
 }
 
+.dialog-glass-card {
+  background: rgba(15, 15, 15, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 32px;
+}
+
+.card-inner-dialog {
+  padding: 40px 30px;
+}
+
+.delete-item-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.selected-item-active {
+  background: rgba(244, 67, 54, 0.1);
+  border-color: rgba(244, 67, 54, 0.5);
+}
+
+.category-banner-thumb {
+  position: relative;
+  flex: 1;
+  height: 70px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.luxury-btn {
+  border-radius: 12px;
+  font-weight: bold;
+  height: 55px;
+}
+
+.luxury-btn-outline {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  height: 55px;
+  color: white;
+}
+
+.warning-banner {
+  background: rgba(244, 67, 54, 0.08);
+  border-radius: 12px;
+  border-left: 4px solid #f44336;
+}
+
+.scroll-container::-webkit-scrollbar { width: 6px; }
+.scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.dialog-input :deep(.q-field__control) {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+}
+
+/* ===== SORTABLE ===== */
+
 .sortable-ghost {
   opacity: 0.4;
   border: 2px dashed var(--q-secondary) !important;
   background: transparent !important;
 }
-.sortable-chosen {
-  opacity: 0.85;
-  transform: scale(1.02);
-}
-.sortable-drag {
-  opacity: 0.95 !important;
-  box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important;
-}
+.sortable-chosen { opacity: 0.85; transform: scale(1.02); }
+.sortable-drag { opacity: 0.95 !important; box-shadow: 0 12px 40px rgba(0,0,0,0.5) !important; }
 
 .nav-pill,
 .drag-handle,
@@ -1536,5 +1300,9 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr 1fr;
     gap: 20px;
   }
+}
+
+@media (max-width: 600px) {
+  .card-inner-dialog { padding: 30px 20px; }
 }
 </style>
